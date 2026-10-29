@@ -211,6 +211,14 @@
           "tx": "ac3cda54d1dcc33e4bac28e02eb7c6ce160a9ec36e812fca45d77dda7c102e45",
           "accepted": true,
           "fee_micro_tari": 16752
+        },
+        {
+          "kind": "refund",
+          "label": "Refunded to the client after the claim window closed",
+          "actor": "client",
+          "tx": "19ecd21f22dd1bb9952c86b03d1037502f600e60debf8f78a0d5da41db2396f7",
+          "accepted": true,
+          "fee_micro_tari": 11316
         }
       ]
     },

@@ -1,6 +1,6 @@
 {
-  "taken_utc": "2026-10-29 17:08",
-  "taken_epoch": 12714,
+  "taken_utc": "2026-10-29 17:44",
+  "taken_epoch": 12715,
   "indexer": "https://ootle-indexer-a.tari.com/",
   "verdicts": {
     "7df3988299bc7d13f8cafe15ffde91458562621227fe259717f5d8a559d07872": {
@@ -77,6 +77,11 @@
       "final_decision": "Commit",
       "result": "Accept",
       "finalized_time": "2026-10-29 16:18:56.0"
+    },
+    "19ecd21f22dd1bb9952c86b03d1037502f600e60debf8f78a0d5da41db2396f7": {
+      "final_decision": "Commit",
+      "result": "Accept",
+      "finalized_time": "2026-10-29 17:43:56.0"
     },
     "b5a2e42e5296b144c0b801d93c5e60c61bde0f89f5f570094ce4708592243561": {
       "final_decision": "Commit",

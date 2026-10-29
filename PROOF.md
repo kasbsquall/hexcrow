@@ -24,7 +24,7 @@ The verdict of any transaction:
 curl -s https://ootle-indexer-a.tari.com/transactions/<id>/result
 ```
 
-Under `result.Finalized`: `final_decision` is `Commit` or `{"Abort": "ExecutionFailure"}`, and `execution_result.finalize.result` is `Accept`, `AcceptFeeRejectRest` (the main instructions were rejected and only the fee was taken), or `Reject` with the reason.
+Under `result.Finalized`: `final_decision` is `Commit` or `{"Abort": "ExecutionFailure"}`, and `execution_result.finalize.result` is `Accept`, `AcceptFeeRejectRest` (the main instructions were rejected and only the fee was taken), or `Reject` with the reason. After a while, a transaction the chain rejected may come back in a short form instead, `{"result": {"Rejected": {"details": "<reason>", "rejected_time": "<time>"}}}`, with the same reason.
 
 **Transaction results expire.** The indexers advertise a 50-epoch retention, but on 29 October they dropped results in fewer than 10 epochs. If a `transactions/<id>/result` call answers 404, the result as the indexer served it right after the run is in [evidence/indexer-results/](evidence/indexer-results/)`<id>.json`. The book and the escrow substates above do not expire.
 
@@ -63,9 +63,9 @@ Approve before epoch 12714, claim before epoch 12715. Its own keys: client `fab7
 |---|---|---|---|---|
 | 1 | Issue | contractor | `cbf10cb3dfba251dab4b5c53d34a8ab10f3f89f314bf24ab02844ea8f0278dc3` | `Accept` |
 | 2 | Fund, 40 tTARI into the escrow | client | `ac3cda54d1dcc33e4bac28e02eb7c6ce160a9ec36e812fca45d77dda7c102e45` | `Accept` |
-| 3 | Refund from epoch 12715 | client (co-signing with the invoice's escrow key) | `REFUND_TX_2` | `Accept` |
+| 3 | Refund from epoch 12715 | client (co-signing with the invoice's escrow key) | `19ecd21f22dd1bb9952c86b03d1037502f600e60debf8f78a0d5da41db2396f7` | `Accept` |
 
-The contractor ran `hexcrow verify 2` after funding (`verify:2` in the run log, all checks passed).
+The contractor ran `hexcrow verify 2` after funding, recorded as `verify:2`. The first run failed the lock check because the CLI misread how the indexer returns the escrow's script; after that fix, the second run passed every check.
 
 ## Invoice 3: the next milestone, checked with the amount
 

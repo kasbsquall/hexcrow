@@ -117,6 +117,9 @@
 
   // A verdict as the indexer finalized it, compared with what the run recorded.
   function readVerdict(json, row) {
+    // After a while the indexer keeps only this short form for a transaction the chain rejected.
+    const rejected = json.result && json.result.Rejected;
+    if (rejected) return judge({ final_decision: 'Reject', result: 'Reject', finalized_time: rejected.rejected_time }, row, 'on the indexer');
     const fin = json.result && json.result.Finalized;
     if (!fin) return { state: 'bad', text: 'Not finalized on the indexer' };
     const res = fin.execution_result && fin.execution_result.finalize && fin.execution_result.finalize.result;
@@ -132,8 +135,9 @@
     return { state: 'neutral', text: `Rejection confirmed ${where}, nothing committed` };
   }
 
-  // The indexer prunes transactions after 50 epochs. A 404 then falls back to the verdict
-  // snapshotted from the same indexer (tools/snapshot_verdicts.py), labelled as such.
+  // The indexer prunes transaction results within a few epochs, whatever its /info advertises.
+  // A 404 then falls back to the verdict snapshotted from the same indexer
+  // (tools/snapshot_verdicts.py), labelled as such.
   function fromSnapshot(row) {
     const snap = state.snapshot && state.snapshot.verdicts[row.tx];
     if (!snap) return { state: 'off', text: 'Pruned from the indexer, no snapshot' };
