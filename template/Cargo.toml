@@ -1,0 +1,46 @@
+[workspace]
+
+[package]
+name = "hexcrow_book"
+version = "0.1.0"
+edition = "2024"
+description = "Hexcrow invoice book: a public audit trail for private milestone escrows on the Tari Ootle"
+license = "MIT"
+
+[package.metadata.tari-template]
+tags = ["escrow", "invoice", "privacy"]
+category = "finance"
+homepage = "https://github.com/"
+
+[dependencies]
+tari_template_lib = { version = "0.35" }
+
+[dev-dependencies]
+tari_template_test_tooling = "0.47"
+sha2 = "0.10"
+# tari_crypto 0.24.1 (21-oct) breaks type inference inside tari_template_test_tooling 0.47.0.
+tari_crypto = "=0.24.0"
+
+[lib]
+crate-type = ["cdylib"]
+
+[profile.release]
+opt-level = 's'
+lto = true
+codegen-units = 1
+panic = 'abort'
+strip = true
+
+# The WASM engine is ~10x slower in debug; optimise it in test builds (as in tari-project/wasm-template).
+[profile.dev.package.wasmer]
+opt-level = 2
+[profile.dev.package.wasmer-compiler]
+opt-level = 2
+[profile.dev.package.wasmer-compiler-cranelift]
+opt-level = 2
+[profile.dev.package.cranelift-codegen]
+opt-level = 2
+[profile.dev.package.cranelift-frontend]
+opt-level = 2
+[profile.dev.package.cranelift-entity]
+opt-level = 2
