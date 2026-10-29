@@ -1,162 +1,598 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-29T00:00:00Z",
+  "generatedAt": "2026-10-29T19:52:42.201Z",
   "title": "Design System: Hexcrow",
   "extensions": {
     "colorMeta": {
-      "original": { "role": "neutral", "displayName": "Original (public copy)", "canonical": "oklch(97% .008 95)", "tonalRamp": ["oklch(15% .008 95)", "oklch(27% .008 95)", "oklch(39% .008 95)", "oklch(51% .008 95)", "oklch(63% .008 95)", "oklch(75% .008 95)", "oklch(87% .008 95)", "oklch(97% .008 95)"] },
-      "canario": { "role": "neutral", "displayName": "Canary (client copy)", "canonical": "oklch(93% .07 98)", "tonalRamp": ["oklch(15% .07 98)", "oklch(27% .07 98)", "oklch(39% .07 98)", "oklch(51% .07 98)", "oklch(63% .07 98)", "oklch(75% .07 98)", "oklch(87% .07 98)", "oklch(95% .07 98)"] },
-      "rosa": { "role": "neutral", "displayName": "Pink (contractor copy)", "canonical": "oklch(91% .045 10)", "tonalRamp": ["oklch(15% .045 10)", "oklch(27% .045 10)", "oklch(39% .045 10)", "oklch(51% .045 10)", "oklch(63% .045 10)", "oklch(75% .045 10)", "oklch(87% .045 10)", "oklch(95% .045 10)"] },
-      "azul": { "role": "neutral", "displayName": "Blue (accountant copy)", "canonical": "oklch(91% .035 235)", "tonalRamp": ["oklch(15% .035 235)", "oklch(27% .035 235)", "oklch(39% .035 235)", "oklch(51% .035 235)", "oklch(63% .035 235)", "oklch(75% .035 235)", "oklch(87% .035 235)", "oklch(95% .035 235)"] },
-      "carbon": { "role": "primary", "displayName": "Carbon Ink", "canonical": "oklch(30% .03 255)", "tonalRamp": ["oklch(15% .03 255)", "oklch(30% .03 255)", "oklch(39% .03 255)", "oklch(51% .03 255)", "oklch(63% .03 255)", "oklch(75% .03 255)", "oklch(87% .03 255)", "oklch(95% .03 255)"] },
-      "sello": { "role": "secondary", "displayName": "Stamp Red", "canonical": "oklch(52% .16 25)", "tonalRamp": ["oklch(15% .16 25)", "oklch(27% .16 25)", "oklch(39% .16 25)", "oklch(52% .16 25)", "oklch(63% .16 25)", "oklch(75% .12 25)", "oklch(87% .07 25)", "oklch(95% .03 25)"] },
-      "sello-ink": { "role": "secondary", "displayName": "Stamp Red, Ink", "canonical": "oklch(45% .15 25)", "tonalRamp": ["oklch(15% .15 25)", "oklch(27% .15 25)", "oklch(37% .15 25)", "oklch(45% .15 25)", "oklch(57% .15 25)", "oklch(70% .12 25)", "oklch(84% .07 25)", "oklch(95% .03 25)"] },
-      "verde": { "role": "tertiary", "displayName": "Ledger Green", "canonical": "oklch(46% .09 155)", "tonalRamp": ["oklch(15% .09 155)", "oklch(27% .09 155)", "oklch(37% .09 155)", "oklch(46% .09 155)", "oklch(58% .09 155)", "oklch(72% .08 155)", "oklch(86% .05 155)", "oklch(95% .02 155)"] },
-      "desk": { "role": "neutral", "displayName": "Desk", "canonical": "oklch(84% .02 80)", "tonalRamp": ["oklch(15% .02 80)", "oklch(27% .02 80)", "oklch(39% .02 80)", "oklch(51% .02 80)", "oklch(63% .02 80)", "oklch(75% .02 80)", "oklch(84% .02 80)", "oklch(95% .02 80)"] }
+      "original": {
+        "role": "neutral",
+        "displayName": "Original (public copy)",
+        "canonical": "oklch(95% .012 85)",
+        "tonalRamp": [
+          "oklch(15% .012 85)",
+          "oklch(26% .012 85)",
+          "oklch(37% .012 85)",
+          "oklch(48% .012 85)",
+          "oklch(59% .012 85)",
+          "oklch(70% .012 85)",
+          "oklch(82% .012 85)",
+          "oklch(95% .012 85)"
+        ]
+      },
+      "canario": {
+        "role": "neutral",
+        "displayName": "Canario (client copy)",
+        "canonical": "oklch(91% .07 96)",
+        "tonalRamp": [
+          "oklch(15% .07 96)",
+          "oklch(26% .07 96)",
+          "oklch(37% .07 96)",
+          "oklch(48% .07 96)",
+          "oklch(59% .07 96)",
+          "oklch(70% .07 96)",
+          "oklch(82% .07 96)",
+          "oklch(95% .07 96)"
+        ]
+      },
+      "rosa": {
+        "role": "neutral",
+        "displayName": "Rosa (contractor copy)",
+        "canonical": "oklch(89% .045 15)",
+        "tonalRamp": [
+          "oklch(15% .045 15)",
+          "oklch(26% .045 15)",
+          "oklch(37% .045 15)",
+          "oklch(48% .045 15)",
+          "oklch(59% .045 15)",
+          "oklch(70% .045 15)",
+          "oklch(82% .045 15)",
+          "oklch(95% .045 15)"
+        ]
+      },
+      "salvia": {
+        "role": "neutral",
+        "displayName": "Salvia (mediator copy)",
+        "canonical": "oklch(89% .04 160)",
+        "tonalRamp": [
+          "oklch(15% .04 160)",
+          "oklch(26% .04 160)",
+          "oklch(37% .04 160)",
+          "oklch(48% .04 160)",
+          "oklch(59% .04 160)",
+          "oklch(70% .04 160)",
+          "oklch(82% .04 160)",
+          "oklch(95% .04 160)"
+        ]
+      },
+      "azul": {
+        "role": "neutral",
+        "displayName": "Azul (accountant copy)",
+        "canonical": "oklch(89% .035 240)",
+        "tonalRamp": [
+          "oklch(15% .035 240)",
+          "oklch(26% .035 240)",
+          "oklch(37% .035 240)",
+          "oklch(48% .035 240)",
+          "oklch(59% .035 240)",
+          "oklch(70% .035 240)",
+          "oklch(82% .035 240)",
+          "oklch(95% .035 240)"
+        ]
+      },
+      "carbon": {
+        "role": "neutral",
+        "displayName": "Carbon Ink",
+        "canonical": "oklch(26% .03 262)",
+        "tonalRamp": [
+          "oklch(15% .03 262)",
+          "oklch(26% .03 262)",
+          "oklch(37% .03 262)",
+          "oklch(48% .03 262)",
+          "oklch(59% .03 262)",
+          "oklch(70% .03 262)",
+          "oklch(82% .03 262)",
+          "oklch(95% .03 262)"
+        ]
+      },
+      "sello": {
+        "role": "secondary",
+        "displayName": "Stamp Red",
+        "canonical": "oklch(54% .17 25)",
+        "tonalRamp": [
+          "oklch(15% .17 25)",
+          "oklch(26% .17 25)",
+          "oklch(37% .17 25)",
+          "oklch(48% .17 25)",
+          "oklch(59% .17 25)",
+          "oklch(70% .17 25)",
+          "oklch(82% .17 25)",
+          "oklch(95% .17 25)"
+        ]
+      },
+      "sello-ink": {
+        "role": "secondary",
+        "displayName": "Stamp Red, Ink",
+        "canonical": "oklch(45% .15 25)",
+        "tonalRamp": [
+          "oklch(15% .15 25)",
+          "oklch(26% .15 25)",
+          "oklch(37% .15 25)",
+          "oklch(48% .15 25)",
+          "oklch(59% .15 25)",
+          "oklch(70% .15 25)",
+          "oklch(82% .15 25)",
+          "oklch(95% .15 25)"
+        ]
+      },
+      "verde": {
+        "role": "tertiary",
+        "displayName": "Ledger Green",
+        "canonical": "oklch(44% .09 155)",
+        "tonalRamp": [
+          "oklch(15% .09 155)",
+          "oklch(26% .09 155)",
+          "oklch(37% .09 155)",
+          "oklch(48% .09 155)",
+          "oklch(59% .09 155)",
+          "oklch(70% .09 155)",
+          "oklch(82% .09 155)",
+          "oklch(95% .09 155)"
+        ]
+      },
+      "night": {
+        "role": "neutral",
+        "displayName": "Night Desk",
+        "canonical": "oklch(17.5% .025 265)",
+        "tonalRamp": [
+          "oklch(15% .025 265)",
+          "oklch(26% .025 265)",
+          "oklch(37% .025 265)",
+          "oklch(48% .025 265)",
+          "oklch(59% .025 265)",
+          "oklch(70% .025 265)",
+          "oklch(82% .025 265)",
+          "oklch(95% .025 265)"
+        ]
+      },
+      "night-2": {
+        "role": "neutral",
+        "displayName": "Night Desk, Raised",
+        "canonical": "oklch(21.5% .03 265)",
+        "tonalRamp": [
+          "oklch(15% .03 265)",
+          "oklch(26% .03 265)",
+          "oklch(37% .03 265)",
+          "oklch(48% .03 265)",
+          "oklch(59% .03 265)",
+          "oklch(70% .03 265)",
+          "oklch(82% .03 265)",
+          "oklch(95% .03 265)"
+        ]
+      },
+      "night-3": {
+        "role": "neutral",
+        "displayName": "Night Desk, Hover",
+        "canonical": "oklch(27% .032 265)",
+        "tonalRamp": [
+          "oklch(15% .032 265)",
+          "oklch(26% .032 265)",
+          "oklch(37% .032 265)",
+          "oklch(48% .032 265)",
+          "oklch(59% .032 265)",
+          "oklch(70% .032 265)",
+          "oklch(82% .032 265)",
+          "oklch(95% .032 265)"
+        ]
+      },
+      "bone": {
+        "role": "neutral",
+        "displayName": "Bone Ink",
+        "canonical": "oklch(92% .016 85)",
+        "tonalRamp": [
+          "oklch(15% .016 85)",
+          "oklch(26% .016 85)",
+          "oklch(37% .016 85)",
+          "oklch(48% .016 85)",
+          "oklch(59% .016 85)",
+          "oklch(70% .016 85)",
+          "oklch(82% .016 85)",
+          "oklch(95% .016 85)"
+        ]
+      },
+      "bone-2": {
+        "role": "neutral",
+        "displayName": "Bone Ink, Secondary",
+        "canonical": "oklch(76% .022 262)",
+        "tonalRamp": [
+          "oklch(15% .022 262)",
+          "oklch(26% .022 262)",
+          "oklch(37% .022 262)",
+          "oklch(48% .022 262)",
+          "oklch(59% .022 262)",
+          "oklch(70% .022 262)",
+          "oklch(82% .022 262)",
+          "oklch(95% .022 262)"
+        ]
+      },
+      "bone-3": {
+        "role": "neutral",
+        "displayName": "Bone Ink, Quiet",
+        "canonical": "oklch(64% .025 262)",
+        "tonalRamp": [
+          "oklch(15% .025 262)",
+          "oklch(26% .025 262)",
+          "oklch(37% .025 262)",
+          "oklch(48% .025 262)",
+          "oklch(59% .025 262)",
+          "oklch(70% .025 262)",
+          "oklch(82% .025 262)",
+          "oklch(95% .025 262)"
+        ]
+      },
+      "night-rule": {
+        "role": "neutral",
+        "displayName": "Night Hairline",
+        "canonical": "oklch(92% .016 85 / .12)",
+        "tonalRamp": [
+          "oklch(15% .016 85)",
+          "oklch(26% .016 85)",
+          "oklch(37% .016 85)",
+          "oklch(48% .016 85)",
+          "oklch(59% .016 85)",
+          "oklch(70% .016 85)",
+          "oklch(82% .016 85)",
+          "oklch(95% .016 85)"
+        ],
+        "note": "Used at 12% alpha over the night."
+      },
+      "night-rule-strong": {
+        "role": "neutral",
+        "displayName": "Night Hairline, Strong",
+        "canonical": "oklch(92% .016 85 / .24)",
+        "tonalRamp": [
+          "oklch(15% .016 85)",
+          "oklch(26% .016 85)",
+          "oklch(37% .016 85)",
+          "oklch(48% .016 85)",
+          "oklch(59% .016 85)",
+          "oklch(70% .016 85)",
+          "oklch(82% .016 85)",
+          "oklch(95% .016 85)"
+        ],
+        "note": "Used at 24% alpha over the night."
+      },
+      "candle": {
+        "role": "primary",
+        "displayName": "Candle",
+        "canonical": "oklch(83% .12 80)",
+        "tonalRamp": [
+          "oklch(15% .12 80)",
+          "oklch(26% .12 80)",
+          "oklch(37% .12 80)",
+          "oklch(48% .12 80)",
+          "oklch(59% .12 80)",
+          "oklch(70% .12 80)",
+          "oklch(82% .12 80)",
+          "oklch(95% .12 80)"
+        ]
+      },
+      "sello-night": {
+        "role": "secondary",
+        "displayName": "Stamp Red, Night",
+        "canonical": "oklch(68% .16 27)",
+        "tonalRamp": [
+          "oklch(15% .16 27)",
+          "oklch(26% .16 27)",
+          "oklch(37% .16 27)",
+          "oklch(48% .16 27)",
+          "oklch(59% .16 27)",
+          "oklch(70% .16 27)",
+          "oklch(82% .16 27)",
+          "oklch(95% .16 27)"
+        ]
+      },
+      "verde-night": {
+        "role": "tertiary",
+        "displayName": "Ledger Green, Night",
+        "canonical": "oklch(76% .1 155)",
+        "tonalRamp": [
+          "oklch(15% .1 155)",
+          "oklch(26% .1 155)",
+          "oklch(37% .1 155)",
+          "oklch(48% .1 155)",
+          "oklch(59% .1 155)",
+          "oklch(70% .1 155)",
+          "oklch(82% .1 155)",
+          "oklch(95% .1 155)"
+        ]
+      }
     },
     "typographyMeta": {
-      "display": { "displayName": "Amount", "purpose": "The amount on a copy allowed to see it; 64px under 720px. Declared 650; the font request loads 400/500/600/700 only, so it currently renders at 700." },
-      "headline": { "displayName": "Page headline", "purpose": "The h1 only; 30px under 720px." },
-      "title": { "displayName": "Form title", "purpose": "The 'Hexcrow invoice' title box; 20px under 720px." },
-      "title-sm": { "displayName": "Section title", "purpose": "Aside and comparison headings, status and deadline values." },
-      "body": { "displayName": "Box value", "purpose": "Default text and box values, tabular figures." },
-      "body-sm": { "displayName": "Secondary text", "purpose": "Leads, meta, action chips, bar text." },
-      "label": { "displayName": "Printed caption", "purpose": "The caption at the top of each ruled box, always with an icon." }
+      "display": {
+        "displayName": "Display",
+        "purpose": "The amount on a copy that may see it, and the attack count in the intro proof. 64px under 720px."
+      },
+      "tally": {
+        "displayName": "Tally",
+        "purpose": "The count of attacks tried in \"Try to steal it\"."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "The page h1 only, max 15ch, balanced. 32px under 720px."
+      },
+      "number": {
+        "displayName": "Number",
+        "purpose": "The invoice number on the form."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Form title and section headings on the desk."
+      },
+      "title-sm": {
+        "displayName": "Title small",
+        "purpose": "Aside heading; status and deadline values at 600."
+      },
+      "lead": {
+        "displayName": "Lead",
+        "purpose": "The intro paragraph, max 60ch. 15px under 720px."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Box values; tabular figures set globally."
+      },
+      "body-sm": {
+        "displayName": "Body small",
+        "purpose": "Stubs, chips, buttons, table cells, footer, bar."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Printed caption of a ruled box, with a 15px Phosphor Light icon."
+      },
+      "micro": {
+        "displayName": "Micro",
+        "purpose": "Live or recorded note, \"used\" and \"yours\" tags, proof row terms."
+      }
     },
-    "derivedTokens": [
-      { "name": "--copy", "value": "var(--original | --canario | --rosa | --azul)", "purpose": "Set by html[data-view]; the paper of the current viewer." },
-      { "name": "--ground", "value": "color-mix(in oklab, var(--copy) 38%, var(--desk))", "purpose": "Page background, tinted by the current copy." },
-      { "name": "--rule", "value": "color-mix(in oklab, var(--carbon) 20%, transparent)", "purpose": "Hairline between boxes and rows." },
-      { "name": "--rule-strong", "value": "color-mix(in oklab, var(--carbon) 42%, transparent)", "purpose": "Form top rule, chip borders, dashed rules, link underlines." },
-      { "name": "--ink-2", "value": "color-mix(in oklab, var(--carbon) 74%, var(--copy))", "purpose": "Secondary ink on the sheet." },
-      { "name": "--ink-soft", "value": "color-mix(in oklab, var(--carbon) 78%, var(--ground))", "purpose": "Secondary ink on the ground and aside." }
-    ],
     "shadows": [
-      { "name": "sheet", "value": "0 1px 0 color-mix(in oklab, var(--carbon) 10%, transparent), 0 14px 30px -18px color-mix(in oklab, var(--carbon) 45%, transparent)", "purpose": "The active form sheet only." },
-      { "name": "stub", "value": "0 8px 18px -16px color-mix(in oklab, var(--carbon) 60%, transparent)", "purpose": "Transaction stubs and the current invoice row (row adds 0 0 0 1px var(--rule-strong))." },
-      { "name": "under-copy", "value": "0 1px 0 color-mix(in oklab, var(--carbon) 12%, transparent)", "purpose": "Bottom edge of the copies stacked under the sheet at 7, 14 and 21px offsets." }
+      {
+        "name": "sheet",
+        "value": "0 30px 60px -30px oklch(5% .02 265 / .9), 0 0 0 1px oklch(5% .02 265 / .3)",
+        "purpose": "The active form only; lifts the paper off the night desk."
+      },
+      {
+        "name": "box-rules",
+        "value": "1px 0 0 var(--rule), 0 1px 0 var(--rule)",
+        "purpose": "Shared hairlines between ruled boxes inside the sheet."
+      },
+      {
+        "name": "current-ring",
+        "value": "0 0 0 2px var(--candle)",
+        "purpose": "The invoice currently shown, in the book."
+      },
+      {
+        "name": "pulse-glow",
+        "value": "0 0 10px var(--candle)",
+        "purpose": "The live network dot; removed when offline or waiting."
+      }
     ],
     "motion": [
-      { "name": "ease-out", "value": "cubic-bezier(.23,1,.32,1)", "purpose": "Entrances, hovers, the incoming sheet, the stamp landing." },
-      { "name": "ease-move", "value": "cubic-bezier(.77,0,.175,1)", "purpose": "The outgoing sheet and the hourglass turn." },
-      { "name": "sheet-swap", "value": "240ms", "purpose": "Old sheet translateY(56px) rotate(.8deg) to opacity 0; new sheet from translateY(18px)." },
-      { "name": "stamp-land", "value": "220ms, delay 140ms", "purpose": "Stamp scale 1.04 to .95 to 1 with opacity 0 to 1, keeping rotate(-8deg)." },
-      { "name": "rise", "value": "260ms, 60ms per block", "purpose": "Page blocks enter from translateY(6px)." },
-      { "name": "stub-rise", "value": "240ms, 240ms + 30ms per row, capped at 8", "purpose": "Stub entrance, once per invoice." },
-      { "name": "tab", "value": "160ms", "purpose": "Tab lift and press." },
-      { "name": "row", "value": "150ms", "purpose": "Invoice row and mute button hover/press." },
-      { "name": "ground", "value": "240ms", "purpose": "Page background colour change between copies." },
-      { "name": "pulse-beat", "value": "280ms", "purpose": "Network dot beat on each successful indexer read." },
-      { "name": "skeleton", "value": "1.6s ease-in-out infinite", "purpose": "Opacity pulse to .45 while a fact is being read." },
-      { "name": "ambient", "value": "17s / 22s / 6s", "purpose": "Registration marks drift; funded hourglass turns." },
-      { "name": "reduced-motion", "value": "all animation and transition none", "purpose": "Also skips the opening tour and the sheet swap." }
-    ],
-    "sound": [
-      { "name": "switch", "value": "sounds/switch.ogg", "purpose": "Visitor changes copy; silent during the automatic tour." },
-      { "name": "stamp", "value": "sounds/stamp.ogg", "purpose": "Visitor opens another invoice." },
-      { "name": "verified", "value": "sounds/verified.ogg", "purpose": "A visitor-triggered recheck confirms every verdict." },
-      { "name": "policy", "value": "volume 0.28, Kenney CC0", "purpose": "Only from user gestures; mute toggle persisted as localStorage hexcrow-muted." }
+      {
+        "name": "ease-out",
+        "value": "cubic-bezier(.23,1,.32,1)",
+        "purpose": "Entrances, the new sheet rising, stamp landing and slam, hover and press."
+      },
+      {
+        "name": "ease-move",
+        "value": "cubic-bezier(.77,0,.175,1)",
+        "purpose": "The old sheet leaving, the hourglass turn, the crow peck."
+      },
+      {
+        "name": "rise",
+        "value": "260ms, translateY(6px) and opacity, 60ms per block",
+        "purpose": "Block entrance."
+      },
+      {
+        "name": "rise-row",
+        "value": "240ms, 30ms per row capped at 8; stubs after 240ms, attack rows after 300ms",
+        "purpose": "Row entrance; stubs play once per invoice."
+      },
+      {
+        "name": "sheet-out",
+        "value": "240ms move: translateY(56px) rotate(.8deg), fade",
+        "purpose": "Previous copy sliding off when the viewer or invoice changes."
+      },
+      {
+        "name": "sheet-in",
+        "value": "240ms out: from translateY(18px)",
+        "purpose": "New copy settling."
+      },
+      {
+        "name": "stamp-land",
+        "value": "220ms out, 140ms delay: scale 1.04 to .95 to 1",
+        "purpose": "Status stamp after a sheet change."
+      },
+      {
+        "name": "stamp-slam",
+        "value": "220ms out: scale 1.25 to .96 to 1",
+        "purpose": "REFUSED stamp on an attack row."
+      },
+      {
+        "name": "pulse-beat",
+        "value": "280ms out: scale 1.8 to 1",
+        "purpose": "Each successful indexer read."
+      },
+      {
+        "name": "tab",
+        "value": "160ms out on transform and filter",
+        "purpose": "Copy tab lift and press."
+      },
+      {
+        "name": "interaction",
+        "value": "150ms out on background-color; 120ms out on press transform",
+        "purpose": "Buttons, invoice rows, mute toggle."
+      },
+      {
+        "name": "replay-step",
+        "value": "320ms",
+        "purpose": "Delay between attacks in \"Replay them all\"; 0 under reduced motion."
+      },
+      {
+        "name": "ambient",
+        "value": "skeleton 1.6s, smudge drift 9s alternate, hourglass 6s, crow peck 11s after 2s",
+        "purpose": "Slow loops after the entrance; none on running text."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "@media (prefers-reduced-motion: reduce) removes every animation and transition",
+        "purpose": "Also skips the sheet slide in script."
+      },
+      {
+        "name": "sound",
+        "value": "switch.ogg, stamp.ogg, verified.ogg at volume 0.28 (Kenney, CC0)",
+        "purpose": "Only from a user gesture; mute toggle in the bar, remembered in local storage."
+      }
     ],
     "breakpoints": [
-      { "name": "single-column", "value": "1180px" },
-      { "name": "mobile", "value": "720px" }
+      {
+        "name": "single-column",
+        "value": "1180px"
+      },
+      {
+        "name": "mobile",
+        "value": "720px"
+      }
     ]
   },
   "components": [
     {
-      "name": "Copy Tab",
+      "name": "Copy tab",
       "kind": "nav",
       "refersTo": "copy-tab",
-      "description": "Torn pad stub choosing whose copy is shown; each tab in its viewer's paper.",
-      "html": "<div class=\"ds-tabs\"><button class=\"ds-tab\" aria-selected=\"true\" style=\"--tab-paper: oklch(97% .008 95)\"><span class=\"ds-t\">Public</span><span class=\"ds-n\">Anyone with the chain</span></button><button class=\"ds-tab\" aria-selected=\"false\" style=\"--tab-paper: oklch(93% .07 98)\"><span class=\"ds-t\">Client</span><span class=\"ds-n\">Locks and approves</span></button></div>",
-      "css": ".ds-tabs{ display:grid; grid-template-columns:repeat(2,1fr); gap:4px; align-items:end; font-family:Figtree,sans-serif; } .ds-tab{ appearance:none; border:0; cursor:pointer; text-align:left; font:inherit; color:oklch(30% .03 255); background:var(--tab-paper); border-radius:2px 2px 0 0; padding:10px 14px 12px; display:grid; row-gap:1px; transform:translateY(6px); transition:transform 160ms cubic-bezier(.23,1,.32,1); box-shadow:0 -1px 0 color-mix(in oklab, oklch(30% .03 255) 20%, transparent) inset; } .ds-tab:hover{ transform:translateY(2px); } .ds-tab:active{ transform:translateY(4px) scale(.99); } .ds-tab[aria-selected=true]{ transform:none; box-shadow:none; } .ds-tab:focus-visible{ outline:2px solid oklch(30% .03 255); outline-offset:-4px; } .ds-t{ font-weight:650; font-size:15px; } .ds-n{ font-size:12px; opacity:.75; }"
+      "description": "One torn stub of the pad per viewer, in that viewer's paper; unselected tabs sit 6px lower and dimmed.",
+      "html": "<div class=\"ds-tabs\"><button class=\"ds-tab\" aria-selected=\"true\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 256 256\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"12\" aria-hidden=\"true\"><circle cx=\"128\" cy=\"128\" r=\"96\"/><path d=\"M32 128h192M128 32c-28 32-28 160 0 192M128 32c28 32 28 160 0 192\"/></svg><span class=\"ds-t\">Public</span><span class=\"ds-n\">Reads the chain</span></button><button class=\"ds-tab ds-tab-client\" aria-selected=\"false\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 256 256\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"12\" aria-hidden=\"true\"><circle cx=\"128\" cy=\"128\" r=\"96\"/><path d=\"M32 128h192M128 32c-28 32-28 160 0 192M128 32c28 32 28 160 0 192\"/></svg><span class=\"ds-t\">Client</span><span class=\"ds-n\">Locks and approves</span></button></div>",
+      "css": ":host{--original:oklch(95% .012 85);--canario:oklch(91% .07 96);--carbon:oklch(26% .03 262);--sello:oklch(54% .17 25);--night:oklch(17.5% .025 265);--night-2:oklch(21.5% .03 265);--night-3:oklch(27% .032 265);--bone:oklch(92% .016 85);--bone-2:oklch(76% .022 262);--bone-3:oklch(64% .025 262);--night-rule:oklch(92% .016 85 / .12);--night-rule-strong:oklch(92% .016 85 / .24);--candle:oklch(83% .12 80);--copy:var(--original);--rule:color-mix(in oklab,var(--carbon) 20%,transparent);--rule-strong:color-mix(in oklab,var(--carbon) 42%,transparent);--ease-out:cubic-bezier(.23,1,.32,1);--r:2px;font-family:Figtree,sans-serif;font-variant-numeric:tabular-nums lining-nums slashed-zero} .ds-tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;background:var(--night);padding:16px 16px 0} .ds-tab{appearance:none;border:0;cursor:pointer;color:var(--carbon);text-align:left;background:var(--original);border-radius:var(--r) var(--r) 0 0;padding:10px 12px 12px;display:grid;grid-template-columns:auto 1fr;column-gap:9px;row-gap:1px;font:inherit;transform:translateY(6px);filter:brightness(.86) saturate(.9);transition:transform 160ms var(--ease-out),filter 160ms var(--ease-out)} .ds-tab-client{background:var(--canario)} .ds-tab svg{grid-row:span 2;align-self:center} .ds-t{font-weight:650;font-size:15px} .ds-n{font-size:12px;line-height:1.3;color:color-mix(in oklab,var(--carbon) 72%,var(--original))} .ds-tab:hover{transform:translateY(2px);filter:none} .ds-tab:active{transform:translateY(4px) scale(.99)} .ds-tab[aria-selected=\"true\"]{transform:none;filter:none} .ds-tab:focus-visible{outline:2px solid var(--carbon);outline-offset:-4px}"
     },
     {
-      "name": "Ruled Box",
+      "name": "Ruled box with hidden value",
       "kind": "card",
       "refersTo": "form-box",
-      "description": "A field of the invoice form: printed caption, then the value, ruled by shared hairlines.",
-      "html": "<div class=\"ds-sheet\"><div class=\"ds-box\"><p class=\"ds-lab\">Deadline</p><p class=\"ds-val\">Epoch 12735</p><p class=\"ds-small\">Approved before the deadline</p></div><div class=\"ds-box\"><p class=\"ds-lab\">Amount</p><p class=\"ds-amount\"><span class=\"ds-big\">250</span><span class=\"ds-unit\">tTARI</span></p></div></div>",
-      "css": ".ds-sheet{ display:grid; grid-template-columns:1fr 1fr; background:oklch(97% .008 95); color:oklch(30% .03 255); font-family:Figtree,sans-serif; font-variant-numeric:tabular-nums lining-nums slashed-zero; border-top:1px solid color-mix(in oklab, oklch(30% .03 255) 42%, transparent); border-radius:0 0 2px 2px; box-shadow:0 1px 0 color-mix(in oklab, oklch(30% .03 255) 10%, transparent), 0 14px 30px -18px color-mix(in oklab, oklch(30% .03 255) 45%, transparent); } .ds-box{ padding:12px 16px 14px; box-shadow:1px 0 0 color-mix(in oklab, oklch(30% .03 255) 20%, transparent), 0 1px 0 color-mix(in oklab, oklch(30% .03 255) 20%, transparent); margin:0; } .ds-box p{ margin:0; } .ds-lab{ font-size:12px; font-weight:600; opacity:.8; margin-bottom:6px !important; } .ds-val{ font-size:18px; font-weight:600; } .ds-small{ font-size:12px; opacity:.8; } .ds-amount{ display:flex; align-items:baseline; gap:10px; } .ds-big{ font-size:76px; font-weight:650; letter-spacing:-.035em; line-height:.9; } .ds-unit{ font-size:20px; font-weight:600; }"
+      "description": "A form box whose data did not transfer to this copy: label kept, fixed-size blot, \"Not on this copy\" chip with a lock.",
+      "html": "<div class=\"ds-sheet\"><div class=\"ds-box\"><p class=\"ds-lab\"><svg width=\"15\" height=\"15\" viewBox=\"0 0 256 256\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"12\" aria-hidden=\"true\"><ellipse cx=\"96\" cy=\"96\" rx=\"64\" ry=\"32\"/><path d=\"M32 96v48c0 18 29 32 64 32s64-14 64-32V96\"/><path d=\"M160 116c35 3 64 17 64 32v48c0 18-29 32-64 32-24 0-45-7-56-17\"/></svg>Amount</p><p class=\"ds-ghost\"><span class=\"ds-blot\"></span><span class=\"ds-unit\">tTARI</span></p><span class=\"ds-notcopy\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 256 256\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"12\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><rect x=\"40\" y=\"88\" width=\"176\" height=\"128\" rx=\"8\"/><path d=\"M92 88V56a36 36 0 0 1 72 0v32\"/></svg>Not on this copy</span></div></div>",
+      "css": ":host{--original:oklch(95% .012 85);--canario:oklch(91% .07 96);--carbon:oklch(26% .03 262);--sello:oklch(54% .17 25);--night:oklch(17.5% .025 265);--night-2:oklch(21.5% .03 265);--night-3:oklch(27% .032 265);--bone:oklch(92% .016 85);--bone-2:oklch(76% .022 262);--bone-3:oklch(64% .025 262);--night-rule:oklch(92% .016 85 / .12);--night-rule-strong:oklch(92% .016 85 / .24);--candle:oklch(83% .12 80);--copy:var(--original);--rule:color-mix(in oklab,var(--carbon) 20%,transparent);--rule-strong:color-mix(in oklab,var(--carbon) 42%,transparent);--ease-out:cubic-bezier(.23,1,.32,1);--r:2px;font-family:Figtree,sans-serif;font-variant-numeric:tabular-nums lining-nums slashed-zero} .ds-sheet{background:var(--copy);color:var(--carbon);border-radius:0 0 var(--r) var(--r);border-top:1px solid var(--rule-strong);box-shadow:0 30px 60px -30px oklch(5% .02 265 / .9),0 0 0 1px oklch(5% .02 265 / .3);max-width:360px} .ds-box{padding:12px 16px 14px;min-height:150px;display:flex;flex-direction:column;box-shadow:1px 0 0 var(--rule),0 1px 0 var(--rule)} .ds-lab{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:color-mix(in oklab,var(--carbon) 74%,var(--copy));margin:0 0 6px} .ds-ghost{display:flex;align-items:baseline;gap:10px;margin:auto 0 0} .ds-blot{display:block;width:150px;height:58px;border-radius:30px;filter:blur(9px);background:color-mix(in oklab,var(--carbon) 22%,transparent)} .ds-unit{font-size:20px;font-weight:600;color:color-mix(in oklab,var(--carbon) 74%,var(--copy))} .ds-notcopy{margin-top:10px;align-self:flex-start;display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:color-mix(in oklab,var(--carbon) 74%,var(--copy));background:color-mix(in oklab,var(--copy) 82%,transparent);padding:3px 8px 3px 6px;border-radius:var(--r)}"
     },
     {
-      "name": "Hidden Box (not on this copy)",
+      "name": "Stamp",
       "kind": "custom",
-      "refersTo": "not-on-copy",
-      "description": "A field that did not transfer: fixed-size blurred blot and a lock chip; never shaped by the hidden value.",
-      "html": "<div class=\"ds-hidden\"><p class=\"ds-lab\">Amount</p><p class=\"ds-ghost\"><span class=\"ds-blot\"></span><span class=\"ds-unit\">tTARI</span></p><span class=\"ds-notcopy\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 256 256\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"12\"><rect x=\"40\" y=\"88\" width=\"176\" height=\"128\" rx=\"8\"/><path d=\"M92 88V56a36 36 0 0 1 72 0v32\"/></svg>Not on this copy</span></div>",
-      "css": ".ds-hidden{ background:oklch(97% .008 95); color:oklch(30% .03 255); font-family:Figtree,sans-serif; padding:12px 16px 14px; display:flex; flex-direction:column; min-height:150px; } .ds-hidden .ds-lab{ font-size:12px; font-weight:600; margin:0 0 6px; } .ds-ghost{ display:flex; align-items:baseline; gap:10px; margin:auto 0 0; } .ds-blot{ display:block; width:150px; height:58px; border-radius:30px; filter:blur(9px); background:color-mix(in oklab, oklch(30% .03 255) 22%, transparent); } .ds-hidden .ds-unit{ font-size:20px; font-weight:600; opacity:.75; } .ds-notcopy{ display:inline-flex; align-items:center; gap:6px; margin-top:10px; align-self:flex-start; font-size:13px; font-weight:600; padding:3px 8px 3px 6px; border-radius:2px; background:color-mix(in oklab, oklch(97% .008 95) 82%, transparent); }"
+      "refersTo": "sheet",
+      "description": "Rubber stamp for the invoice status: red for verdicts (SETTLED, REFUNDED, REFUSED), carbon at 0.8 for neutral steps.",
+      "html": "<div class=\"ds-paper\"><svg class=\"ds-stamp\" viewBox=\"0 0 178 60\" aria-hidden=\"true\"><g fill=\"none\" stroke=\"currentColor\"><rect x=\"3\" y=\"3\" width=\"172\" height=\"54\" rx=\"3\" stroke-width=\"3.2\"/><rect x=\"9\" y=\"9\" width=\"160\" height=\"42\" rx=\"1.5\" stroke-width=\"1.3\"/><text x=\"89\" y=\"41\" text-anchor=\"middle\" fill=\"currentColor\" stroke=\"none\" font-family=\"Figtree, sans-serif\" font-weight=\"700\" font-size=\"27\" letter-spacing=\"3\">SETTLED</text></g></svg><svg class=\"ds-stamp ds-neutral\" viewBox=\"0 0 178 60\" aria-hidden=\"true\"><g fill=\"none\" stroke=\"currentColor\"><rect x=\"3\" y=\"3\" width=\"172\" height=\"54\" rx=\"3\" stroke-width=\"3.2\"/><rect x=\"9\" y=\"9\" width=\"160\" height=\"42\" rx=\"1.5\" stroke-width=\"1.3\"/><text x=\"89\" y=\"41\" text-anchor=\"middle\" fill=\"currentColor\" stroke=\"none\" font-family=\"Figtree, sans-serif\" font-weight=\"700\" font-size=\"27\" letter-spacing=\"3\">FUNDED</text></g></svg></div>",
+      "css": ":host{--original:oklch(95% .012 85);--canario:oklch(91% .07 96);--carbon:oklch(26% .03 262);--sello:oklch(54% .17 25);--night:oklch(17.5% .025 265);--night-2:oklch(21.5% .03 265);--night-3:oklch(27% .032 265);--bone:oklch(92% .016 85);--bone-2:oklch(76% .022 262);--bone-3:oklch(64% .025 262);--night-rule:oklch(92% .016 85 / .12);--night-rule-strong:oklch(92% .016 85 / .24);--candle:oklch(83% .12 80);--copy:var(--original);--rule:color-mix(in oklab,var(--carbon) 20%,transparent);--rule-strong:color-mix(in oklab,var(--carbon) 42%,transparent);--ease-out:cubic-bezier(.23,1,.32,1);--r:2px;font-family:Figtree,sans-serif;font-variant-numeric:tabular-nums lining-nums slashed-zero} .ds-paper{background:var(--original);padding:24px;display:flex;gap:24px;border-radius:var(--r)} .ds-stamp{width:178px;color:var(--sello);transform:rotate(-8deg)} .ds-neutral{color:var(--carbon);opacity:.8}"
     },
     {
-      "name": "Verdict Stamp",
-      "kind": "custom",
-      "refersTo": "stamp",
-      "description": "Rubber stamp for verdicts only; red for settled, refunded, rejected; carbon for neutral steps.",
-      "html": "<div class=\"ds-stamp\"><svg viewBox=\"0 0 196 60\"><g fill=\"none\" stroke=\"currentColor\"><rect x=\"3\" y=\"3\" width=\"190\" height=\"54\" rx=\"3\" stroke-width=\"3.2\"/><rect x=\"9\" y=\"9\" width=\"178\" height=\"42\" rx=\"1.5\" stroke-width=\"1.3\"/><text x=\"98\" y=\"41\" text-anchor=\"middle\" fill=\"currentColor\" stroke=\"none\" font-family=\"Figtree, sans-serif\" font-weight=\"700\" font-size=\"27\" letter-spacing=\"3\">SETTLED</text></g></svg></div>",
-      "css": ".ds-stamp{ width:200px; color:oklch(52% .16 25); transform:rotate(-8deg); } .ds-stamp svg{ display:block; width:100%; }"
-    },
-    {
-      "name": "Action Chip",
-      "kind": "chip",
-      "refersTo": "action-chip",
-      "description": "A party's action with its state; dashed and muted when not possible.",
-      "html": "<div class=\"ds-actions\"><span class=\"ds-act\">Approve <b>Done</b></span><span class=\"ds-act ds-off\">Refund <b>No longer possible: approved</b></span></div>",
-      "css": ".ds-actions{ display:flex; flex-wrap:wrap; gap:8px; font-family:Figtree,sans-serif; } .ds-act{ font-size:13px; color:oklch(30% .03 255); display:inline-flex; gap:8px; align-items:center; border:1px solid color-mix(in oklab, oklch(30% .03 255) 42%, transparent); background:oklch(97% .008 95); border-radius:2px; padding:7px 12px; } .ds-act b{ font-weight:650; } .ds-off{ border-style:dashed; background:transparent; color:color-mix(in oklab, oklch(30% .03 255) 74%, oklch(97% .008 95)); }"
-    },
-    {
-      "name": "Invoice Row",
-      "kind": "button",
-      "refersTo": "invoice-row",
-      "description": "Navigation between invoices in the book; current row lifted with ring and soft shadow.",
-      "html": "<button class=\"ds-inv\" aria-current=\"true\"><span class=\"ds-nm\">Invoice 0001</span><span class=\"ds-st\">Settled</span><span class=\"ds-meta\">Deadline epoch 12735, 9 transactions</span></button>",
-      "css": ".ds-inv{ width:100%; appearance:none; border:0; font-family:Figtree,sans-serif; color:oklch(30% .03 255); text-align:left; cursor:pointer; display:grid; grid-template-columns:1fr auto; gap:2px 12px; align-items:center; background:color-mix(in oklab, oklch(97% .008 95) 72%, transparent); padding:10px 14px; border-radius:2px; transition:transform 150ms cubic-bezier(.23,1,.32,1), background-color 150ms cubic-bezier(.23,1,.32,1); } .ds-inv:hover{ background:oklch(97% .008 95); } .ds-inv:active{ transform:scale(.98); } .ds-inv:focus-visible{ outline:2px solid oklch(30% .03 255); outline-offset:2px; } .ds-inv[aria-current=true]{ background:oklch(97% .008 95); box-shadow:0 0 0 1px color-mix(in oklab, oklch(30% .03 255) 42%, transparent), 0 8px 18px -16px color-mix(in oklab, oklch(30% .03 255) 60%, transparent); } .ds-nm{ font-size:15px; font-weight:650; } .ds-st{ font-size:12px; font-weight:650; } .ds-meta{ grid-column:1/-1; font-size:12px; opacity:.75; }"
-    },
-    {
-      "name": "Transaction Stub",
-      "kind": "custom",
+      "name": "Transaction stub",
+      "kind": "card",
       "refersTo": "stub",
-      "description": "Tear-off ticket per transaction with its live verdict; rejection reason in red ink.",
-      "html": "<ol class=\"ds-stubs\"><li class=\"ds-stub\"><span class=\"ds-i\">3</span><p class=\"ds-what\">Attack: claim without the approval code</p><p class=\"ds-why\">Hash lock not satisfied</p><p class=\"ds-ver\">Rejection confirmed on the indexer</p></li></ol>",
-      "css": ".ds-stubs{ list-style:none; padding:0; margin:0; font-family:Figtree,sans-serif; color:oklch(30% .03 255); } .ds-stub{ position:relative; background:oklch(97% .008 95); padding:12px 14px 12px 50px; min-height:64px; box-shadow:0 8px 18px -16px color-mix(in oklab, oklch(30% .03 255) 60%, transparent); } .ds-stub p{ margin:0; } .ds-i{ position:absolute; left:14px; top:12px; width:22px; height:22px; display:grid; place-items:center; font-size:13px; font-weight:650; border:1px solid color-mix(in oklab, oklch(30% .03 255) 42%, transparent); border-radius:50%; } .ds-what{ font-size:13px; font-weight:600; } .ds-why{ font-size:12px; font-weight:500; color:oklch(45% .15 25); margin-top:3px !important; } .ds-ver{ font-size:12px; font-weight:600; opacity:.8; margin-top:3px !important; }"
+      "description": "One tear-off stub: numbered ring, what happened, rejection reason in red ink, fee and live verdict, mini stamp.",
+      "html": "<ol class=\"ds-stubs\"><li class=\"ds-stub\"><span class=\"ds-i\">2</span><p class=\"ds-what\">Attack: the contractor funds its own invoice with a code it chose <span class=\"ds-who\">signed by the contractor</span></p><p class=\"ds-why\">Rejected by the book: only the client sets the approval lock</p><p class=\"ds-meta\"><span>Fee 9,652 µT</span></p></li></ol>",
+      "css": ":host{--original:oklch(95% .012 85);--canario:oklch(91% .07 96);--carbon:oklch(26% .03 262);--sello:oklch(54% .17 25);--night:oklch(17.5% .025 265);--night-2:oklch(21.5% .03 265);--night-3:oklch(27% .032 265);--bone:oklch(92% .016 85);--bone-2:oklch(76% .022 262);--bone-3:oklch(64% .025 262);--night-rule:oklch(92% .016 85 / .12);--night-rule-strong:oklch(92% .016 85 / .24);--candle:oklch(83% .12 80);--copy:var(--original);--rule:color-mix(in oklab,var(--carbon) 20%,transparent);--rule-strong:color-mix(in oklab,var(--carbon) 42%,transparent);--ease-out:cubic-bezier(.23,1,.32,1);--r:2px;font-family:Figtree,sans-serif;font-variant-numeric:tabular-nums lining-nums slashed-zero} .ds-stubs{list-style:none;padding:0;margin:0;max-width:360px} .ds-stub{position:relative;background:var(--original);color:var(--carbon);padding:12px 14px 12px 50px;min-height:64px;font-size:13px} .ds-i{position:absolute;left:14px;top:12px;font-weight:650;width:22px;height:22px;display:grid;place-items:center;border:1px solid var(--rule-strong);border-radius:50%} .ds-what{margin:0;font-weight:600;line-height:1.35} .ds-who{font-weight:500;color:color-mix(in oklab,var(--carbon) 72%,var(--original))} .ds-why{margin:3px 0 0;font-size:12px;color:oklch(45% .15 25);font-weight:500} .ds-meta{margin:3px 0 0;font-size:12px;color:color-mix(in oklab,var(--carbon) 72%,var(--original))}"
     },
     {
-      "name": "Skeleton",
-      "kind": "custom",
-      "refersTo": "skeleton",
-      "description": "Placeholder while a live fact is read from the indexer; never a default value.",
-      "html": "<p class=\"ds-skrow\">Status <span class=\"ds-sk\" role=\"status\" aria-label=\"Reading the status from the book\"></span></p>",
-      "css": ".ds-skrow{ font-family:Figtree,sans-serif; font-size:14px; color:oklch(30% .03 255); } .ds-sk{ display:inline-block; height:.9em; min-width:4.5em; border-radius:2px; vertical-align:-1px; background:color-mix(in oklab, oklch(30% .03 255) 12%, transparent); animation:ds-skel 1.6s ease-in-out infinite; } @keyframes ds-skel{ 50%{ opacity:.45; } } @media (prefers-reduced-motion: reduce){ .ds-sk{ animation:none; } }"
+      "name": "Invoice row",
+      "kind": "nav",
+      "refersTo": "invoice-row",
+      "description": "An invoice in the book; the current one carries the candle ring.",
+      "html": "<ul class=\"ds-invs\"><li><button class=\"ds-inv\" aria-current=\"true\"><span class=\"ds-nm\">Invoice 0001</span><span class=\"ds-st\">Settled</span><span class=\"ds-meta\">Approved, then claimed · 13 transactions</span></button></li><li><button class=\"ds-inv\"><span class=\"ds-nm\">Invoice 0002</span><span class=\"ds-st\">Refunded</span><span class=\"ds-meta\">Nobody acted; refunded after the window · 2 transactions</span></button></li></ul>",
+      "css": ":host{--original:oklch(95% .012 85);--canario:oklch(91% .07 96);--carbon:oklch(26% .03 262);--sello:oklch(54% .17 25);--night:oklch(17.5% .025 265);--night-2:oklch(21.5% .03 265);--night-3:oklch(27% .032 265);--bone:oklch(92% .016 85);--bone-2:oklch(76% .022 262);--bone-3:oklch(64% .025 262);--night-rule:oklch(92% .016 85 / .12);--night-rule-strong:oklch(92% .016 85 / .24);--candle:oklch(83% .12 80);--copy:var(--original);--rule:color-mix(in oklab,var(--carbon) 20%,transparent);--rule-strong:color-mix(in oklab,var(--carbon) 42%,transparent);--ease-out:cubic-bezier(.23,1,.32,1);--r:2px;font-family:Figtree,sans-serif;font-variant-numeric:tabular-nums lining-nums slashed-zero} .ds-invs{list-style:none;padding:16px;margin:0;display:grid;gap:4px;background:var(--night);max-width:360px} .ds-inv{width:100%;appearance:none;border:0;color:var(--carbon);text-align:left;cursor:pointer;font:inherit;display:grid;grid-template-columns:1fr auto;align-items:center;gap:2px 12px;background:color-mix(in oklab,var(--original) 84%,var(--night));padding:10px 14px;border-radius:var(--r);transition:transform 150ms var(--ease-out),background-color 150ms var(--ease-out)} .ds-inv:hover{background:var(--original)} .ds-inv:active{transform:scale(.98)} .ds-inv[aria-current=\"true\"]{background:var(--original);box-shadow:0 0 0 2px var(--candle)} .ds-inv:focus-visible{outline:2px solid var(--carbon);outline-offset:2px} .ds-nm{font-size:15px;font-weight:650;letter-spacing:-.01em} .ds-st{font-size:12px;font-weight:650} .ds-meta{grid-column:1/-1;font-size:12px;color:color-mix(in oklab,var(--carbon) 70%,var(--original))}"
+    },
+    {
+      "name": "Try it button",
+      "kind": "button",
+      "refersTo": "try-button",
+      "description": "Replays one attack against the chain from the \"Try to steal it\" list.",
+      "html": "<div class=\"ds-night\"><button class=\"ds-go\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 256 256\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"12\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M160 16 144 96l64 24-112 120 16-80-64-24Z\"/></svg>Try it</button></div>",
+      "css": ":host{--original:oklch(95% .012 85);--canario:oklch(91% .07 96);--carbon:oklch(26% .03 262);--sello:oklch(54% .17 25);--night:oklch(17.5% .025 265);--night-2:oklch(21.5% .03 265);--night-3:oklch(27% .032 265);--bone:oklch(92% .016 85);--bone-2:oklch(76% .022 262);--bone-3:oklch(64% .025 262);--night-rule:oklch(92% .016 85 / .12);--night-rule-strong:oklch(92% .016 85 / .24);--candle:oklch(83% .12 80);--copy:var(--original);--rule:color-mix(in oklab,var(--carbon) 20%,transparent);--rule-strong:color-mix(in oklab,var(--carbon) 42%,transparent);--ease-out:cubic-bezier(.23,1,.32,1);--r:2px;font-family:Figtree,sans-serif;font-variant-numeric:tabular-nums lining-nums slashed-zero} .ds-night{background:var(--night);padding:20px} .ds-go{appearance:none;border:1px solid var(--night-rule-strong);background:var(--night-2);color:var(--bone);cursor:pointer;font:inherit;font-size:13px;font-weight:650;padding:8px 14px;border-radius:var(--r);display:inline-flex;gap:6px;align-items:center;transition:background-color 150ms var(--ease-out),transform 120ms var(--ease-out),border-color 150ms var(--ease-out)} .ds-go:hover{background:var(--night-3);border-color:var(--bone-3)} .ds-go:active{transform:scale(.97)} .ds-go:focus-visible{outline:2px solid var(--candle);outline-offset:2px} .ds-go[disabled]{opacity:.6;cursor:default}"
+    },
+    {
+      "name": "Replay them all",
+      "kind": "button",
+      "refersTo": "try-all",
+      "description": "Outlined button on the desk that fires every attack row 320ms apart.",
+      "html": "<div class=\"ds-night\"><button class=\"ds-all\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 256 256\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"12\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M160 16 144 96l64 24-112 120 16-80-64-24Z\"/></svg>Replay them all</button></div>",
+      "css": ":host{--original:oklch(95% .012 85);--canario:oklch(91% .07 96);--carbon:oklch(26% .03 262);--sello:oklch(54% .17 25);--night:oklch(17.5% .025 265);--night-2:oklch(21.5% .03 265);--night-3:oklch(27% .032 265);--bone:oklch(92% .016 85);--bone-2:oklch(76% .022 262);--bone-3:oklch(64% .025 262);--night-rule:oklch(92% .016 85 / .12);--night-rule-strong:oklch(92% .016 85 / .24);--candle:oklch(83% .12 80);--copy:var(--original);--rule:color-mix(in oklab,var(--carbon) 20%,transparent);--rule-strong:color-mix(in oklab,var(--carbon) 42%,transparent);--ease-out:cubic-bezier(.23,1,.32,1);--r:2px;font-family:Figtree,sans-serif;font-variant-numeric:tabular-nums lining-nums slashed-zero} .ds-night{background:var(--night);padding:20px} .ds-all{appearance:none;border:1px solid var(--bone-3);background:transparent;color:var(--bone);cursor:pointer;font:inherit;font-size:14px;font-weight:650;padding:10px 16px;border-radius:var(--r);display:inline-flex;gap:8px;align-items:center;transition:background-color 150ms var(--ease-out),transform 120ms var(--ease-out)} .ds-all:hover{background:var(--night-2)} .ds-all:active{transform:scale(.97)} .ds-all:focus-visible{outline:2px solid var(--candle);outline-offset:2px} .ds-all[disabled]{opacity:.5;cursor:default}"
+    },
+    {
+      "name": "Shell bar",
+      "kind": "nav",
+      "refersTo": "shell-bar",
+      "description": "Dark strip with hairline-divided cells: brand, network state with candle pulse, mute toggle.",
+      "html": "<header class=\"ds-bar\"><div class=\"ds-brand\">Hexcrow</div><div class=\"ds-net\"><span class=\"ds-pulse\"></span>Esmeralda testnet, epoch <b>12720</b></div><button class=\"ds-mute\">Sound on</button></header>",
+      "css": ":host{--original:oklch(95% .012 85);--canario:oklch(91% .07 96);--carbon:oklch(26% .03 262);--sello:oklch(54% .17 25);--night:oklch(17.5% .025 265);--night-2:oklch(21.5% .03 265);--night-3:oklch(27% .032 265);--bone:oklch(92% .016 85);--bone-2:oklch(76% .022 262);--bone-3:oklch(64% .025 262);--night-rule:oklch(92% .016 85 / .12);--night-rule-strong:oklch(92% .016 85 / .24);--candle:oklch(83% .12 80);--copy:var(--original);--rule:color-mix(in oklab,var(--carbon) 20%,transparent);--rule-strong:color-mix(in oklab,var(--carbon) 42%,transparent);--ease-out:cubic-bezier(.23,1,.32,1);--r:2px;font-family:Figtree,sans-serif;font-variant-numeric:tabular-nums lining-nums slashed-zero} .ds-bar{background:color-mix(in oklab,var(--night) 70%,black);color:var(--bone);border-bottom:1px solid var(--night-rule);display:grid;grid-template-columns:auto 1fr auto;align-items:stretch;min-height:52px} .ds-bar>*{display:flex;align-items:center;padding:0 20px} .ds-bar>*+*{border-left:1px solid var(--night-rule)} .ds-brand{font-weight:700;font-size:17px;letter-spacing:-.01em} .ds-net{gap:10px;font-size:13px} .ds-net b{font-weight:600} .ds-pulse{width:7px;height:7px;border-radius:50%;background:var(--candle);box-shadow:0 0 10px var(--candle)} .ds-mute{appearance:none;border:0;background:transparent;color:inherit;font:inherit;font-size:13px;cursor:pointer;transition:background-color 150ms var(--ease-out)} .ds-mute:hover{background:var(--night-2)} .ds-mute:focus-visible{outline:2px solid var(--candle);outline-offset:-4px}"
     }
   ],
   "narrative": {
-    "northStar": "Carbon triplicate",
-    "overview": "Hexcrow is drawn as the multi-part NCR invoice book every freelancer and accounts office has filled: a white original with canary, pink and blue copies underneath, carbon-blue ink, boxes ruled into a grid, and a rubber stamp for the verdict. Selective disclosure maps one to one onto the object. Each viewer holds a different copy, and the boxes that did not transfer to that copy are the data its holder may not see.\n\nThe surface is a dense, light, documentary object on a desk-coloured ground with a faint paper grain. One form about 900px wide carries the invoice; a 360px aside holds the invoices in the book and a tear-off list of transaction stubs. Everything is set in one humanist sans, in carbon ink, with tabular figures. Depth comes from paper physically stacking (the other copies peek out under the active sheet), from perforations, and from a small set of soft, carbon-tinted shadows. Motion is paper motion: sheets slide, stamps land.\n\nThe direction rejects the dashboard of cards. The form is one ruled object, never a grid of floating tiles.",
+    "northStar": "Carbon copies at midnight",
+    "overview": "Hexcrow is drawn as the multi-part carbon invoice pad every freelancer and accounts office has filled, lying on a desk at night. The pad has five copies of one invoice, each on its own paper stock, written in carbon-blue ink and ruled into boxes. Selective disclosure maps one to one onto the object: each viewer holds a different copy, and what did not transfer to that copy is a carbon smudge with a lock. A rubber stamp gives the invoice its status, a wax seal sits on the escrow while it holds the money and shows a crack once it is spent, and a crow perches on the copy tabs.\n\nThe paper stays light so the form reads; the night is around it. The desk is a dark, cool ground (never pure black) lit by two soft radial glows and grained by a fixed noise layer, with bone-coloured text and hairline rules. One form carries the invoice, a 360px aside holds the invoices in the book and a tear-off list of transaction stubs, and below them the \"Try to steal it\" list replays every attack the chain refused. Everything is set in Figtree with tabular figures. Depth is paper physically stacking: the other copies peek out under the active sheet. Motion is paper motion: sheets slide, stamps land, the crow pecks.\n\nThe form is one ruled object. It is never split into floating tiles with their own shadows.",
     "keyCharacteristics": [
-      "Paper colour encodes the viewer; the whole ground tints with it.",
-      "Carbon-blue ink for all text; red ink only for verdicts and failures.",
-      "Ruled boxes with hairline rules, 2px corners, no card chrome.",
-      "Hidden values are smudges of fixed size, never shapes of the data.",
-      "Every public fact is read live from the indexer, with skeletons while it loads and an explicit recorded fallback."
+      "Paper colour encodes the viewer; the sheet re-points `--copy` when the viewer changes.",
+      "Two inks: carbon on paper, bone on night. Each status colour has a paper version and a night version.",
+      "Ruled boxes with shared hairlines, one 2px corner everywhere, no card chrome.",
+      "Hidden values are smudges and blots of fixed size, never shapes of the data.",
+      "Every public fact is read live from the indexer, with labelled skeletons while it loads and an explicit recorded fallback.",
+      "Candle yellow is the only light on the desk."
     ],
     "rules": [
-      { "name": "The Paper Per Viewer Rule", "body": "Each viewer owns one paper: Public is Original, Client is Canary, Contractor is Pink, Accountant is Blue. Switching viewer sets data-view on the root and re-points --copy; the sheet, the ground and the \"Your path\" tag all derive from it. A new screen for a viewer uses that viewer's paper and never another's.", "section": "colors" },
-      { "name": "The Stamp Is A Verdict Rule", "body": "Red stamps and red ink speak only for verdicts and failures: settled, refunded, rejected, a mismatch, an unreachable indexer. Neutral progress (issued, funded, approved, committed) stamps in carbon. Red is never decoration, never a button fill, never a heading.", "section": "colors" },
-      { "name": "The Tabular Ink Rule", "body": "The body sets tabular-nums lining-nums slashed-zero globally. Every number on a form, stub or bar stays tabular and carries its unit (tTARI, µT, epoch).", "section": "typography" },
-      { "name": "The Identifier Rule", "body": "Hashes, keys and ids are shortened with an ellipsis in the middle, keep the full value in title, and wrap anywhere. Epochs print without thousands separators; amounts and fees use them.", "section": "typography" },
-      { "name": "The Stacked Pad Rule", "body": "Depth means another sheet of paper. Offsets between copies are the world's own device and stay in the paper colours; never replace them with a generic drop shadow.", "section": "elevation" }
+      {
+        "name": "The Paper Per Viewer Rule",
+        "body": "Each viewer owns one paper: Public is Original, Client is Canario, Contractor is Rosa, Mediator is Salvia, Accountant is Azul. Switching viewer sets `data-view` on the root and re-points `--copy`; the sheet, its secondary ink and the \"yours\" tag derive from it. A new screen for a viewer uses that viewer's paper and never another's.",
+        "section": "colors"
+      },
+      {
+        "name": "The Two Inks Rule",
+        "body": "Carbon writes on paper, bone writes on night. A status colour placed on paper uses its paper form (sello, sello-ink, verde); placed on the desk it uses its night form (sello-night, verde-night, candle). Never put carbon text on the night or bone text on paper.",
+        "section": "colors"
+      },
+      {
+        "name": "The Stamp Is A Verdict Rule",
+        "body": "Red stamps and red ink speak only for verdicts and failures: settled, refunded, refused, a mismatch, an unreachable indexer. Neutral progress (issued, funded, approved, committed) stamps in carbon. Red is never decoration, never a button fill, never a heading.",
+        "section": "colors"
+      },
+      {
+        "name": "The One Candle Rule",
+        "body": "Candle yellow marks light and attention on the desk (focus, live pulse, current selection) and nothing else. It never fills a surface or sets body text.",
+        "section": "colors"
+      },
+      {
+        "name": "The Tabular Ink Rule",
+        "body": "Every number on a form, stub, bar or tally stays tabular and carries its unit (tTARI, µT, epoch).",
+        "section": "typography"
+      },
+      {
+        "name": "The Identifier Rule",
+        "body": "Hashes, keys and ids wrap anywhere with 0.01em tracking, and are shortened in the middle with the full value kept in a title. Fees and amounts use thousands separators.",
+        "section": "typography"
+      },
+      {
+        "name": "The Stacked Pad Rule",
+        "body": "Depth means another sheet of paper. Offsets between copies are the world's own device and stay in the paper colours; do not replace them with a generic drop shadow, and do not add shadows to boxes inside the sheet.",
+        "section": "elevation"
+      }
     ],
     "dos": [
-      "Do give every viewer its own paper (Public original, Client canary, Contractor pink, Accountant blue) and derive the sheet and ground from --copy.",
-      "Do draw hidden values as value-independent smudges: a smudge stretched to the box and a fixed 150 by 58px blot, plus the \"Not on this copy\" chip and screen-reader text.",
+      "Do give every viewer its own paper (Public Original, Client Canario, Contractor Rosa, Mediator Salvia, Accountant Azul) and derive the sheet from `--copy`.",
+      "Do keep paper light and the desk dark: carbon ink on paper, bone ink on night, and the night form of a status colour (sello-night, verde-night, candle) whenever it sits on the desk.",
+      "Do draw hidden values as value-independent smudges: a smudge stretched to the box and a fixed 150 by 58px blot, plus the \"Not on this copy\" chip with its lock and screen-reader text.",
       "Do read status, epoch and verdicts live from the indexer, show a labelled skeleton while reading, and on failure fall back to the recorded run with an explicit \"recorded\" or \"indexer unreachable\" note and the red dot.",
-      "Do put a Phosphor Light icon on every box label, stub verdict, action and table row.",
-      "Do keep every motion under 300ms on transform and opacity, with the reduced-motion override."
+      "Do put a Phosphor Light icon on box labels, stub verdicts, actions, attack rows, section headings and table rows, at one stroke weight.",
+      "Do keep movement on transform and opacity under 300ms, with the reduced-motion override covering every animation and transition.",
+      "Do use the 2px corner on every rectangular surface."
     ],
     "donts": [
       "Don't stamp anything that is not a verdict, and don't use stamp red for decoration, fills or headings.",
       "Don't size, shape or blur a hidden value from its real length or magnitude; the smudge must look the same for 1 tTARI and 1,000,000.",
       "Don't paint a default value (0, \"Issued\", an empty hash) while the indexer is answering.",
-      "Don't split the form into floating cards with their own shadows and radii; it stays one ruled sheet.",
+      "Don't split the form into floating cards with their own shadows and radii; it stays one ruled sheet on a stacked pad.",
+      "Don't use pure black or pure white; the desk is night and the lightest paper is Original.",
+      "Don't introduce a second type family or uppercase text outside the stamps.",
       "Don't play a sound without a user gesture or with the toggle off."
     ]
   }
