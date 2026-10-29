@@ -113,12 +113,13 @@ h1{ font-size: clamp(34px, 3.15vw, 45px); line-height: 1.04; font-weight: 650; l
 .proof-main .big{ font-size: 76px; font-weight: 650; line-height: .86; letter-spacing: -.04em; color: var(--bone); }
 .proof-main .big .sk{ width: 1.2em; min-width: 0; height: .8em; }
 .proof-main .lbl{ font-size: 13px; line-height: 1.35; color: var(--bone-2); padding-bottom: 4px; max-width: 24ch; }
-.proof-main .lbl span{ color: var(--bone); font-weight: 600; }
+.proof-main .lbl span{ color: var(--bone); font-weight: 600; display: block; }
 .proof-row{ display: grid; grid-template-columns: 1fr 1fr; gap: 10px 20px; margin-top: 16px; padding-top: 10px; border-top: 1px solid var(--night-rule); }
 .proof-row dt{ font-size: 12px; font-weight: 600; color: var(--bone-3); display: flex; gap: 4px; align-items: center; }
 .proof-row dt .ph-light{ font-size: 13px; }
 .proof-row dd{ font-size: 24px; font-weight: 650; letter-spacing: -.02em; line-height: 1.1; margin-top: 2px; }
 .proof-row dd .sk{ min-width: 1.4em; }
+.proof-row dd small{ font-size: 14px; font-weight: 500; letter-spacing: 0; color: var(--bone-3); margin-left: 4px; }
 .to-tries{ margin-top: 16px; display: flex; gap: 10px; align-items: center; padding: 11px 14px; border-radius: var(--r);
   border: 1px solid color-mix(in oklab, var(--candle) 55%, transparent); color: var(--bone); font-size: 14px; font-weight: 650; text-decoration: none;
   transition: background-color 150ms var(--ease-out), transform 120ms var(--ease-out); }
@@ -162,12 +163,13 @@ h1{ font-size: clamp(34px, 3.15vw, 45px); line-height: 1.04; font-weight: 650; l
 /* Anchored to the top edge of the tabs: its feet land on the last stub whatever the tab height,
    and it rises with that stub when the accountant's copy is on top. */
 .pad{ position: relative; }
-.perch{ position: absolute; right: 14px; bottom: calc(100% - 9px); width: 136px; height: 102px; z-index: 3; pointer-events: none;
+.perch{ position: absolute; right: 18px; bottom: calc(100% - 12px); width: 176px; height: 132px; z-index: 3; pointer-events: none;
   transform-origin: 50% 100%; animation: peck 11s var(--ease-move) infinite 2s; transition: translate 160ms var(--ease-out); }
 .pad:has(#tab-accountant[aria-selected="true"]) .perch{ translate: 0 -6px; }
-.perch{ --crow-body: oklch(11% .015 265); --crow-rim: oklch(92% .016 85 / .6); --crow-wing: oklch(21% .022 265); --crow-eye: var(--candle); }
-.moon{ position: absolute; z-index: -1; right: -26px; bottom: calc(100% - 64px); width: 220px; height: 220px; border-radius: 50%; pointer-events: none;
-  background: radial-gradient(circle at 40% 38%, oklch(94% .035 92 / .26), oklch(90% .035 92 / .15) 42%, oklch(88% .035 92 / .1) 55%, oklch(88% .035 92 / .04) 57%, transparent 72%); }
+.perch{ --crow-body: oklch(11% .015 265); --crow-rim: none; --crow-wing: oklch(21% .022 265); --crow-eye: var(--candle); }
+.moon{ position: absolute; z-index: -1; right: 6px; bottom: calc(100% - 40px); width: 168px; height: 168px; border-radius: 50%; pointer-events: none;
+  background: radial-gradient(circle at 38% 36%, oklch(90% .03 92), oklch(84% .03 90) 70%, oklch(80% .03 88));
+  box-shadow: inset -22px -14px 0 oklch(72% .03 88 / .45), 0 0 60px 6px oklch(86% .04 90 / .12); }
 .brand .mark{ --crow-body: var(--bone); --crow-wing: oklch(70% .02 262); --crow-eye: var(--night); }
 @keyframes peck{ 0%, 86%, 100%{ transform: none; } 89%{ transform: rotate(-7deg) translateY(-1px); } 92%{ transform: rotate(2deg); } 95%{ transform: rotate(-3deg); } }
 
@@ -215,17 +217,18 @@ h1{ font-size: clamp(34px, 3.15vw, 45px); line-height: 1.04; font-weight: 650; l
 .b-text, .b-amount{ min-height: 150px; }
 .b-text .given{ font-size: 12px; color: var(--ink-2); margin-top: 8px; display: flex; gap: 6px; align-items: center; }
 
-.smudge{ position: absolute; inset: 30px 10px 10px; width: calc(100% - 20px); height: calc(100% - 40px); pointer-events: none; opacity: .55;
-  animation: drift 9s ease-in-out infinite alternate; }
+.smudge{ position: absolute; inset: 30px 10px 10px; width: calc(100% - 20px); height: calc(100% - 40px); pointer-events: none;
+  background: repeating-linear-gradient(135deg, color-mix(in oklab, var(--carbon) 30%, transparent) 0 1.4px, transparent 1.4px 6px),
+    repeating-linear-gradient(45deg, color-mix(in oklab, var(--carbon) 16%, transparent) 0 1px, transparent 1px 9px); }
+.smudge rect{ display: none; }
 @keyframes drift{ to{ opacity: .38; transform: translateX(6px); } }
 .ghostfig{ display: flex; align-items: baseline; gap: 10px; margin-top: auto; }
 .ghostfig .unit{ font-size: 20px; font-weight: 600; color: var(--ink-2); }
-.notcopy{ position: relative; display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: var(--ink-2);
+.notcopy{ position: relative; display: inline-flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 600; color: var(--ink-2);
   background: color-mix(in oklab, var(--copy) 82%, transparent); padding: 3px 8px 3px 6px; border-radius: var(--r); }
 .b-text.hidden{ display: flex; flex-direction: column; }
 .b-text.hidden .notcopy{ margin-top: auto; align-self: flex-start; }
-.ghostnum{ display: block; width: 150px; height: 58px; border-radius: 30px; filter: blur(9px);
-  background: color-mix(in oklab, var(--carbon) 22%, transparent); }
+.ghostnum{ display: block; width: 150px; height: 58px; }
 .b-amount.hidden .notcopy{ margin-top: 10px; align-self: flex-start; }
 
 .party .key{ font-size: 12px; color: var(--ink-2); margin-top: 2px; }
@@ -296,7 +299,7 @@ h1{ font-size: clamp(34px, 3.15vw, 45px); line-height: 1.04; font-weight: 650; l
 .stamp{ position: absolute; left: 196px; top: 8px; width: min(200px, calc(50% - 212px)); z-index: 4; pointer-events: none; transform: rotate(-8deg); color: var(--sello); }
 .stamp[data-word="FUNDED"], .stamp[data-word="ISSUED"], .stamp[data-word="APPROVED"]{ color: var(--carbon); opacity: .8; }
 
-.next-copy{ margin-top: 36px; font-size: 13px; color: var(--bone-2); display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.next-copy{ margin-top: 40px; font-size: 13px; color: var(--bone-2); display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 .next-copy button{ appearance: none; border: 1px solid var(--night-rule-strong); background: transparent; color: var(--bone); cursor: pointer;
   font-size: 13px; font-weight: 600; padding: 6px 12px; border-radius: var(--r); display: inline-flex; gap: 6px; align-items: center;
   transition: background-color 150ms var(--ease-out), transform 120ms var(--ease-out); }
@@ -306,6 +309,7 @@ h1{ font-size: clamp(34px, 3.15vw, 45px); line-height: 1.04; font-weight: 650; l
 /* Right column: the book of invoices, then the stub list */
 .tl h2{ font-size: 18px; font-weight: 650; letter-spacing: -.015em; }
 .tl .count{ font-size: 13px; color: var(--bone-2); margin-top: 2px; }
+.tl .tl-foot{ margin-top: 12px; font-size: 12px; color: var(--bone-3); }
 .book h2{ font-size: 13px; font-weight: 600; color: var(--bone-2); display: flex; gap: 6px; align-items: center; }
 .book-note{ font-size: 12px; line-height: 1.4; color: var(--bone-3); margin-top: 2px; text-wrap: pretty; }
 .invs{ list-style: none; padding: 0; margin-top: 8px; display: grid; gap: 5px; }
@@ -426,9 +430,9 @@ footer span{ display: inline-flex; gap: 6px; align-items: center; }
 /* The other copies peek out under the active sheet, like a real pad, each one its own colour */
 .under{ position: absolute; inset: 0; border-radius: 0 0 var(--r) var(--r); z-index: 0; pointer-events: none; filter: brightness(.92);
   box-shadow: 0 0 0 1px oklch(8% .02 265 / .55); }
-.under.u1{ transform: translate(6px, 6px); background: var(--canario); }
-.under.u2{ transform: translate(12px, 12px); background: var(--rosa); }
-.under.u3{ transform: translate(18px, 18px); background: var(--azul); }
+.under.u1{ transform: translate(8px, 7px) rotate(.45deg); background: var(--canario); }
+.under.u2{ transform: translate(16px, 13px) rotate(-.35deg); background: var(--rosa); }
+.under.u3{ transform: translate(24px, 19px) rotate(.8deg); background: var(--azul); }
 html[data-view="client"] .under.u1{ background: var(--original); }
 html[data-view="contractor"] .under.u2{ background: var(--original); }
 html[data-view="accountant"] .under.u3{ background: var(--original); }
@@ -492,6 +496,9 @@ html[data-view="accountant"] .under.u3{ background: var(--original); }
   .b-text .val{ font-size: 16px; }
   .ids summary .hint{ display: none; }
   .under.u2, .under.u3{ display: none; }
+  .under.u1{ transform: translate(6px, 6px); }
+  .perch{ width: 72px; height: 54px; }
+  .moon{ width: 76px; height: 76px; right: 4px; bottom: calc(100% - 14px); box-shadow: inset -9px -6px 0 oklch(72% .03 88 / .45); }
   .hex-head{ grid-template-columns: 1fr; }
   .tally{ justify-items: start; text-align: left; }
   .try{ grid-template-columns: 34px minmax(0, 1fr) auto; }

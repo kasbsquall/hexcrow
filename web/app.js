@@ -257,8 +257,10 @@
     $('pr-invoices').textContent = String(state.run.invoices.length);
     if (state.book === null) return;
     const statuses = state.run.invoices.map((i) => liveStatus(i).status);
-    $('pr-paid').textContent = String(statuses.filter((s) => s === 'Settled').length);
-    $('pr-returned').textContent = String(statuses.filter((s) => s === 'Refunded').length);
+    const of = `<small>of ${state.run.invoices.length}</small>`;
+    $('pr-paid').innerHTML = `${statuses.filter((s) => s === 'Settled').length}${of}`;
+    $('pr-returned').innerHTML = `${statuses.filter((s) => s === 'Refunded').length}${of}`;
+    $('pr-public').innerHTML = `0${of}`;
   }
 
   // ---- rendering: the form -----------------------------------------------------------------
@@ -317,7 +319,7 @@
       const tail = !exit ? 'It holds the approval code; nothing moves until it approves, the mediator rules, or the window closes.'
         : exit.leaf === 'claim' ? 'It chose the approval code, and its approval is what released the money.'
         : exit.leaf === 'ruling-contractor' ? 'It never answered, so the mediator both sides chose ruled for the contractor.'
-        : exit.leaf === 'ruling-client' ? 'The contractor withdrew, and the mediator returned the money without waiting for the window to close.'
+        : exit.leaf === 'ruling-client' ? 'The contractor quit the work, and the mediator returned the money without waiting for the window to close.'
         : late ? 'It never approved, and a ruling sent after the window closed was refused, so the money came back to it.'
         : 'Nobody approved or called the mediator, so the money came back once the claim window closed.';
       return ['buildings', `The client sees what it locked, ${amt}, and for what work. ${tail}`];
@@ -326,7 +328,7 @@
       const tail = !exit ? 'Payment still needs the client’s approval or the mediator’s ruling.'
         : exit.leaf === 'claim' ? 'It was paid when the client approved.'
         : exit.leaf === 'ruling-contractor' ? 'The client went silent, and the mediator’s ruling paid it.'
-        : exit.leaf === 'ruling-client' ? 'It withdrew, and the mediator returned the money to the client.'
+        : exit.leaf === 'ruling-client' ? 'It quit the work, and the mediator returned the money to the client.'
         : late ? 'The client never approved; the ruling it signed with the mediator came after the window closed, the chain refused it, and the money went back to the client.'
         : 'Nobody approved, so the money went back to the client.';
       return ['pen-nib', `The contractor sees what it is owed, ${amt}, and for what. ${tail}`];
@@ -626,7 +628,7 @@
   const STORY = {
     claim: 'Approved, then claimed',
     'ruling-contractor': 'Client went silent; the mediator paid the contractor',
-    'ruling-client': 'Contractor withdrew; the mediator returned it',
+    'ruling-client': 'Contractor quit; the mediator returned it',
     refund: 'No approval in time; refunded after the window',
   };
 
@@ -667,7 +669,8 @@
     const rejected = rows.filter((r) => !r.accepted).length;
     const keep = document.activeElement && document.activeElement.id === 'recheck';
     $('tl-h').textContent = `Invoice ${pad4(i.no)} on chain`;
-    $('tl-count').innerHTML = `${rows.length} transactions on Esmeralda: ${rows.length - rejected} committed, ${rejected} refused. Fees in µT, 1 tTARI = 1,000,000 µT. The indexer drops results after a few hours; each one was archived as served. <button class="recheck" id="recheck" type="button">${icon('arrows-clockwise')}Check again on the indexer</button>`;
+    $('tl-count').innerHTML = `${rows.length} transactions: ${rows.length - rejected} committed, ${rejected} refused. <button class="recheck" id="recheck" type="button">${icon('arrows-clockwise')}Check again on the indexer</button>`;
+    $('tl-foot').textContent = 'Fees in µT, 1 tTARI = 1,000,000 µT. The indexer drops results after a few hours; each one was archived as served.';
     if (keep) $('recheck').focus({ preventScroll: true });
     // The entrance plays once per invoice; live refreshes repaint without replaying it.
     $('stubs').classList.toggle('settled', state.paintedInvoice === i.no);
@@ -751,7 +754,7 @@
     const source = v.archived ? archiveLink(row.tx, 'result archived from the indexer')
       : st === 'off' ? '' : txLink(row.tx, 'confirmed live on the indexer');
     const fee = st === 'refused' ? (row.fee_micro_tari ? `fee ${num(row.fee_micro_tari)} µT kept` : 'nothing committed') : '';
-    const reason = st === 'refused' && row.why ? row.why.replace(/^Rejected by the (chain|book): /, '') : '';
+    const reason = st === 'refused' && row.why ? row.why.replace(/^(Rejected|Refused) by the (chain|book): /, '') : '';
     out.innerHTML = `<span class="ver" data-state="${st}">${icon(ic)}${esc(head)}</span>${reason ? `<span>${esc(reason)}</span>` : ''}${source || fee ? `<span>${[source, fee].filter(Boolean).join(', ')}</span>` : ''}`;
     li.dataset.verdict = st;
     li.dataset.state = 'done';

@@ -19,16 +19,16 @@ STATE = CLI / ".hexcrow" / "state.json"
 BIN = CLI / "target" / "release" / ("hexcrow.exe" if sys.platform == "win32" else "hexcrow")
 
 ATTACKS = {
-    "stranger-claim": ("A stranger tries to claim", "Rejected by the chain: access denied on the escrow spend"),
-    "stranger-claim:after-approval": ("A stranger claims with the now-public approval code", "Rejected by the chain: access denied on the escrow spend"),
-    "claim-without-code": ("The contractor claims without the approval code", "Rejected by the chain: hash lock not satisfied"),
-    "early-refund": ("The client refunds before the claim window closes", "Rejected by the chain: claim window still open"),
-    "contractor-sets-lock": ("The contractor funds its own invoice with a code it chose", "Rejected by the book: only the client sets the approval lock"),
-    "refund-after-approval": ("The client approves, then tries to take the money back", "Rejected by the chain: claim window still open"),
-    "self-approve": ("The contractor approves its own invoice", "Rejected by the book: the signer is not the client"),
-    "mediator-alone": ("The mediator tries to pay itself through a ruling", "Rejected by the chain: a ruling also needs the key of the side it pays"),
-    "ruling-without-mediator": ("The contractor tries a ruling without the mediator", "Rejected by the chain: a ruling needs the mediator's key"),
-    "late-ruling": ("The mediator and the contractor rule after the claim window closed", "Rejected by the chain: rulings close with the claim window"),
+    "stranger-claim": ("A stranger tries to claim", "Refused by the chain: access denied on the escrow spend"),
+    "stranger-claim:after-approval": ("A stranger claims with the now-public approval code", "Refused by the chain: access denied on the escrow spend"),
+    "claim-without-code": ("The contractor claims without the approval code", "Refused by the chain: hash lock not satisfied"),
+    "early-refund": ("The client refunds before the claim window closes", "Refused by the chain: claim window still open"),
+    "contractor-sets-lock": ("The contractor funds its own invoice with a code it chose", "Refused by the book: only the client sets the approval lock"),
+    "refund-after-approval": ("The client approves, then tries to take the money back", "Refused by the chain: claim window still open"),
+    "self-approve": ("The contractor approves its own invoice", "Refused by the book: the signer is not the client"),
+    "mediator-alone": ("The mediator tries to pay itself through a ruling", "Refused by the chain: a ruling also needs the key of the side it pays"),
+    "ruling-without-mediator": ("The contractor tries a ruling without the mediator", "Refused by the chain: a ruling needs the mediator's key"),
+    "late-ruling": ("The mediator and the contractor rule after the claim window closed", "Refused by the chain: rulings close with the claim window"),
 }
 
 RULED = {
