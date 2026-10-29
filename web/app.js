@@ -336,7 +336,7 @@
     if (view === 'mediator') {
       if (r) {
         const caller = r.for === 'contractor' ? 'contractor' : 'client';
-        return ['scales', `The ${caller} called the mediator in and showed it the invoice. <b>The mediator ruled for the ${r.for}.</b> Its written ruling stays off chain; the book keeps only its hash, checked below.`];
+        return ['scales', `The ${caller} called the mediator in and showed it the invoice. <b>The mediator ruled for the ${r.for}.</b> Its written ruling stays off chain; the book keeps only its hash${i.ruling && i.ruling.salt_lost ? '' : ', checked below'}.`];
       }
       if (late) {
         return ['scales', 'The mediator and the contractor signed a ruling after the claim window had closed. <b>The chain refused it,</b> and the money went back to the client.'];
@@ -448,6 +448,9 @@
         <dt>Result</dt><dd id="acct-result">${sk('Comparing with the book')}</dd>
         <dt>Memo, read with the view key</dt><dd>${esc(i.parties_only.memo)}</dd>
       </dl></div>`;
+    }
+    if (view === 'mediator' && i.ruling && i.ruling.salt_lost) {
+      return `<div class="box s6"><p class="lab">${icon('warning')}This ruling’s hash cannot be opened</p><p class="val">Its salt was lost: a second copy of our run script started the same ruling and overwrote the salt before it was saved. The hash in the book stands, and the money moved as it says, but nobody can show the text behind it. Invoice ${pad4(3)} shows the full check.</p></div>`;
     }
     if (view === 'mediator' && i.ruling && i.parties_only.ruling_text) {
       return `<div class="box s6"><p class="lab">${icon('scroll')}The mediator’s ruling, kept off chain</p><p class="val ruling">${esc(i.parties_only.ruling_text)}</p>
@@ -614,7 +617,7 @@
       ['scroll', 'The rules and the status', 'Public', 'Public'],
     ];
     $('vs-body').innerHTML = rows.map(([ic, fact, open, ours]) =>
-      `<tr><th scope="row">${icon(ic)}${fact}</th><td class="open">${esc(open)}</td><td>${esc(ours)}</td></tr>`).join('');
+      `<tr><th scope="row">${icon(ic)}${fact}</th><td class="open${open === ours ? ' same' : ''}">${esc(open)}</td><td>${esc(ours)}</td></tr>`).join('');
   }
 
   function renderNextCopy() {

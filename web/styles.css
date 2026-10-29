@@ -110,7 +110,7 @@ h1{ font-size: clamp(34px, 3.15vw, 45px); line-height: 1.04; font-weight: 650; l
 .proof{ border-top: 1px solid var(--night-rule-strong); padding-top: 12px; }
 .proof-h{ font-size: 12px; font-weight: 600; color: var(--bone-2); display: flex; gap: 6px; align-items: center; }
 .proof-main{ display: grid; grid-template-columns: auto 1fr; gap: 0 14px; align-items: end; margin-top: 8px; }
-.proof-main .big{ font-size: 76px; font-weight: 650; line-height: .86; letter-spacing: -.04em; color: var(--bone); }
+.proof-main .big{ font-size: 104px; font-weight: 650; line-height: .86; letter-spacing: -.04em; color: var(--bone); }
 .proof-main .big .sk{ width: 1.2em; min-width: 0; height: .8em; }
 .proof-main .lbl{ font-size: 13px; line-height: 1.35; color: var(--bone-2); padding-bottom: 4px; max-width: 24ch; }
 .proof-main .lbl span{ color: var(--bone); font-weight: 600; display: block; }
@@ -217,7 +217,7 @@ h1{ font-size: clamp(34px, 3.15vw, 45px); line-height: 1.04; font-weight: 650; l
 .b-text, .b-amount{ min-height: 150px; }
 .b-text .given{ font-size: 12px; color: var(--ink-2); margin-top: 8px; display: flex; gap: 6px; align-items: center; }
 
-.smudge{ position: absolute; inset: 30px 10px 10px; width: calc(100% - 20px); height: calc(100% - 40px); pointer-events: none;
+.smudge{ position: absolute; inset: 30px 16px 10px; width: calc(100% - 32px); height: calc(100% - 40px); pointer-events: none;
   background: repeating-linear-gradient(135deg, color-mix(in oklab, var(--carbon) 30%, transparent) 0 1.4px, transparent 1.4px 6px),
     repeating-linear-gradient(45deg, color-mix(in oklab, var(--carbon) 16%, transparent) 0 1px, transparent 1px 9px); }
 .smudge rect{ display: none; }
@@ -228,7 +228,7 @@ h1{ font-size: clamp(34px, 3.15vw, 45px); line-height: 1.04; font-weight: 650; l
   background: color-mix(in oklab, var(--copy) 82%, transparent); padding: 3px 8px 3px 6px; border-radius: var(--r); }
 .b-text.hidden{ display: flex; flex-direction: column; }
 .b-text.hidden .notcopy{ margin-top: auto; align-self: flex-start; }
-.ghostnum{ display: block; width: 150px; height: 58px; }
+.ghostnum{ display: block; width: 150px; height: 58px; border-radius: var(--r); background: repeating-linear-gradient(135deg, color-mix(in oklab, var(--carbon) 46%, transparent) 0 2px, transparent 2px 4.5px); }
 .b-amount.hidden .notcopy{ margin-top: 10px; align-self: flex-start; }
 
 .party .key{ font-size: 12px; color: var(--ink-2); margin-top: 2px; }
@@ -244,7 +244,7 @@ h1{ font-size: clamp(34px, 3.15vw, 45px); line-height: 1.04; font-weight: 650; l
 .seal .rim{ fill: none; stroke: color-mix(in oklab, var(--sello-ink) 80%, black); stroke-width: 1.2; opacity: .6; }
 .seal .emboss{ fill: none; stroke: oklch(94% .03 30 / .7); stroke-width: 1.4; stroke-linejoin: round; }
 .seal.open .wax{ fill: color-mix(in oklab, var(--sello) 55%, var(--copy)); }
-.seal.open .crack{ stroke: var(--copy); stroke-width: 3; fill: none; }
+.seal.open .crack{ stroke: var(--copy); stroke-width: 4.5; stroke-linecap: round; fill: none; }
 .b-escrow .val{ font-size: 15px; font-weight: 650; line-height: 1.3; }
 .b-escrow .small{ margin-top: 2px; }
 .val.ruling{ font-size: 15px; line-height: 1.45; max-width: 72ch; text-wrap: pretty; }
@@ -296,7 +296,7 @@ h1{ font-size: clamp(34px, 3.15vw, 45px); line-height: 1.04; font-weight: 650; l
 
 /* Stamp */
 /* Shrinks with the sheet so it never covers the invoice number next to the title. */
-.stamp{ position: absolute; left: 196px; top: 8px; width: min(200px, calc(50% - 212px)); z-index: 4; pointer-events: none; transform: rotate(-8deg); color: var(--sello); }
+.stamp{ position: absolute; left: 196px; top: 8px; width: min(230px, calc(50% - 212px)); z-index: 4; pointer-events: none; transform: rotate(-8deg); color: var(--sello); }
 .stamp[data-word="FUNDED"], .stamp[data-word="ISSUED"], .stamp[data-word="APPROVED"]{ color: var(--carbon); opacity: .8; }
 
 .next-copy{ margin-top: 40px; font-size: 13px; color: var(--bone-2); display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
@@ -421,6 +421,7 @@ h1{ font-size: clamp(34px, 3.15vw, 45px); line-height: 1.04; font-weight: 650; l
 .versus tbody th .ph-light{ margin-right: 6px; }
 .versus td{ color: var(--bone); }
 .versus td.open{ color: var(--sello-night); font-weight: 500; }
+.versus td.open.same{ color: var(--bone); font-weight: 400; }
 
 /* Two lines on purpose: where to check the run, then what it is built on */
 footer{ margin-top: 80px; padding-top: 16px; border-top: 1px solid var(--night-rule-strong); display: grid; gap: 10px; font-size: 13px; color: var(--bone-2); }
@@ -513,4 +514,11 @@ html[data-view="accountant"] .under.u3{ background: var(--original); }
   .versus td.open::before{ content: "Transparent: "; font-weight: 600; }
   .versus td:not(.open)::before{ content: "Hexcrow: "; font-weight: 600; color: var(--bone); }
   .versus td:last-child{ padding-bottom: 10px; }
+}
+
+/* Laptops: the role line under each copy tab would break in two; the tab name carries it */
+@media (min-width: 721px) and (max-width: 1300px){
+  .tab .n{ display: none; }
+  .tab .ph-light{ grid-row: auto; }
+  .tab{ align-items: center; }
 }

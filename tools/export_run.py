@@ -125,13 +125,16 @@ def main() -> None:
             "contractor_key": view["parties"]["contractor_key"],
             "mediator_key": view["parties"]["mediator_key"],
             # Public in the book: who the ruling paid and the hash of its text.
-            "ruling": {"for": ruling["for"], "ruling_hash": ruling["ruling_hash"]} if ruling else None,
+            # Invoice 2's ruling salt was overwritten by a second copy of the stage B script before it was saved:
+            # the hash in the book stands, but nobody can open it, so its text is not exported as checkable.
+            "ruling": {"for": ruling["for"], "ruling_hash": ruling["ruling_hash"],
+                       **({"salt_lost": True} if not ruling["salt"] else {})} if ruling else None,
             "parties_only": {
                 "amount_micro_tari": view["escrow_view_key_holders_see"]["amount_micro_tari"],
                 "memo": view["escrow_view_key_holders_see"]["memo"],
                 "text": view["accountant_opening"]["doc"],
                 "salt": view["accountant_opening"]["salt"],
-                **({"ruling_text": ruling["text"], "ruling_salt": ruling["salt"]} if ruling else {}),
+                **({"ruling_text": ruling["text"], "ruling_salt": ruling["salt"]} if ruling and ruling["salt"] else {}),
             },
             "approval_code": local["approval_code"] if approved else None,
             "contractor_check": contractor_check(n, entries),
