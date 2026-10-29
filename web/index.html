@@ -6,6 +6,16 @@
 <title>Hexcrow: milestone escrow nobody else can read</title>
 <meta name="description" content="A confidential milestone escrow on Tari Ootle, with a mediator for disputes. Four real invoices on Esmeralda testnet, seen by the public, the client, the contractor, the mediator and the accountant.">
 <meta name="theme-color" content="#11141d">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Hexcrow">
+<meta property="og:title" content="Hexcrow: milestone escrow nobody else can read">
+<meta property="og:description" content="A confidential milestone escrow on Tari Ootle, with a mediator for disputes. Four real invoices on Esmeralda testnet, five copies of each, and ten attacks the chain refused.">
+<meta property="og:url" content="https://kasbsquall.github.io/hexcrow/">
+<meta property="og:image" content="https://kasbsquall.github.io/hexcrow/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="The Hexcrow demo: the public copy of invoice 0001, stamped settled, next to the count of attacks the chain refused">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400..700&display=swap" rel="stylesheet">
@@ -56,6 +66,7 @@
     <div class="rise" style="--d:0">
       <h1>Milestone escrow nobody else can read.</h1>
       <p class="sub">A contractor invoices, the client locks the money, approval releases it, and a mediator both sides chose settles a dispute. On Tari Ootle the amount and the parties stay hidden; only the rules are public.</p>
+      <noscript><p class="sub">This page reads the public indexer with JavaScript. The run it replays: four invoices on Esmeralda testnet on 29 October 2026. One was approved and claimed, one paid to the contractor by the mediator's ruling, one returned to the client by a ruling, and one refunded after its claim window. Ten attacks were sent to the escrow and the chain refused all ten. Every transaction, and how to check it yourself: <a href="https://github.com/kasbsquall/hexcrow/blob/main/PROOF.md">PROOF.md</a>.</p></noscript>
     </div>
     <div class="proof rise" style="--d:1" aria-labelledby="proof-h">
       <p class="proof-h" id="proof-h"><i class="ph-light ph-seal-check" aria-hidden="true"></i>What ran on Esmeralda, 29 October 2026</p>
@@ -84,9 +95,9 @@
         <button class="tab" role="tab" data-v="contractor" id="tab-contractor" aria-controls="sheet" aria-selected="false" tabindex="-1"><i class="ph-light ph-pen-nib" aria-hidden="true"></i><span class="t">Contractor</span><span class="n">Is owed the money</span></button>
         <button class="tab" role="tab" data-v="mediator" id="tab-mediator" aria-controls="sheet" aria-selected="false" tabindex="-1"><i class="ph-light ph-scales" aria-hidden="true"></i><span class="t">Mediator</span><span class="n">Rules if called in</span></button>
         <button class="tab" role="tab" data-v="accountant" id="tab-accountant" aria-controls="sheet" aria-selected="false" tabindex="-1"><i class="ph-light ph-calculator" aria-hidden="true"></i><span class="t">Accountant</span><span class="n">Checks the books</span></button>
+        <svg class="perch" viewBox="0 0 64 48" aria-hidden="true"><use href="#crow"/></svg>
       </div>
       <div class="sheet-wrap">
-        <svg class="perch" viewBox="0 0 64 48" aria-hidden="true"><use href="#crow"/></svg>
         <span class="under u1" aria-hidden="true"></span><span class="under u2" aria-hidden="true"></span><span class="under u3" aria-hidden="true"></span>
         <article class="sheet" id="sheet" role="tabpanel" aria-labelledby="tab-public" tabindex="0"></article>
       </div>

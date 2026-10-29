@@ -15,7 +15,7 @@
   --night-3: oklch(27% .032 265);
   --bone: oklch(92% .016 85);
   --bone-2: oklch(76% .022 262);
-  --bone-3: oklch(62% .025 262);
+  --bone-3: oklch(64% .025 262);
   --night-rule: oklch(92% .016 85 / .12);
   --night-rule-strong: oklch(92% .016 85 / .24);
   --candle: oklch(83% .12 80);
@@ -120,11 +120,11 @@ h1{ font-size: 44px; line-height: 1.02; font-weight: 650; letter-spacing: -.028e
 .pick{ margin-bottom: 18px; }
 
 /* Copy tabs: torn stubs of a pad */
-.tabs{ display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; align-items: end; }
+.tabs{ display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; align-items: stretch; position: relative; }
 .tab{
   appearance: none; border: 0; cursor: pointer; color: var(--carbon); text-align: left;
   background: var(--tab-paper); border-radius: var(--r) var(--r) 0 0;
-  padding: 10px 12px 12px; display: grid; grid-template-columns: auto 1fr; column-gap: 9px; row-gap: 1px;
+  padding: 10px 12px 12px; display: grid; grid-template-columns: auto 1fr; column-gap: 9px; row-gap: 1px; align-content: start;
   position: relative; transform: translateY(6px); filter: brightness(.86) saturate(.9);
   transition: transform 160ms var(--ease-out), filter 160ms var(--ease-out);
 }
@@ -134,7 +134,7 @@ h1{ font-size: 44px; line-height: 1.02; font-weight: 650; letter-spacing: -.028e
 }
 .tab .ph-light{ grid-row: span 2; font-size: 22px; align-self: center; }
 .tab .t{ font-weight: 650; font-size: 15px; }
-.tab .n{ font-size: 12px; color: color-mix(in oklab, var(--carbon) 72%, var(--tab-paper)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tab .n{ font-size: 12px; line-height: 1.3; color: color-mix(in oklab, var(--carbon) 72%, var(--tab-paper)); text-wrap: balance; }
 .tab:hover{ transform: translateY(2px); filter: none; }
 .tab:active{ transform: translateY(4px) scale(.99); }
 .tab[aria-selected="true"]{ transform: none; z-index: 2; filter: none; }
@@ -147,7 +147,8 @@ h1{ font-size: 44px; line-height: 1.02; font-weight: 650; letter-spacing: -.028e
 .tab:focus-visible{ outline-offset: -4px; outline-color: var(--carbon); }
 
 /* The crow on the pad */
-.perch{ position: absolute; right: 16px; top: -116px; width: 84px; height: 63px; z-index: 3; pointer-events: none;
+/* Anchored to the top edge of the tabs: its feet land on the last stub whatever the tab height. */
+.perch{ position: absolute; right: 16px; bottom: calc(100% - 10px); width: 84px; height: 63px; z-index: 3; pointer-events: none;
   transform-origin: 50% 100%; animation: peck 11s var(--ease-move) infinite 2s; }
 .perch{ --crow-body: oklch(11% .015 265); --crow-rim: oklch(92% .016 85 / .55); --crow-wing: oklch(21% .022 265); --crow-eye: var(--candle); }
 .brand .mark{ --crow-body: var(--bone); --crow-wing: oklch(70% .02 262); --crow-eye: var(--night); }
@@ -271,7 +272,8 @@ h1{ font-size: 44px; line-height: 1.02; font-weight: 650; letter-spacing: -.028e
 .ids dd{ overflow-wrap: anywhere; letter-spacing: .01em; }
 
 /* Stamp */
-.stamp{ position: absolute; left: 196px; top: 8px; width: 200px; z-index: 4; pointer-events: none; transform: rotate(-8deg); color: var(--sello); }
+/* Shrinks with the sheet so it never covers the invoice number next to the title. */
+.stamp{ position: absolute; left: 196px; top: 8px; width: min(200px, calc(50% - 212px)); z-index: 4; pointer-events: none; transform: rotate(-8deg); color: var(--sello); }
 .stamp[data-word="FUNDED"], .stamp[data-word="ISSUED"], .stamp[data-word="APPROVED"]{ color: var(--carbon); opacity: .8; }
 
 .next-copy{ margin-top: 16px; font-size: 13px; color: var(--bone-2); display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
@@ -429,12 +431,13 @@ html[data-view="accountant"] .under.u3{ background: var(--original); }
   .intro{ gap: 28px; margin-bottom: 32px; }
   .proof-main .big{ font-size: 64px; }
   .proof-row{ grid-template-columns: repeat(2, auto); justify-content: start; gap: 12px 32px; }
-  .tabs{ grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 3px; }
+  /* Each stub as wide as its label plus an equal share of the rest, so "Accountant" fits at 11px on a 360px phone. */
+  .tabs{ grid-template-columns: repeat(5, auto); gap: 3px; }
   .tab{ grid-template-columns: 1fr; padding: 8px 4px 10px 6px; justify-items: start; row-gap: 4px; }
   .tab .ph-light{ grid-row: auto; font-size: 18px; }
-  .tab .t{ font-size: 10.5px; letter-spacing: -.01em; }
+  .tab .t{ font-size: 11px; letter-spacing: -.01em; }
   .tab .n{ display: none; }
-  .perch{ top: -86px; right: 6px; width: 52px; height: 39px; }
+  .perch{ bottom: calc(100% - 8px); right: 6px; width: 52px; height: 39px; }
   .grid{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .s2, .s3, .s4, .s6{ grid-column: span 2; }
   .b-no, .b-status{ grid-column: span 1; }
