@@ -130,7 +130,10 @@ h1{ font-size: clamp(34px, 3.15vw, 45px); line-height: 1.04; font-weight: 650; l
 .book{ margin-top: 34px; }
 .tl{ margin-top: 30px; }
 
-.pick{ font-size: 17px; font-weight: 650; letter-spacing: -.012em; margin-bottom: 12px; }
+.pick-row{ display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 14px; row-gap: 2px; margin-bottom: 12px;
+  max-width: min(100%, calc(100% - 210px)); }
+.pick{ font-size: 17px; font-weight: 650; letter-spacing: -.012em; }
+.pick-hint{ font-size: 13px; color: var(--bone-2); }
 
 /* Copy tabs: torn stubs of a pad */
 .tabs{ display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; align-items: stretch; position: relative; }
@@ -467,6 +470,7 @@ html[data-view="accountant"] .under.u3{ background: var(--original); }
   .page{ padding: 24px 16px 64px; }
   h1{ font-size: 32px; }
   .sub{ font-size: 15px; max-width: none; }
+  .pick-row{ max-width: calc(100% - 100px); }
   .intro{ margin-bottom: 24px; }
   .proof-main .big{ font-size: 64px; }
   .invs{ grid-template-columns: repeat(2, minmax(0, 1fr)); }

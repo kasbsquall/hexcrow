@@ -1,6 +1,6 @@
 # Hexcrow
 
-**Milestone escrow nobody else can read.** A contractor invoices, the client locks the money, approval releases it, and a mediator both sides chose settles a dispute. On Tari Ootle the amount and the parties stay hidden; only the rules are public.
+**Milestone escrow nobody else can read.** A contractor invoices, the client locks the money, approval releases it, and a mediator both sides chose settles a dispute. On Tari Ootle the amount, the work and the parties stay hidden; the rules, the fees and the status are public.
 
 Built for the Tari Council October 2026 build contest, "Spooky Secrets".
 
@@ -18,7 +18,7 @@ A member of the Tari Council asked for this on the forum on 25 October: confiden
 
 ## How it works
 
-One invoice, five copies. Like a carbon-copy invoice pad, each viewer holds a different copy, and what did not transfer to a copy is what its holder cannot see.
+One invoice, five copies. Like a carbon-copy invoice pad, each viewer holds a different copy, and what did not transfer to a copy is what its holder cannot see. On chain there is only the public copy. The other four are what each holder's keys and off-chain data let it read; the hosted demo renders them because it carries the throwaway keys of this run.
 
 | Copy | Sees |
 |---|---|
@@ -45,7 +45,7 @@ Each invoice has two epochs: the client approves before the **deadline**, and th
 
 **A mediator for disputes.** The contractor names a mediator's one-time key when it issues the invoice, and the client accepts that mediator by funding. If the client goes silent after the work is delivered, or the contractor walks away, the mediator rules. It cannot pay anyone alone: each ruling leaf also needs the key of the side it pays, and both close with the claim window. The ruling text stays off chain and the book keeps its salted hash, so either side can later show the ruling and anyone can check it.
 
-**The client holds the approval code.** The contractor issues the invoice without one. The client picks the code when it funds and records only its hash, in the book and in the escrow's claim leaf, so the contractor cannot claim with a code it chose itself.
+**The client holds the approval code.** The contractor issues the invoice without one. The client picks the code when it funds and records only its hash, in the book and in the escrow's claim leaf, so the contractor cannot claim with a code it chose itself. When the client approves, it publishes the code in the book so the approval can be audited; that is the `hexcrow-approve-…` string readable in invoice 1's entry. The code alone cannot move the money: the claim leaf also needs the contractor's key, and a stranger holding the public code was refused (invoice 1, transaction 12 in [PROOF.md](PROOF.md), `1f3b07c8…`).
 
 **Every invoice has its own keys.** The client, the contractor, the mediator and the escrow viewing key are created for one invoice and used for nothing else, so two invoices of the same people share no key on chain.
 
