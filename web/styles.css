@@ -157,8 +157,6 @@ h1{ font-size: 40px; line-height: 1.05; font-weight: 650; letter-spacing: -.025e
 
 .smudge{ position: absolute; inset: 30px 10px 10px; width: calc(100% - 20px); height: calc(100% - 40px); pointer-events: none; opacity: .55; }
 .ghostfig{ display: flex; align-items: baseline; gap: 10px; margin-top: auto; }
-.ghostfig .blot{ display: block; width: 132px; height: 62px; border-radius: var(--r); position: relative; overflow: hidden; }
-.ghostfig .blot svg{ position: absolute; inset: 0; width: 100%; height: 100%; }
 .ghostfig .unit{ font-size: 20px; font-weight: 600; color: var(--ink-2); }
 .notcopy{ position: relative; display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: var(--ink-2);
   background: color-mix(in oklab, var(--copy) 82%, transparent); padding: 3px 8px 3px 6px; border-radius: var(--r); }
@@ -198,7 +196,7 @@ h1{ font-size: 40px; line-height: 1.05; font-weight: 650; letter-spacing: -.025e
 .yours{ font-size: 11px; font-weight: 650; padding: 1px 6px; border-radius: var(--r); background: var(--carbon); color: var(--copy); }
 
 /* Stamp */
-.stamp{ position: absolute; right: 26px; top: 92px; width: 178px; z-index: 4; pointer-events: none; transform: rotate(-8deg); color: var(--sello); }
+.stamp{ position: absolute; left: 200px; top: 10px; width: 200px; z-index: 4; pointer-events: none; transform: rotate(-8deg); color: var(--sello); }
 .stamp[data-word="FUNDED"], .stamp[data-word="ISSUED"], .stamp[data-word="APPROVED"]{ color: var(--carbon); opacity: .8; }
 
 /* Aside: invoices in the book, then the stub list */
@@ -232,14 +230,15 @@ aside .count{ font-size: 13px; color: var(--ink-soft); margin-top: 2px; }
   background: radial-gradient(circle at 4px 2px, var(--ground) 1.4px, transparent 1.8px) repeat-x 0 0 / 8px 4px; }
 .stub .i{ position: absolute; left: 14px; top: 12px; font-size: 13px; font-weight: 650; width: 22px; height: 22px; display: grid; place-items: center;
   border: 1px solid var(--rule-strong); border-radius: 50%; }
-.stub .what{ font-size: 13px; font-weight: 600; line-height: 1.35; padding-right: 74px; }
+.stub .what{ font-size: 13px; font-weight: 600; line-height: 1.35; }
+.stub > p{ padding-right: 84px; }
 .stub .who{ font-weight: 500; color: var(--ink-soft); }
 .stub .meta{ display: flex; flex-wrap: wrap; gap: 2px 12px; font-size: 12px; color: color-mix(in oklab, var(--carbon) 74%, var(--original)); margin-top: 3px; }
 .stub .why{ font-size: 12px; color: var(--sello-ink); margin-top: 3px; font-weight: 500; }
 .stub .ver{ display: inline-flex; gap: 4px; align-items: center; }
 .stub .ver[data-state="ok"]{ color: var(--verde); font-weight: 600; }
 .stub .ver[data-state="bad"]{ color: var(--sello-ink); font-weight: 600; }
-.stub .mini{ position: absolute; right: 10px; top: 10px; width: 70px; transform: rotate(-6deg); }
+.stub .mini{ position: absolute; right: 8px; top: 10px; width: 84px; transform: rotate(-6deg); }
 .stub.rej .mini{ color: var(--sello); transform: rotate(5deg); }
 .stub.ok .mini{ color: var(--carbon); opacity: .78; }
 .empty{ margin-top: 14px; padding: 14px; font-size: 13px; color: var(--ink-soft); border: 1px dashed var(--rule-strong); border-radius: var(--r); }
@@ -285,7 +284,7 @@ footer span{ display: inline-flex; gap: 6px; align-items: center; }
   .box{ padding: 10px 14px 12px; }
   .b-text, .b-amount{ min-height: 120px; }
   .amount .big{ font-size: 64px; }
-  .stamp{ width: 112px; right: 12px; top: 150px; }
+  .stamp{ width: 136px; left: auto; right: 10px; top: 8px; }
   .b-title .ttl{ font-size: 20px; }
   .hide-sm{ display: none; }
   .show-sm{ display: inline; }
@@ -298,3 +297,46 @@ footer span{ display: inline-flex; gap: 6px; align-items: center; }
 .recheck:hover{ text-decoration-color: currentColor; }
 .recheck:active .ph-light{ transform: rotate(-30deg); }
 .stubs.settled .stub{ animation: none; }
+
+/* Round 2 */
+.pick{ display: flex; gap: 10px; align-items: flex-start; font-size: 16px; line-height: 1.4; font-weight: 500; margin-bottom: 14px; max-width: 70ch; text-wrap: pretty; }
+.pick .ph-light{ font-size: 22px; margin-top: 1px; }
+
+/* The other three copies peek out under the active sheet, like a real pad */
+.under{ position: absolute; inset: 0; border-radius: 0 0 var(--r) var(--r); z-index: 0; pointer-events: none;
+  box-shadow: 0 1px 0 color-mix(in oklab, var(--carbon) 12%, transparent); }
+.under.u1{ transform: translate(7px, 7px); background: var(--canario); }
+.under.u2{ transform: translate(14px, 14px); background: var(--rosa); }
+.under.u3{ transform: translate(21px, 21px); background: var(--azul); }
+html[data-view="client"] .under.u1{ background: var(--original); }
+html[data-view="contractor"] .under.u2{ background: var(--original); }
+html[data-view="accountant"] .under.u3{ background: var(--original); }
+.reg.tr, .reg.br{ right: -36px; } .reg.bl, .reg.br{ bottom: -20px; }
+
+.ghostnum{ font-size: 76px; font-weight: 650; letter-spacing: -.035em; line-height: .9; color: transparent;
+  text-shadow: 0 0 14px color-mix(in oklab, var(--carbon) 30%, transparent); user-select: none; }
+.b-amount.hidden{ display: flex; flex-direction: column; }
+.b-amount.hidden .notcopy{ margin-top: 10px; align-self: flex-start; }
+
+.versus{ margin-top: 48px; background: color-mix(in oklab, var(--original) 70%, transparent); padding: 18px 20px 8px; border-radius: var(--r); }
+.versus h2{ font-size: 18px; font-weight: 650; letter-spacing: -.015em; display: flex; gap: 8px; align-items: center; }
+.versus h2 .ph-light{ font-size: 20px; }
+.versus .lead{ font-size: 13px; color: var(--ink-soft); margin-top: 4px; max-width: 70ch; }
+.versus table{ width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 13px; }
+.versus th, .versus td{ text-align: left; vertical-align: top; padding: 10px 12px 10px 0; border-top: 1px solid var(--rule); }
+.versus thead th{ font-size: 12px; font-weight: 600; color: var(--ink-soft); border-top: 0; padding-top: 0; }
+.versus tbody th{ font-weight: 600; }
+.versus tbody th .ph-light{ margin-right: 6px; }
+.versus td.open{ color: var(--sello-ink); font-weight: 500; }
+@media (max-width: 720px){
+  .pick{ font-size: 15px; }
+  .under.u2, .under.u3{ display: none; }
+  .versus{ padding: 14px 14px 4px; }
+  .versus table, .versus tbody, .versus tr, .versus th, .versus td{ display: block; }
+  .versus thead{ display: none; }
+  .versus tbody th{ padding-bottom: 2px; }
+  .versus td{ border-top: 0; padding: 2px 0; }
+  .versus td.open::before{ content: "Transparent: "; font-weight: 600; }
+  .versus td:not(.open)::before{ content: "Hexcrow: "; font-weight: 600; color: var(--carbon); }
+  .versus td:last-child{ padding-bottom: 10px; }
+}

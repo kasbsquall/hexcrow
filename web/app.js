@@ -12,6 +12,8 @@
   const AMOUNT_LABEL = { client: 'Amount', contractor: 'Amount owed', accountant: 'Amount, read with the escrow view key' };
   const FETCH_TIMEOUT_MS = 9000;
   const REFRESH_MS = 60000;
+  const TOUR_START_MS = 1600;
+  const TOUR_STEP_MS = 1700;
   const reduce = matchMedia('(prefers-reduced-motion: reduce)');
 
   const $ = (id) => document.getElementById(id);
@@ -208,7 +210,7 @@
     const p = i.parties_only;
     if (!SEES_PRIVATE[view]) {
       return `<div class="box s4 b-text hidden"><p class="lab">${icon('file-text')}Invoice text</p>${notOnCopy('the invoice text')}</div>
-        <div class="box s2 b-amount hidden"><p class="lab">${icon('coins')}Amount</p><p class="ghostfig" aria-hidden="true"><span class="blot"><svg preserveAspectRatio="none"><rect width="100%" height="100%" filter="url(#blot)"/></svg></span><span class="unit">tTARI</span></p>${notOnCopy('the amount')}</div>`;
+        <div class="box s2 b-amount hidden"><p class="lab">${icon('coins')}Amount</p>${smudge()}<p class="ghostfig" aria-hidden="true"><span class="ghostnum">000</span><span class="unit">tTARI</span></p><span class="notcopy">${icon('lock-simple')}Not on this copy<span class="sr-only">: the amount is hidden from this holder</span></span></div>`;
     }
     const given = view === 'accountant' ? ', given to the accountant' : '';
     return `<div class="box s4 b-text"><p class="lab">${icon('file-text')}Invoice text${given}</p><p class="val">${esc(p.text)}</p></div>
@@ -326,6 +328,19 @@
       </div>`;
   }
 
+  function renderVersus(i) {
+    const amount = `${tari(i.parties_only.amount_micro_tari)} tTARI`;
+    const rows = [
+      ['coins', 'Amount', `${amount}, in the contract balance`, 'Hidden in a commitment. The parties and the holders of the view key read it.'],
+      ['buildings', 'Who paid', 'The client account, on the deposit', `A one-time key, ${short(i.client_key, 8, 0)}`],
+      ['pen-nib', 'Who got paid', 'The contractor account, on the release', `A one-time key, ${short(i.contractor_key, 8, 0)}`],
+      ['link', 'Other payments of the same people', 'Linkable through the whole history of both accounts', 'Linkable only if keys are reused. This demo reuses them for invoices 0001 and 0002.'],
+      ['scroll', 'The rules and the status', 'Public', 'Public'],
+    ];
+    $('vs-body').innerHTML = rows.map(([ic, fact, open, ours]) =>
+      `<tr><th scope="row">${icon(ic)}${fact}</th><td class="open">${esc(open)}</td><td>${esc(ours)}</td></tr>`).join('');
+  }
+
   // ---- rendering: aside --------------------------------------------------------------------
   function renderInvoices() {
     $('invs').innerHTML = state.run.invoices.map((i) => {
@@ -363,7 +378,7 @@
         ${r.why ? `<p class="why">${esc(r.why)}</p>` : ''}
         <p class="meta">${txLink(r.tx)}${fee}</p>
         <p class="meta"><span class="ver" data-state="${v.state}">${icon(verdictIcon)}${esc(v.text)}</span></p>
-        <span class="mini">${stampSVG(r.accepted ? 'COMMIT' : 'REJECTED', r.accepted ? 150 : 176)}</span>
+        <span class="mini">${stampSVG(r.accepted ? 'COMMITTED' : 'REJECTED', r.accepted ? 196 : 176)}</span>
       </li>`;
     }).join('');
     $('recheck').addEventListener('click', () => verifyAll(true));
@@ -378,6 +393,7 @@
     sheet.setAttribute('aria-labelledby', 'tab-' + state.view);
     renderInvoices();
     renderStubs();
+    renderVersus(i);
     runAccountantCheck(i);
   }
 
@@ -408,7 +424,7 @@
     };
   }
 
-  function setView(view) {
+  function setView(view, silent) {
     if (view === state.view) return;
     const after = slideSheet(COPY[state.view]);
     state.view = view;
@@ -420,7 +436,7 @@
     render();
     if (after) after();
     writeURL();
-    sound.play('switch');
+    if (!silent) sound.play('switch');
   }
 
   function setInvoice(no) {
@@ -464,6 +480,28 @@
     });
   }
 
+  // On first load, show each copy once so the four views are seen without a click.
+  // Any input from the visitor stops it for good.
+  function tour() {
+    if (reduce.matches || new URLSearchParams(location.search).has('view')) return;
+    const order = ['client', 'contractor', 'accountant', 'public'];
+    const inputs = ['pointerdown', 'keydown', 'wheel', 'touchstart'];
+    let step = 0;
+    let timer = null;
+    const stop = () => {
+      clearTimeout(timer);
+      inputs.forEach((ev) => removeEventListener(ev, stop, true));
+    };
+    inputs.forEach((ev) => addEventListener(ev, stop, true));
+    const next = () => {
+      setView(order[step], true);
+      step += 1;
+      if (step < order.length) timer = setTimeout(next, TOUR_STEP_MS);
+      else stop();
+    };
+    timer = setTimeout(next, TOUR_START_MS);
+  }
+
   async function start() {
     try {
       const r = await fetch('data/run.json', { cache: 'no-store' });
@@ -480,6 +518,7 @@
     refreshNetwork();
     verifyAll(false);
     setInterval(refreshNetwork, REFRESH_MS);
+    tour();
   }
 
   start();
