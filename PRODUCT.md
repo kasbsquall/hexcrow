@@ -14,7 +14,7 @@ delegated: static HTML, CSS and vanilla JS, no build step. The demo is hosted as
 
 Primary: an independent contractor (designer, developer, writer) who bills a company per milestone and wants to know the money is there before starting, without publishing what they earn. Second: the company paying that contractor, which wants to release money only on approval and get it back if work never arrives. Third: an accountant or auditor who must check what was paid without being able to move it.
 
-Evaluating audience for this build: the Tari Council (Fox, ZhaoXi, solix78, naveen, kinkajou, coin_artist), a global privacy-focused community voting the October "Spooky Secrets" build contest. solix78 asked on 25-oct for confidential invoicing, private contractor payments, milestone escrow and selective disclosure.
+Evaluating audience for this build: the Tari Council and community voting the October "Spooky Secrets" build contest, a global privacy-focused group. A Council member asked on 25-oct for confidential invoicing, private contractor payments, milestone escrow and selective disclosure.
 
 ## Product Purpose
 
