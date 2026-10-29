@@ -4,7 +4,7 @@
 
 Built for the Tari Council October 2026 build contest, "Spooky Secrets".
 
-- **Hosted demo:** link added on publication. No wallet, no install: it replays a real run on Esmeralda testnet and checks every public fact against the public indexer while you watch.
+- **Hosted demo:** https://kasbsquall.github.io/hexcrow/ No wallet, no install: it replays a real run on Esmeralda testnet and checks every public fact against the public indexer while you watch.
 - **Proof:** every transaction of the run, with how to check it yourself, in [PROOF.md](PROOF.md).
 - **What stays hidden and what leaks:** [THREAT_MODEL.md](THREAT_MODEL.md).
 
