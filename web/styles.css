@@ -490,6 +490,7 @@ html[data-view="accountant"] .under.u3{ background: var(--original); }
   .show-sm{ display: inline; }
   .rule-rows{ grid-template-columns: 1fr; }
   .b-text .val{ font-size: 16px; }
+  .ids summary .hint{ display: none; }
   .under.u2, .under.u3{ display: none; }
   .hex-head{ grid-template-columns: 1fr; }
   .tally{ justify-items: start; text-align: left; }
