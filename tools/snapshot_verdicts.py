@@ -1,8 +1,10 @@
-"""Snapshot every transaction verdict in web/data/run.json from the public indexer.
+"""Snapshot every transaction verdict in web/data/run.json.
 
-The indexer keeps transactions for 50 epochs (`transaction_retention_epochs` in /info). The demo
-reads verdicts live; once the indexer answers 404 for a pruned transaction, it falls back to this
-snapshot and says so. The book state never expires and is always read live.
+The public indexers drop transaction results within hours, well before the 50 epochs their /info
+advertises. The demo reads verdicts live; once the indexer answers 404 for a pruned transaction, it
+falls back to this snapshot and says so. Each verdict comes from the raw result saved by
+tools/save_results.py (evidence/indexer-results/<tx>.json), or from the indexer when none is saved.
+The book state and the escrow outputs never expire and are always read live.
 
 Usage: python tools/snapshot_verdicts.py
 """
@@ -14,6 +16,7 @@ from datetime import datetime, timezone
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 RUN = ROOT / "web" / "data" / "run.json"
+SAVED = ROOT / "evidence" / "indexer-results"
 OUT = ROOT / "web" / "data" / "verdicts.json"
 
 
@@ -24,15 +27,22 @@ def fetch(url):
         return json.load(r)
 
 
+def result_of(indexer, tx):
+    saved = SAVED / f"{tx}.json"
+    if saved.exists():
+        return json.loads(saved.read_text(encoding="utf-8"))
+    return fetch(f"{indexer}transactions/{tx}/result")
+
+
 def main():
     run = json.loads(RUN.read_text(encoding="utf-8"))
     epoch = fetch(run["indexer"] + "network")["epoch"]
     txs = [row["tx"] for inv in run["invoices"] for row in inv["timeline"]]
     verdicts = {}
     for tx in txs:
-        fin = fetch(f"{run['indexer']}transactions/{tx}/result")["result"].get("Finalized")
+        fin = result_of(run["indexer"], tx)["result"].get("Finalized")
         if not fin:
-            raise SystemExit(f"{tx} is not finalized on the indexer; refusing to snapshot it")
+            raise SystemExit(f"{tx} is not finalized; refusing to snapshot it")
         result = fin["execution_result"]["finalize"]["result"]
         verdicts[tx] = {
             "final_decision": fin["final_decision"],
