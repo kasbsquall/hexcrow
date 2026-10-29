@@ -3,10 +3,13 @@
 // Hexcrow invoice book.
 //
 // The money in a Hexcrow milestone never touches this component. It sits in a stealth UTXO whose
-// spend conditions (claim: approval code + contractor key + before the claim window closes; refund:
-// client key + after it closes) are enforced natively by the Ootle engine. This book is the public audit trail
-// around that escrow: who may act on an invoice (one-time keys only), what the escrow output must
-// look like (its condition root), and what happened to it. No amount, account or name is stored.
+// spend conditions are enforced natively by the Ootle engine:
+//   claim:   approval code + contractor key, before the claim window closes
+//   ruling:  mediator key + contractor key, or mediator key + client key, before it closes
+//   refund:  client key, once it has closed
+// This book is the public audit trail around that escrow: who may act on an invoice (one-time keys
+// only), what the escrow output must look like (its condition root), and what happened to it. No
+// amount, account or name is stored.
 
 use std::collections::BTreeMap;
 
@@ -37,12 +40,14 @@ mod hexcrow_book {
         /// The contractor opens an invoice. The signer becomes the contractor key for this invoice.
         ///
         /// `invoice_hash` is a salted hash of the invoice document, kept off-chain by both parties.
-        /// The client may approve until `deadline_epoch`; the contractor may then claim for
-        /// `grace_epochs` more, so an approval in the last epoch still leaves time to collect.
+        /// `mediator_key` is the one-time key of the mediator both parties agreed on; the client
+        /// accepts it by funding. The client may approve until `deadline_epoch`; the contractor may
+        /// then claim, or ask the mediator for a ruling, for `grace_epochs` more.
         pub fn issue(
             &mut self,
             invoice_hash: Hash32,
             client_key: RistrettoPublicKeyBytes,
+            mediator_key: RistrettoPublicKeyBytes,
             deadline_epoch: u64,
             grace_epochs: u64,
         ) {
@@ -50,6 +55,10 @@ mod hexcrow_book {
             assert!(deadline_epoch > Consensus::current_epoch(), "deadline must be in the future");
             assert!(grace_epochs >= 1, "the claim window needs at least one epoch of grace");
             assert!(client_key != contractor_key, "client and contractor keys must differ");
+            assert!(
+                mediator_key != client_key && mediator_key != contractor_key,
+                "the mediator must hold a third key"
+            );
             let claim_until = deadline_epoch.checked_add(grace_epochs).expect("claim window overflows");
 
             let id = self.next_id;
@@ -64,6 +73,8 @@ mod hexcrow_book {
                 escrow_root: None,
                 approval_code: None,
                 status: Status::Issued,
+                mediator_key,
+                ruling_hash: None,
             });
             emit_event("InvoiceIssued", metadata![
                 "invoice" => id.to_string(),
@@ -114,6 +125,35 @@ mod hexcrow_book {
             emit_event("InvoiceSettled", metadata!["invoice" => invoice.to_string()]);
         }
 
+        /// The mediator rules that the contractor is owed the money, for an invoice the client
+        /// funded but never approved. Meant to run in the transaction that spends the escrow through
+        /// its ruling leaf for the contractor, which needs the mediator's and the contractor's keys.
+        ///
+        /// `ruling_hash` is a salted hash of the mediator's written ruling, kept off chain, so the
+        /// ruling can later be shown to whoever needs it and checked against the book.
+        pub fn rule_for_contractor(&mut self, invoice: u64, ruling_hash: Hash32) {
+            let inv = self.invoice_mut(invoice);
+            inv.require_signer(inv.mediator_key, "only the mediator can rule on this invoice");
+            inv.require_signer(inv.contractor_key, "a ruling for the contractor needs the contractor's key");
+            inv.require_open_for_ruling();
+            inv.ruling_hash = Some(ruling_hash);
+            inv.status = Status::Settled;
+            emit_event("InvoiceRuled", metadata!["invoice" => invoice.to_string(), "for" => "contractor"]);
+        }
+
+        /// The mediator rules that the money goes back to the client, for an invoice the client
+        /// funded but never approved. Meant to run in the transaction that spends the escrow through
+        /// its ruling leaf for the client, which needs the mediator's and the client's keys.
+        pub fn rule_for_client(&mut self, invoice: u64, ruling_hash: Hash32) {
+            let inv = self.invoice_mut(invoice);
+            inv.require_signer(inv.mediator_key, "only the mediator can rule on this invoice");
+            inv.require_signer(inv.client_key, "a ruling for the client needs the client's key");
+            inv.require_open_for_ruling();
+            inv.ruling_hash = Some(ruling_hash);
+            inv.status = Status::Refunded;
+            emit_event("InvoiceRuled", metadata!["invoice" => invoice.to_string(), "for" => "client"]);
+        }
+
         /// The client closes an unapproved invoice once the claim window has closed. Meant to run in
         /// the transaction that spends the escrow output through its refund leaf.
         pub fn refund(&mut self, invoice: u64) {
@@ -142,6 +182,7 @@ mod hexcrow_book {
         Refunded,
     }
 
+    // New fields go last, so the positions readers already decode (invoice hash .. status) stay put.
     #[derive(Debug, Clone)]
     pub struct Invoice {
         pub invoice_hash: Hash32,
@@ -153,12 +194,14 @@ mod hexcrow_book {
         pub escrow_root: Option<Hash32>,
         pub approval_code: Option<Vec<u8>>,
         pub status: Status,
+        pub mediator_key: RistrettoPublicKeyBytes,
+        pub ruling_hash: Option<Hash32>,
     }
 
     impl Invoice {
         /// `expected` must have signed this transaction, either as the seal signer or as an
         /// additional authorising signer. The escrow spend is sealed by the invoice's escrow key
-        /// (the key that decrypts the escrow output) and co-signed by the acting party, so both
+        /// (the key that decrypts the escrow output) and co-signed by the acting parties, so both
         /// shapes have to be accepted.
         fn require_signer(&self, expected: RistrettoPublicKeyBytes, msg: &str) {
             if CallerContext::transaction_signer_public_key() == expected {
@@ -168,6 +211,13 @@ mod hexcrow_book {
             let proof = CallerContext::get_signer_proof_for_public_key(expected);
             assert!(proof.resource_address() == PUBLIC_IDENTITY_RESOURCE_ADDRESS, "{}", msg);
             proof.drop();
+        }
+
+        /// A ruling settles a dispute about a funded invoice nobody approved, while the escrow's
+        /// ruling leaves are still open.
+        fn require_open_for_ruling(&self) {
+            assert!(self.status == Status::Funded, "only a funded, unapproved invoice can be ruled on");
+            assert!(Consensus::current_epoch() < self.claim_until, "claim window has closed");
         }
     }
 }

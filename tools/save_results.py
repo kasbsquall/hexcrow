@@ -1,4 +1,4 @@
-"""Save the indexer's raw result for every transaction in the v3 part of the run log.
+"""Save the indexer's raw result for every transaction from template v3 on in the run log.
 
 The public indexers drop transaction results within hours, well before the 50 epochs their /info
 advertises (seen on 29-oct-2026). Each result is saved once, as served, under
@@ -19,7 +19,7 @@ INDEXER = "https://ootle-indexer-a.tari.com/"
 V3_NOTE = "Entries below this line use template v3"
 
 
-def v3_tx_ids():
+def tx_ids_since_v3():
     lines = LOG.read_text(encoding="utf-8").splitlines()
     start = max(i for i, l in enumerate(lines) if V3_NOTE in l)
     for line in lines[start + 1:]:
@@ -31,7 +31,7 @@ def v3_tx_ids():
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
     saved = missing = 0
-    for tx in v3_tx_ids():
+    for tx in tx_ids_since_v3():
         dest = OUT / f"{tx}.json"
         if dest.exists():
             continue

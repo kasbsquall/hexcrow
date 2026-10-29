@@ -1,107 +1,121 @@
 {
-  "taken_utc": "2026-10-29 17:44",
-  "taken_epoch": 12715,
+  "taken_utc": "2026-10-29 19:26",
+  "taken_epoch": 12716,
   "indexer": "https://ootle-indexer-a.tari.com/",
   "verdicts": {
-    "7df3988299bc7d13f8cafe15ffde91458562621227fe259717f5d8a559d07872": {
+    "20054eebb90806608ca03b48e0df54c03ce87b142eab07cb170681cf31ca4078": {
       "final_decision": "Commit",
       "result": "Accept",
-      "finalized_time": "2026-10-29 16:18:49.0"
+      "finalized_time": "2026-10-29 19:21:12.0"
     },
-    "22cab3e81c433605d1795924a7ee871e41e215e940b1fe40de5683fcbe3585af": {
+    "a552319353b4b50a9ec3c070c3dac852b80f5782aa11ac2e404e9a27c1e7fdb5": {
       "final_decision": "Commit",
       "result": "AcceptFeeRejectRest",
-      "finalized_time": "2026-10-29 16:19:53.0"
+      "finalized_time": "2026-10-29 19:21:15.0"
     },
-    "f2aa03863ff199469bb0514633dff86a112e252b6034fbe5c6468c4a4de777bb": {
+    "0406b243067a98e9e109e333b6cb4b5535f58247e98f10f9e7083ea0c6bd3186": {
       "final_decision": "Commit",
       "result": "Accept",
-      "finalized_time": "2026-10-29 16:19:56.0"
+      "finalized_time": "2026-10-29 19:21:29.0"
     },
-    "0e06157117bfc09f8c84d4ea750e7918dcdaaaf327b9117c23eb78b2a6384f43": {
+    "6e609c05baf4efa7b10306663b5e012da61b8b8406427f1027e4411494ac8651": {
       "final_decision": {
         "Abort": "ExecutionFailure"
       },
       "result": "Reject",
-      "finalized_time": "2026-10-29 16:20:00.0"
+      "finalized_time": "2026-10-29 19:21:54.0"
     },
-    "3868016e026bfb2a3c28e444f066e9d7b494a4a23ae839588eb5b8da29484dd6": {
+    "c1951cdb45860173c063a488b2299c787a8b8ff977c40b9391c79683b65d5e8b": {
       "final_decision": {
         "Abort": "ExecutionFailure"
       },
       "result": "Reject",
-      "finalized_time": "2026-10-29 16:20:03.0"
+      "finalized_time": "2026-10-29 19:21:57.0"
     },
-    "0c8fd4c7991ec0d22b5367efe6e344eded2a16fea333e18b144302bfb330ae5b": {
+    "a2de96f29edcdae044ffaf57e76c452ca831cedfcde4312bbadec504195e07b7": {
       "final_decision": {
         "Abort": "ExecutionFailure"
       },
       "result": "Reject",
-      "finalized_time": "2026-10-29 16:20:05.0"
+      "finalized_time": "2026-10-29 19:21:59.0"
     },
-    "5cf4e8df18a0d2c846d56384c79812bbd721a20a1258d58e8e3d372a71b462aa": {
+    "ea2d059bc137057dd63afee267bc2ee3adf372ddf305fd93293755d0d5566557": {
       "final_decision": "Commit",
       "result": "AcceptFeeRejectRest",
-      "finalized_time": "2026-10-29 16:20:08.0"
+      "finalized_time": "2026-10-29 19:22:02.0"
     },
-    "6364f810154006dff341b4e0238ddaf19364a25b1cf1a40eb4e01424a6e3cb93": {
-      "final_decision": "Commit",
-      "result": "Accept",
-      "finalized_time": "2026-10-29 16:20:10.0"
-    },
-    "d7daf43fa07a5da5494ae6fef45f608cb9810dbef00121b5a393028ccb675dba": {
+    "c81bdfeb8124ec2475ea74eafb5f2e531594a27e7fa2a23022c194c78360b466": {
       "final_decision": {
         "Abort": "ExecutionFailure"
       },
       "result": "Reject",
-      "finalized_time": "2026-10-29 16:20:13.0"
+      "finalized_time": "2026-10-29 19:22:05.0"
     },
-    "cb742b3ae96baf966f91609a582e74324c40f594b9be1cfa1bb3d94be29495c2": {
+    "cb635914858f03be08597349728bd8f6d9eb70fcf4b5ba469f40d1b7cd8003ef": {
       "final_decision": {
         "Abort": "ExecutionFailure"
       },
       "result": "Reject",
-      "finalized_time": "2026-10-29 16:20:16.0"
+      "finalized_time": "2026-10-29 19:22:08.0"
     },
-    "f1907e76195027d64a3511e1efed38c683279aa2553c247a4803d4c7e4b1884e": {
+    "c36496032076e77f1a50785caf41bd9c41846cbcbf936d934801080fc756957c": {
       "final_decision": "Commit",
       "result": "Accept",
-      "finalized_time": "2026-10-29 16:20:18.0"
+      "finalized_time": "2026-10-29 19:22:11.0"
     },
-    "cbf10cb3dfba251dab4b5c53d34a8ab10f3f89f314bf24ab02844ea8f0278dc3": {
+    "acfc88f86782699f465bbf7fb84ff74d5e2227b850345890fe9af8e2dd5d91dc": {
+      "final_decision": {
+        "Abort": "ExecutionFailure"
+      },
+      "result": "Reject",
+      "finalized_time": "2026-10-29 19:22:14.0"
+    },
+    "1f3b07c8f667009023cdf875b2192713638401a5f12fe62eed49844625f4afea": {
+      "final_decision": {
+        "Abort": "ExecutionFailure"
+      },
+      "result": "Reject",
+      "finalized_time": "2026-10-29 19:22:17.0"
+    },
+    "5faff53665f08259678b14cb64d51710c4955dea3ee0ca35005b4c8d9d6f2338": {
       "final_decision": "Commit",
       "result": "Accept",
-      "finalized_time": "2026-10-29 16:18:53.0"
+      "finalized_time": "2026-10-29 19:22:21.0"
     },
-    "ac3cda54d1dcc33e4bac28e02eb7c6ce160a9ec36e812fca45d77dda7c102e45": {
+    "be798041c486b37cd9ced72bbfd8e91244ce48976ebc08ca56c7c2c78fd2f6d1": {
       "final_decision": "Commit",
       "result": "Accept",
-      "finalized_time": "2026-10-29 16:18:56.0"
+      "finalized_time": "2026-10-29 19:21:19.0"
     },
-    "19ecd21f22dd1bb9952c86b03d1037502f600e60debf8f78a0d5da41db2396f7": {
+    "9a038fcc883122961f27e312466fc551290eef8f4c263bbcc00ba8ddf55813ae": {
       "final_decision": "Commit",
       "result": "Accept",
-      "finalized_time": "2026-10-29 17:43:56.0"
+      "finalized_time": "2026-10-29 19:21:33.0"
     },
-    "b5a2e42e5296b144c0b801d93c5e60c61bde0f89f5f570094ce4708592243561": {
+    "7fb1c092041356026494ca0ac6f11ca29858907bb5365b2b1d1407d7fce13dd6": {
       "final_decision": "Commit",
       "result": "Accept",
-      "finalized_time": "2026-10-29 16:32:28.0"
+      "finalized_time": "2026-10-29 19:21:22.0"
     },
-    "29b8e91e52b08c902e719ad2271cc5cc86772210f4478c908f78f3c150f5f37a": {
+    "9713f5faccec56254b697e2a766ec4eb52bda8723563cb4c24023fb619bfd491": {
       "final_decision": "Commit",
       "result": "Accept",
-      "finalized_time": "2026-10-29 16:32:31.0"
+      "finalized_time": "2026-10-29 19:21:36.0"
     },
-    "e8bd4e970f6f2c64dd2438ab6ac5be05c183098acc2862951f77745174ea0917": {
+    "6a84034b98e7c256c897985945b3ddd0c6f977ab1a14a39b8a2bc3ea0dcb2364": {
       "final_decision": "Commit",
       "result": "Accept",
-      "finalized_time": "2026-10-29 16:32:42.0"
+      "finalized_time": "2026-10-29 19:22:24.0"
     },
-    "04ba6480d1be5beddfa6ef9d63788e4e516e81344175291ab0c3b1a3522801c2": {
+    "5074575ca73f387eb8fd53bb6ba1a12b0542b23d9d3f7db5592aa1d6e530280b": {
       "final_decision": "Commit",
       "result": "Accept",
-      "finalized_time": "2026-10-29 16:32:45.0"
+      "finalized_time": "2026-10-29 19:21:26.0"
+    },
+    "31726df1e70667ae9d8c349ca25a148a1a91de17c39f7a52b1fced530cf090b4": {
+      "final_decision": "Commit",
+      "result": "Accept",
+      "finalized_time": "2026-10-29 19:21:40.0"
     }
   }
 }

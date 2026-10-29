@@ -1,17 +1,31 @@
+     Running unittests src/lib.rs (target/debug/deps/hexcrow_book-c6fdfd4fafdc9ecc)
+
+running 0 tests
+
 test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/book.rs (target/debug/deps/book-95d795864b0955f0)
+
+running 19 tests
+test settle_requires_approval_and_approve_only_once ... ok
+test approval_in_the_last_epoch_still_leaves_the_claim_window ... ok
+test mediator_and_client_rule_for_the_client ... ok
+test happy_path_issue_fund_approve_settle ... ok
 test approved_invoice_cannot_be_refunded ... ok
 test refund_after_deadline ... ok
-test state_holds_no_amount_and_no_account ... ok
-test wrong_approval_code_is_rejected ... ok
-test approval_in_the_last_epoch_still_leaves_the_claim_window ... ok
-test settle_requires_approval_and_approve_only_once ... ok
-test stranger_cannot_fund_approve_settle_or_refund ... ok
-test issue_rejects_past_deadline_and_self_dealing ... ok
-test happy_path_issue_fund_approve_settle ... ok
-test only_the_client_sets_the_approval_lock ... ok
 test no_approval_after_deadline_and_no_settle_after_claim_window ... ok
 test escrow_key_alone_cannot_settle ... ok
-test no_funding_or_approval_after_deadline ... ok
-test contractor_cannot_approve_own_invoice ... ok
+test no_ruling_after_approval_or_after_the_claim_window ... ok
+test issue_rejects_past_deadline_and_self_dealing ... ok
 test escrow_key_seals_and_contractor_cosigns_settle ... ok
-test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 40.94s
+test mediator_and_contractor_rule_for_the_contractor ... ok
+test contractor_cannot_approve_own_invoice ... ok
+test only_the_client_sets_the_approval_lock ... ok
+test a_ruling_needs_the_mediator_and_the_party_it_pays ... ok
+test no_funding_or_approval_after_deadline ... ok
+test state_holds_no_amount_and_no_account ... ok
+test stranger_cannot_fund_approve_settle_or_refund ... ok
+test wrong_approval_code_is_rejected ... ok
+
+test result: ok. 19 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 19.58s
+

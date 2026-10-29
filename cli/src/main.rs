@@ -11,7 +11,7 @@ use std::{collections::BTreeMap, fs, num::NonZeroU64, path::PathBuf};
 use anyhow::{Context, Result, anyhow, bail};
 use chain::{Prepared, Session, Spend, utxo_input, with_stealth_fee};
 use clap::{Parser, Subcommand};
-use escrow::{EscrowTerms, sha256};
+use escrow::{EscrowTerms, Leaf, sha256};
 use ootle_rs::{
     crypto::stealth::script_path_witness_with_data,
     stealth::Output,
@@ -80,6 +80,17 @@ enum Cmd {
     Claim { invoice: u64 },
     /// Client takes the escrow back through the refund leaf after the deadline.
     Refund { invoice: u64 },
+    /// The mediator rules on a funded invoice nobody approved, together with the party it rules
+    /// for: the escrow pays that party and the book records the ruling's hash.
+    Rule {
+        invoice: u64,
+        /// Who the ruling pays: `contractor` or `client`.
+        #[arg(long = "for")]
+        for_party: String,
+        /// The mediator's written ruling, kept off chain; only its salted hash goes in the book.
+        #[arg(long)]
+        text: String,
+    },
     /// Try to break an invoice. The network should refuse each attempt.
     Attack { invoice: u64, kind: String },
     /// Contractor checks, from the public indexer, that the escrow exists and matches the invoice
@@ -121,6 +132,19 @@ struct InvoiceLocal {
     escrow_value: Option<u64>,
     escrow_root: Option<String>,
     txs: BTreeMap<String, String>,
+    #[serde(default)]
+    mediator: String,
+    /// The mediator's ruling, if there was one. Its text and salt stay off chain.
+    #[serde(default)]
+    ruling: Option<RulingLocal>,
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+struct RulingLocal {
+    for_party: String,
+    text: String,
+    salt: String,
+    hash: String,
 }
 
 fn state_path() -> PathBuf {
@@ -203,6 +227,7 @@ async fn main() -> Result<()> {
         Cmd::Approve { invoice } => book_call(&personas, &mut state, invoice, "approve").await?,
         Cmd::Claim { invoice } => spend_escrow(&personas, &mut state, invoice, false).await?,
         Cmd::Refund { invoice } => spend_escrow(&personas, &mut state, invoice, true).await?,
+        Cmd::Rule { invoice, for_party, text } => rule(&personas, &mut state, invoice, &for_party, text).await?,
         Cmd::Attack { invoice, kind } => attack(&personas, &mut state, invoice, &kind).await?,
         Cmd::Verify { invoice, expect_tari } => verify(&personas, &state, invoice, expect_tari).await?,
         Cmd::Inspect { invoice } => inspect(&personas, &state, invoice).await?,
@@ -376,14 +401,15 @@ fn terms(personas: &Personas, inv: &InvoiceLocal) -> Result<EscrowTerms> {
         claim_until: inv.claim_until,
         contractor_key: persona_key(personas, &inv.contractor)?,
         client_key: persona_key(personas, &inv.client)?,
+        mediator_key: persona_key(personas, &inv.mediator)?,
     })
 }
 
 async fn issue(personas: &mut Personas, state: &mut State, doc: String, deadline_in: u64, grace: u64) -> Result<()> {
     let book = book_address(state)?;
     let id = state.invoices.keys().max().copied().unwrap_or(0) + 1;
-    let [client, contractor, escrow] = personas::invoice_names(id);
-    for name in [&client, &contractor, &escrow] {
+    let [client, contractor, escrow, mediator] = personas::invoice_names(id);
+    for name in [&client, &contractor, &escrow, &mediator] {
         personas.ensure(name)?;
     }
     let s = Session::connect(personas, &contractor, &[]).await?;
@@ -393,8 +419,10 @@ async fn issue(personas: &mut Personas, state: &mut State, doc: String, deadline
     let salt = random_hex(16)?;
     let invoice_hash = sha256(format!("{salt}|{doc}").as_bytes());
     let client_key = persona_key(personas, &client)?;
+    // The mediator both parties agreed on, with a key it uses for this invoice only.
+    let mediator_key = persona_key(personas, &mediator)?;
     let (res, _) = paid_call(personas, state, &contractor, &format!("issue:{id}"), vec![], move |tx| {
-        tx.call_method(book, "issue", args![invoice_hash, client_key, deadline_epoch, grace])
+        tx.call_method(book, "issue", args![invoice_hash, client_key, mediator_key, deadline_epoch, grace])
     })
     .await?;
     if !res.accepted {
@@ -416,6 +444,8 @@ async fn issue(personas: &mut Personas, state: &mut State, doc: String, deadline
         escrow_value: None,
         escrow_root: None,
         txs,
+        mediator,
+        ruling: None,
     });
     println!("invoice {id} issued: approve before epoch {deadline_epoch}, claim before epoch {claim_until}");
     Ok(())
@@ -429,6 +459,9 @@ async fn fund(personas: &Personas, state: &mut State, invoice: u64, amount_tari:
     let entry = read_book_entry(state, invoice).await?;
     if entry.client_key != persona_key(personas, &inv.client)?.to_string() || entry.status != 0 {
         bail!("invoice {invoice} in the book is not an open invoice to this client");
+    }
+    if entry.mediator_key != persona_key(personas, &inv.mediator)?.to_string() {
+        bail!("invoice {invoice} in the book names a mediator this client did not agree to");
     }
     if entry.claim_until.saturating_sub(entry.deadline_epoch) > MAX_GRACE_EPOCHS {
         bail!("the claim window of invoice {invoice} runs {} epochs past the deadline; refusing to fund", entry.claim_until - entry.deadline_epoch);
@@ -485,52 +518,106 @@ async fn book_call(personas: &Personas, state: &mut State, invoice: u64, method:
     Ok(())
 }
 
-/// Spends the escrow output through one of its leaves. The fee comes out of the escrow itself, so
-/// neither party has to touch another coin.
+/// Spends the escrow output through the claim or the refund leaf. The fee comes out of the escrow
+/// itself, so neither party has to touch another coin.
 async fn spend_escrow(personas: &Personas, state: &mut State, invoice: u64, refund: bool) -> Result<()> {
     let inv = state.invoices.get(&invoice).cloned().ok_or_else(|| anyhow!("unknown invoice {invoice}"))?;
-    let persona = if refund { inv.client.clone() } else { inv.contractor.clone() };
-    let label = format!("{}:{invoice}", if refund { "refund" } else { "claim" });
-    let book_method = if refund { "refund" } else { "settle" };
-    let witness_code = if refund { Vec::new() } else { approval_code(&inv)?.as_bytes().to_vec() };
-    run_escrow_spend(personas, state, invoice, &persona, &label, book_method, refund, witness_code).await
+    let (party, leaf, label, method) = if refund {
+        (inv.client.clone(), Leaf::Refund, format!("refund:{invoice}"), "refund")
+    } else {
+        (inv.contractor.clone(), Leaf::Claim, format!("claim:{invoice}"), "settle")
+    };
+    let witness = if refund { Vec::new() } else { approval_code(&inv)?.as_bytes().to_vec() };
+    run_escrow_spend(personas, state, invoice, &[party.as_str()], &party, &label, BookCall::plain(method), leaf, witness)
+        .await
+        .map(|_| ())
 }
 
+/// The mediator rules on an invoice for one party. Both sign the escrow spend through that party's
+/// ruling leaf, the escrow pays that party, and the book records the salted hash of the ruling.
+async fn rule(personas: &Personas, state: &mut State, invoice: u64, for_party: &str, text: String) -> Result<()> {
+    let inv = state.invoices.get(&invoice).cloned().ok_or_else(|| anyhow!("unknown invoice {invoice}"))?;
+    let (party, leaf, method) = match for_party {
+        "contractor" => (inv.contractor.clone(), Leaf::RulingForContractor, "rule_for_contractor"),
+        "client" => (inv.client.clone(), Leaf::RulingForClient, "rule_for_client"),
+        other => bail!("a ruling pays the contractor or the client, not {other}"),
+    };
+    let salt = random_hex(16)?;
+    let hash = sha256(format!("{salt}|{text}").as_bytes());
+    // Saved before sending, so an error after acceptance cannot lose the text the hash commits to.
+    state.invoices.get_mut(&invoice).unwrap().ruling = Some(RulingLocal {
+        for_party: for_party.to_string(),
+        text,
+        salt,
+        hash: hash.to_string(),
+    });
+    save_state(state)?;
+    let call = BookCall {
+        method: method.to_string(),
+        ruling_hash: Some(hash),
+    };
+    let label = format!("rule:{invoice}:{for_party}");
+    let cosigners = [inv.mediator.as_str(), party.as_str()];
+    let accepted = run_escrow_spend(personas, state, invoice, &cosigners, &party, &label, call, leaf, Vec::new()).await?;
+    if !accepted {
+        state.invoices.get_mut(&invoice).unwrap().ruling = None;
+    }
+    Ok(())
+}
+
+/// What an escrow spend asks the book to record in the same transaction: `method(invoice)`, or
+/// `method(invoice, ruling_hash)` for a ruling.
+struct BookCall {
+    method: String,
+    ruling_hash: Option<Hash32>,
+}
+
+impl BookCall {
+    fn plain(method: &str) -> Self {
+        Self {
+            method: method.to_string(),
+            ruling_hash: None,
+        }
+    }
+}
+
+/// Spends the escrow output through `leaf`, paying what is left after the fee to `payee`. The
+/// escrow key seals (it is the only key that can decrypt the escrow output) and each of
+/// `cosigners` signs; the leaf's access rules and the book both look for those signatures.
+/// Returns whether the network accepted it.
 #[allow(clippy::too_many_arguments)]
 async fn run_escrow_spend(
     personas: &Personas,
     state: &mut State,
     invoice: u64,
-    persona: &str,
+    cosigners: &[&str],
+    payee: &str,
     label: &str,
-    book_method: &str,
-    refund_leaf: bool,
+    call: BookCall,
+    leaf: Leaf,
     witness_data: Vec<u8>,
-) -> Result<()> {
+) -> Result<bool> {
     let book = book_address(state)?;
     let inv = state.invoices.get(&invoice).cloned().ok_or_else(|| anyhow!("unknown invoice {invoice}"))?;
     let t = terms(personas, &inv)?;
     let conditions = t.conditions();
-    let leaf = if refund_leaf { t.refund_leaf() } else { t.claim_leaf() };
-    let (witness, _root) = script_path_witness_with_data(&conditions, &leaf, Bytes::from_vec(witness_data))
+    let (witness, _root) = script_path_witness_with_data(&conditions, &t.leaf(leaf), Bytes::from_vec(witness_data))
         .map_err(|e| anyhow!("witness: {e}"))?;
     let commitment = commitment_from_hex(inv.escrow_commitment.as_ref().ok_or_else(|| anyhow!("invoice not funded"))?)?;
     let value = inv.escrow_value.unwrap_or_default();
-    // The escrow key seals (it is the only key that can decrypt the escrow output) and the acting
-    // party co-signs; the leaf's AccessRule and the book both look for the party's signature.
-    let mut s = Session::connect(personas, &inv.escrow, &[persona]).await?;
+    let mut s = Session::connect(personas, &inv.escrow, cosigners).await?;
     let escrow_addr = s.address.clone();
-    let party_addr = personas.provider(persona)?.address().clone();
+    let payee_addr = personas.provider(payee)?.address().clone();
     let spend = Spend {
         inputs: vec![(escrow_addr, StealthInput::with_witness(commitment, witness))],
         input_value: value,
         outputs: vec![],
-        change_to: Some(party_addr),
+        change_to: Some(payee_addr),
     };
     let max_epoch = s.max_epoch().await?;
     let session = &s;
     let spend_ref = &spend;
-    let method = book_method.to_string();
+    let BookCall { method, ruling_hash } = call;
     let build = move |fee: u64| {
         let method = method.clone();
         async move {
@@ -539,10 +626,12 @@ async fn run_escrow_spend(
                 .with_auto_fill_inputs()
                 .add_input(TARI_TOKEN)
                 .add_input(utxo_input(&commitment));
-            let tx = with_stealth_fee(tx, prepared.statement.clone())
-                .call_method(book, method.as_str(), args![invoice])
-                .build_unsigned();
-            Ok((tx, prepared))
+            let tx = with_stealth_fee(tx, prepared.statement.clone());
+            let tx = match ruling_hash {
+                Some(hash) => tx.call_method(book, method.as_str(), args![invoice, hash]),
+                None => tx.call_method(book, method.as_str(), args![invoice]),
+            };
+            Ok((tx.build_unsigned(), prepared))
         }
     };
     let priced = chain::price(&s, label, build).await?;
@@ -551,82 +640,82 @@ async fn run_escrow_spend(
     if res.accepted {
         let out = prepared.statement.stealth_outputs().last().map(|o| o.commitment().to_hex());
         if let Some(c) = out {
-            state.coins.entry(persona.to_string()).or_default().insert(c, value - res.fee);
+            state.coins.entry(payee.to_string()).or_default().insert(c, value - res.fee);
         }
     }
     state.invoices.get_mut(&invoice).unwrap().txs.insert(label.to_string(), res.tx_id);
-    Ok(())
+    Ok(res.accepted)
 }
 
 async fn attack(personas: &Personas, state: &mut State, invoice: u64, kind: &str) -> Result<()> {
     let inv = state.invoices.get(&invoice).cloned().ok_or_else(|| anyhow!("unknown invoice {invoice}"))?;
     let code = approval_code(&inv).map(|c| c.as_bytes().to_vec()).unwrap_or_default();
-    match kind {
+    let label = format!("attack:{kind}:{invoice}");
+    let ruling = || BookCall {
+        method: "rule_for_contractor".into(),
+        ruling_hash: Some(sha256(b"a ruling nobody wrote")),
+    };
+    let (contractor, client, mediator) = (inv.contractor.as_str(), inv.client.as_str(), inv.mediator.as_str());
+    let accepted = match kind {
         // A stranger who learned the approval code tries to take the money.
         "stranger-claim" => {
-            run_escrow_spend(personas, state, invoice, "stranger", &format!("attack:stranger-claim:{invoice}:{}", if inv.txs.contains_key("approve") { "after-approval" } else { "before-approval" }), "settle", false, code).await
+            let when = if inv.txs.contains_key("approve") { "after-approval" } else { "before-approval" };
+            let l = format!("{label}:{when}");
+            run_escrow_spend(personas, state, invoice, &["stranger"], "stranger", &l, BookCall::plain("settle"), Leaf::Claim, code).await
         },
         // The contractor tries to claim without the code.
-        "claim-without-code" => run_escrow_spend(
-            personas,
-            state,
-            invoice,
-            &inv.contractor,
-            &format!("attack:claim-without-code:{invoice}"),
-            "settle",
-            false,
-            b"i-did-the-work".to_vec(),
-        )
-        .await,
+        "claim-without-code" => {
+            let guess = b"i-did-the-work".to_vec();
+            run_escrow_spend(personas, state, invoice, &[contractor], contractor, &label, BookCall::plain("settle"), Leaf::Claim, guess).await
+        },
+        // The client tries to take the money back before the claim window closes, before or after
+        // approving.
+        "early-refund" | "refund-after-approval" => {
+            run_escrow_spend(personas, state, invoice, &[client], client, &label, BookCall::plain("refund"), Leaf::Refund, Vec::new()).await
+        },
+        // The mediator tries to pay itself through the ruling leaf, without the contractor.
+        "mediator-alone" => {
+            run_escrow_spend(personas, state, invoice, &[mediator], mediator, &label, ruling(), Leaf::RulingForContractor, Vec::new()).await
+        },
+        // The contractor tries the ruling leaf without the mediator.
+        "ruling-without-mediator" => {
+            run_escrow_spend(personas, state, invoice, &[contractor], contractor, &label, ruling(), Leaf::RulingForContractor, Vec::new()).await
+        },
+        // The mediator and the contractor rule after the claim window has closed.
+        "late-ruling" => {
+            let both = [mediator, contractor];
+            run_escrow_spend(personas, state, invoice, &both, contractor, &label, ruling(), Leaf::RulingForContractor, Vec::new()).await
+        },
         // The contractor tries to fund its own invoice with an approval code it chose itself.
         "contractor-sets-lock" => {
             let book = book_address(state)?;
             let own_lock = sha256(b"a code the contractor already knows");
-            paid_call(personas, state, &inv.contractor, &format!("attack:contractor-sets-lock:{invoice}"), vec![], move |tx| {
+            paid_call(personas, state, contractor, &label, vec![], move |tx| {
                 tx.call_method(book, "fund", args![invoice, own_lock, own_lock])
             })
             .await
-            .map(|_| ())
+            .map(|(res, _)| res.accepted)
         },
-        // The client approves, then tries to take the money back while the claim window is open.
-        "refund-after-approval" => run_escrow_spend(
-            personas,
-            state,
-            invoice,
-            &inv.client,
-            &format!("attack:refund-after-approval:{invoice}"),
-            "refund",
-            true,
-            Vec::new(),
-        )
-        .await,
-        // The client tries to take the money back before the deadline.
-        "early-refund" => run_escrow_spend(
-            personas,
-            state,
-            invoice,
-            &inv.client,
-            &format!("attack:early-refund:{invoice}"),
-            "refund",
-            true,
-            Vec::new(),
-        )
-        .await,
         // The contractor tries to approve their own invoice in the book.
         "self-approve" => {
             let book = book_address(state)?;
-            paid_call(personas, state, &inv.contractor, &format!("attack:self-approve:{invoice}"), vec![], move |tx| {
+            paid_call(personas, state, contractor, &label, vec![], move |tx| {
                 tx.call_method(book, "approve", args![invoice, code.clone()])
             })
             .await
-            .map(|_| ())
+            .map(|(res, _)| res.accepted)
         },
         other => bail!("unknown attack {other}"),
+    }?;
+    if accepted {
+        println!("WARNING: the network accepted attack {kind} on invoice {invoice}");
     }
+    Ok(())
 }
 
 /// The book entry of one invoice, as the public indexer serves it. Field order follows `Invoice`
-/// in the template: hash, contractor, client, deadline, claim_until, lock, root, code, status.
+/// in the template: hash, contractor, client, deadline, claim_until, lock, root, code, status,
+/// mediator, ruling hash.
 struct BookEntry {
     contractor_key: String,
     client_key: String,
@@ -635,6 +724,7 @@ struct BookEntry {
     approval_lock: Option<String>,
     escrow_root: Option<String>,
     status: u64,
+    mediator_key: String,
 }
 
 fn cbor_hex(v: &serde_json::Value) -> Option<String> {
@@ -672,6 +762,7 @@ async fn read_book_entry(state: &State, invoice: u64) -> Result<BookEntry> {
         approval_lock: cbor_hex(&f[5]),
         escrow_root: cbor_hex(&f[6]),
         status: f[8][0].as_u64().unwrap_or(u64::MAX),
+        mediator_key: cbor_hex(&f[9]).unwrap_or_default(),
     })
 }
 
@@ -722,6 +813,10 @@ async fn verify(personas: &Personas, state: &State, invoice: u64, expect_tari: u
     let me = persona_key(personas, &inv.contractor)?.to_string();
     let mut checks = Vec::new();
     checks.push(("the book names my key as contractor".to_string(), entry.contractor_key == me));
+    checks.push((
+        "the book names the mediator we agreed on".to_string(),
+        entry.mediator_key == persona_key(personas, &inv.mediator)?.to_string(),
+    ));
     checks.push(("the invoice is funded".to_string(), entry.status == 1));
     checks.push((
         format!("the client can still approve: epoch {epoch}, deadline {}", entry.deadline_epoch),
@@ -733,6 +828,7 @@ async fn verify(personas: &Personas, state: &State, invoice: u64, expect_tari: u
             claim_until: entry.claim_until,
             contractor_key: entry.contractor_key.parse().map_err(|e| anyhow!("contractor key: {e:?}"))?,
             client_key: entry.client_key.parse().map_err(|e| anyhow!("client key: {e:?}"))?,
+            mediator_key: entry.mediator_key.parse().map_err(|e| anyhow!("mediator key: {e:?}"))?,
         }
         .root()?
         .to_string(),
@@ -791,7 +887,15 @@ async fn inspect(personas: &Personas, state: &State, invoice: u64) -> Result<()>
         "parties": {
             "contractor_key": persona_key(personas, &inv.contractor)?.to_string(),
             "client_key": persona_key(personas, &inv.client)?.to_string(),
+            "mediator_key": persona_key(personas, &inv.mediator)?.to_string(),
         },
+        "mediator_ruling": inv.ruling.as_ref().map(|r| serde_json::json!({
+            "for": r.for_party,
+            "text": r.text,
+            "salt": r.salt,
+            "ruling_hash": r.hash,
+            "check": "sha256(salt|text) == ruling_hash in the book",
+        })),
         "escrow_view_key_holders_see": {
             "amount_micro_tari": inv.escrow_value,
             "memo": format!("Hexcrow invoice {invoice}"),

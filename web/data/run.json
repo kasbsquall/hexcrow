@@ -1,35 +1,41 @@
 {
   "network": "esmeralda",
   "indexer": "https://ootle-indexer-a.tari.com/",
-  "template": "template_0b82e0dbc489b2a8d21897945b2b4ba69dc49d0b3af6e1314a80853a9ca9f754",
-  "book": "component_40bf618048f814d859011d5d13a7cc20c978c917841571bb0a1bce2b52263931",
+  "template": "template_8eba2e85761d26e82117bc075236f9cae78e72919e7421bda33cae867d6b5fd3",
+  "book": "component_f427dbf5e39837919640366002669ccef31bc569897efd16ae6daadeb96372ba",
   "book_txs": {
-    "publish-template": "436aba85f70286be129de19bc5d23cf3c6f6a6017272d965338e52dfaa6624bc",
-    "new-book": "453885e5cea4f176e249e58d7e46942eae454810d790746b9bd4c37c98487c83"
+    "publish-template": "46817759d2b68b3c77cbdf9582ddbb2936f50f9ffb23850af2f91248828944a2",
+    "new-book": "0b8b7f82b6bcb3ddf74fed9a82e7874753164848a5bdc89cbea036dd50e4189a"
   },
-  "engine_tests_passed": 15,
+  "engine_tests_passed": 19,
   "invoices": [
     {
       "no": 1,
-      "invoice_hash": "13f9088b5ec1302cd969fb23e22a000a244bba871454b18e26d22801d1261306",
-      "deadline_epoch": 12716,
-      "claim_until": 12718,
-      "escrow_commitment": "c4cbab7000d70b2cd1e5f4565cb9356a7acf11361fbb0205f1b94fbadc834828",
-      "escrow_root": "65d241226986ab7bc2b090ad5a17c98cd961a7fc61621497c53faecf92438678",
-      "client_key": "d65a4df4476c26a8a58522aee98d4b968a2bad883809508730314107a7586703",
-      "contractor_key": "6e8f9250d7ca1b1364ae74f9c23d46172073e718292da9d292d3e65a4da6064e",
+      "invoice_hash": "622e82c52d9086cad29cdfdec1fcfb3145b7d939c988e1a97fa2003fa34c76e6",
+      "deadline_epoch": 12720,
+      "claim_until": 12722,
+      "escrow_commitment": "ae57e0addccf5300c24e356147d27f8598b4520c6133c6092c9cc17fb0a4d24b",
+      "escrow_root": "6f4dc376aafc77567f622b97ede32cb82c42db1a7d973c31d88fc5beba4a2dc8",
+      "client_key": "7aa199f6a082cb88c9f8ac5ec678bff46f54a52ecbdbe6280bce6a9085ca7f59",
+      "contractor_key": "689c739b8d5ffe754376615dfcd2dfa784970f5f8eab138bc4422ca621e00c1b",
+      "mediator_key": "5a719dcee34e49f2a25edd8590d95c027cf3039c67fe427c33487957af622530",
+      "ruling": null,
       "parties_only": {
         "amount_micro_tari": 250000000,
         "memo": "Hexcrow invoice 1",
         "text": "Invoice 0001 | Brand identity for a privacy wallet, milestone 2 of 3: logo system and icon set | 250 tTARI",
-        "salt": "93aa97ceec4e7ea06b7834cc63d8e5f3"
+        "salt": "d0edd5a4a4fa49ebf91564a728238b9f"
       },
-      "approval_code": "hexcrow-approve-d192fdb327cab736e1ef28b6a18475e9",
+      "approval_code": "hexcrow-approve-f7fda8e22b3042d93e66c373c96694c7",
       "contractor_check": {
-        "recorded_at": "unix:1793290797",
+        "recorded_at": "unix:1793301704",
         "checks": [
           {
             "check": "the book names my key as contractor",
+            "ok": true
+          },
+          {
+            "check": "the book names the mediator we agreed on",
             "ok": true
           },
           {
@@ -37,107 +43,142 @@
             "ok": true
           },
           {
+            "check": "the client can still approve: epoch 12716, deadline 12720",
+            "ok": true
+          },
+          {
             "check": "the book's terms rebuild the book's condition root",
             "ok": true
           },
           {
-            "check": "the escrow output exists and is unspent",
+            "check": "the escrow output exists and is unspent, by a verified proof",
             "ok": true
           },
           {
             "check": "the escrow output is locked by exactly that root, with no key path",
             "ok": true
+          },
+          {
+            "check": "the escrow holds the expected 250 tTARI, read with the escrow view key",
+            "ok": true
           }
         ],
-        "condition_root": "65d241226986ab7bc2b090ad5a17c98cd961a7fc61621497c53faecf92438678",
-        "safe_to_start_work": true,
-        "utxo": "utxo_0101010101010101010101010101010101010101010101010101010101010101_c4cbab7000d70b2cd1e5f4565cb9356a7acf11361fbb0205f1b94fbadc834828"
+        "condition_root": "6f4dc376aafc77567f622b97ede32cb82c42db1a7d973c31d88fc5beba4a2dc8",
+        "escrow_value_micro_tari": 250000000,
+        "funds_locked_as_agreed": true
       },
       "timeline": [
         {
           "kind": "issue",
           "label": "Issued by the contractor",
           "actor": "contractor",
-          "tx": "7df3988299bc7d13f8cafe15ffde91458562621227fe259717f5d8a559d07872",
+          "tx": "20054eebb90806608ca03b48e0df54c03ce87b142eab07cb170681cf31ca4078",
           "accepted": true,
-          "fee_micro_tari": 10217
+          "fee_micro_tari": 10283
         },
         {
           "kind": "attack",
+          "attack": "contractor-sets-lock",
           "label": "The contractor funds its own invoice with a code it chose",
           "why": "Rejected by the book: only the client sets the approval lock",
           "actor": "contractor",
-          "tx": "22cab3e81c433605d1795924a7ee871e41e215e940b1fe40de5683fcbe3585af",
+          "tx": "a552319353b4b50a9ec3c070c3dac852b80f5782aa11ac2e404e9a27c1e7fdb5",
           "accepted": false,
-          "fee_micro_tari": 9646
+          "fee_micro_tari": 9652
         },
         {
           "kind": "fund",
           "label": "Funded by the client",
           "actor": "client",
-          "tx": "f2aa03863ff199469bb0514633dff86a112e252b6034fbe5c6468c4a4de777bb",
+          "tx": "0406b243067a98e9e109e333b6cb4b5535f58247e98f10f9e7083ea0c6bd3186",
           "accepted": true,
-          "fee_micro_tari": 16821
+          "fee_micro_tari": 17245
         },
         {
           "kind": "attack",
+          "attack": "stranger-claim",
           "label": "A stranger tries to claim",
           "why": "Rejected by the chain: access denied on the escrow spend",
           "actor": "stranger",
-          "tx": "0e06157117bfc09f8c84d4ea750e7918dcdaaaf327b9117c23eb78b2a6384f43",
+          "tx": "6e609c05baf4efa7b10306663b5e012da61b8b8406427f1027e4411494ac8651",
           "accepted": false,
           "fee_micro_tari": null
         },
         {
           "kind": "attack",
+          "attack": "claim-without-code",
           "label": "The contractor claims without the approval code",
           "why": "Rejected by the chain: hash lock not satisfied",
           "actor": "contractor",
-          "tx": "3868016e026bfb2a3c28e444f066e9d7b494a4a23ae839588eb5b8da29484dd6",
+          "tx": "c1951cdb45860173c063a488b2299c787a8b8ff977c40b9391c79683b65d5e8b",
           "accepted": false,
           "fee_micro_tari": null
         },
         {
           "kind": "attack",
+          "attack": "early-refund",
           "label": "The client refunds before the deadline",
           "why": "Rejected by the chain: claim window still open",
           "actor": "client",
-          "tx": "0c8fd4c7991ec0d22b5367efe6e344eded2a16fea333e18b144302bfb330ae5b",
+          "tx": "a2de96f29edcdae044ffaf57e76c452ca831cedfcde4312bbadec504195e07b7",
           "accepted": false,
           "fee_micro_tari": null
         },
         {
           "kind": "attack",
+          "attack": "self-approve",
           "label": "The contractor approves its own invoice",
           "why": "Rejected by the book: the signer is not the client",
           "actor": "contractor",
-          "tx": "5cf4e8df18a0d2c846d56384c79812bbd721a20a1258d58e8e3d372a71b462aa",
+          "tx": "ea2d059bc137057dd63afee267bc2ee3adf372ddf305fd93293755d0d5566557",
           "accepted": false,
-          "fee_micro_tari": 9657
+          "fee_micro_tari": 9726
+        },
+        {
+          "kind": "attack",
+          "attack": "mediator-alone",
+          "label": "The mediator tries to pay itself through a ruling leaf",
+          "why": "Rejected by the chain: that leaf also needs the contractor's key",
+          "actor": "mediator",
+          "tx": "c81bdfeb8124ec2475ea74eafb5f2e531594a27e7fa2a23022c194c78360b466",
+          "accepted": false,
+          "fee_micro_tari": null
+        },
+        {
+          "kind": "attack",
+          "attack": "ruling-without-mediator",
+          "label": "The contractor tries a ruling leaf without the mediator",
+          "why": "Rejected by the chain: that leaf needs the mediator's key",
+          "actor": "contractor",
+          "tx": "cb635914858f03be08597349728bd8f6d9eb70fcf4b5ba469f40d1b7cd8003ef",
+          "accepted": false,
+          "fee_micro_tari": null
         },
         {
           "kind": "approve",
           "label": "Approved by the client, approval code revealed",
           "actor": "client",
-          "tx": "6364f810154006dff341b4e0238ddaf19364a25b1cf1a40eb4e01424a6e3cb93",
+          "tx": "c36496032076e77f1a50785caf41bd9c41846cbcbf936d934801080fc756957c",
           "accepted": true,
-          "fee_micro_tari": 10711
+          "fee_micro_tari": 11339
         },
         {
           "kind": "attack",
+          "attack": "refund-after-approval",
           "label": "The client approves, then tries to take the money back",
           "why": "Rejected by the chain: claim window still open",
           "actor": "client",
-          "tx": "d7daf43fa07a5da5494ae6fef45f608cb9810dbef00121b5a393028ccb675dba",
+          "tx": "acfc88f86782699f465bbf7fb84ff74d5e2227b850345890fe9af8e2dd5d91dc",
           "accepted": false,
           "fee_micro_tari": null
         },
         {
           "kind": "attack",
+          "attack": "stranger-claim:after-approval",
           "label": "A stranger claims with the now-public approval code",
           "why": "Rejected by the chain: access denied on the escrow spend",
           "actor": "stranger",
-          "tx": "cb742b3ae96baf966f91609a582e74324c40f594b9be1cfa1bb3d94be29495c2",
+          "tx": "1f3b07c8f667009023cdf875b2192713638401a5f12fe62eed49844625f4afea",
           "accepted": false,
           "fee_micro_tari": null
         },
@@ -145,37 +186,47 @@
           "kind": "claim",
           "label": "Claimed by the contractor, invoice settled",
           "actor": "contractor",
-          "tx": "f1907e76195027d64a3511e1efed38c683279aa2553c247a4803d4c7e4b1884e",
+          "tx": "5faff53665f08259678b14cb64d51710c4955dea3ee0ca35005b4c8d9d6f2338",
           "accepted": true,
-          "fee_micro_tari": 10889
+          "fee_micro_tari": 11528
         }
       ]
     },
     {
       "no": 2,
-      "invoice_hash": "d296ac906263aa927bf056a36014d4252476c25b2abab6a187faa14d26e0b5b6",
-      "deadline_epoch": 12714,
-      "claim_until": 12715,
-      "escrow_commitment": "2cf9e45f9a4874bc37286625b95a6b821b8abcf6753d65e1975b60ff3f12835d",
-      "escrow_root": "98daeb395a0e52a48ba24d03e7abb11d452f37f5bbed2407fe51cca76f8cef44",
-      "client_key": "fab713aecd977cda31a51d5322cefc347ea5e6a98b7b670e7dcf3f20e971f94d",
-      "contractor_key": "c6ad28a9dc1999c576674cc28be6c812af0106baa61580f519de8aadd8cd6054",
+      "invoice_hash": "6fbbac9ecf8c9c6d710d50f4996fe0db2508ba569b3971aab66109dde510a04d",
+      "deadline_epoch": 12718,
+      "claim_until": 12720,
+      "escrow_commitment": "dc2b5a4f2c06e23cf73fae2ca44ce8c0e52e22f6d376a46e8791162031759612",
+      "escrow_root": "e3798d0221ad73f9b0be9c9dca4a76284ad712ac9d7d115bc6fa0ec514d44fa7",
+      "client_key": "6ad2f0f49f07642ecebe6ce6a4c981240b174170e1ac290604e8fa0cf92adc31",
+      "contractor_key": "72cf1f1bfe83b1cd33e874d9bc7794b08a2ba51476feca4cfe3cd863a9600b34",
+      "mediator_key": "8af07e42cb1510a2abf3acf9ff09e1bf59a803e39ef14999c16cb0267ae0a32b",
+      "ruling": null,
       "parties_only": {
-        "amount_micro_tari": 40000000,
+        "amount_micro_tari": 120000000,
         "memo": "Hexcrow invoice 2",
-        "text": "Invoice 0002 | Copy review for a privacy wallet onboarding, milestone 1 of 1 | 40 tTARI",
-        "salt": "35597afe57fc29577b322dcdeb6b0b4b"
+        "text": "Invoice 0002 | Brand identity for a privacy wallet, milestone 3 of 3: brand guidelines and launch assets | 120 tTARI",
+        "salt": "4aa9c2fdc8f0a91fb6e26f5e71e87567"
       },
       "approval_code": null,
       "contractor_check": {
-        "recorded_at": "unix:1793290781",
+        "recorded_at": "unix:1793301706",
         "checks": [
           {
             "check": "the book names my key as contractor",
             "ok": true
           },
           {
+            "check": "the book names the mediator we agreed on",
+            "ok": true
+          },
+          {
             "check": "the invoice is funded",
+            "ok": true
+          },
+          {
+            "check": "the client can still approve: epoch 12716, deadline 12718",
             "ok": true
           },
           {
@@ -183,66 +234,73 @@
             "ok": true
           },
           {
-            "check": "the escrow output exists and is unspent",
+            "check": "the escrow output exists and is unspent, by a verified proof",
             "ok": true
           },
           {
             "check": "the escrow output is locked by exactly that root, with no key path",
             "ok": true
+          },
+          {
+            "check": "the escrow holds the expected 120 tTARI, read with the escrow view key",
+            "ok": true
           }
         ],
-        "condition_root": "98daeb395a0e52a48ba24d03e7abb11d452f37f5bbed2407fe51cca76f8cef44",
-        "safe_to_start_work": true,
-        "utxo": "utxo_0101010101010101010101010101010101010101010101010101010101010101_2cf9e45f9a4874bc37286625b95a6b821b8abcf6753d65e1975b60ff3f12835d"
+        "condition_root": "e3798d0221ad73f9b0be9c9dca4a76284ad712ac9d7d115bc6fa0ec514d44fa7",
+        "escrow_value_micro_tari": 120000000,
+        "funds_locked_as_agreed": true
       },
       "timeline": [
         {
           "kind": "issue",
           "label": "Issued by the contractor",
           "actor": "contractor",
-          "tx": "cbf10cb3dfba251dab4b5c53d34a8ab10f3f89f314bf24ab02844ea8f0278dc3",
+          "tx": "be798041c486b37cd9ced72bbfd8e91244ce48976ebc08ca56c7c2c78fd2f6d1",
           "accepted": true,
-          "fee_micro_tari": 10376
+          "fee_micro_tari": 10480
         },
         {
           "kind": "fund",
           "label": "Funded by the client",
           "actor": "client",
-          "tx": "ac3cda54d1dcc33e4bac28e02eb7c6ce160a9ec36e812fca45d77dda7c102e45",
+          "tx": "9a038fcc883122961f27e312466fc551290eef8f4c263bbcc00ba8ddf55813ae",
           "accepted": true,
-          "fee_micro_tari": 16752
-        },
-        {
-          "kind": "refund",
-          "label": "Refunded to the client after the claim window closed",
-          "actor": "client",
-          "tx": "19ecd21f22dd1bb9952c86b03d1037502f600e60debf8f78a0d5da41db2396f7",
-          "accepted": true,
-          "fee_micro_tari": 11316
+          "fee_micro_tari": 17314
         }
       ]
     },
     {
       "no": 3,
-      "invoice_hash": "c61ae75550dc5d1b3d842b5c494a2d7235dc1b317f58726fb3f5586598dd4582",
-      "deadline_epoch": 12716,
-      "claim_until": 12718,
-      "escrow_commitment": "56c82d2f76f7f896b8cf272c1dd95aa6370428f394ec405d29560a6b2f6d1c15",
-      "escrow_root": "2c385b31e39438f3b46c29c53a90f4e629eca2612d30bfb77951ebe1e1d33fda",
-      "client_key": "563f915de34d02e83c3fbf013fb13cbaeb9a5874e346629f0e7993e34cf65d28",
-      "contractor_key": "7c552b58f1daf642b83e420ab181cd14e24a246298ff12b5a7cc9efa6b130970",
+      "invoice_hash": "811b32c8d2a81209e53288577ec087636d3f93382f1c83333d9ea88f52431620",
+      "deadline_epoch": 12720,
+      "claim_until": 12722,
+      "escrow_commitment": "36932d4bd25d6bf529cbe930b4024eca2da7ac238f153d8ef8ecf18adf5e8d40",
+      "escrow_root": "3a024609643ae8fcab20cc6a5fd1cc4c369802e26003135059a1b56e115ca119",
+      "client_key": "f45eedc51951bec34aff72e653b4f50b4a7e0acb2ef08657b9d8fc52b4ae1a0f",
+      "contractor_key": "8e7eaf3722b2227a2ded7a333f63393e0ebc2edc31a19f30a32133c1cb61e61d",
+      "mediator_key": "4a0a538455c979cadd121802dab1b1651b2fcb38a699a8d6fcf4587d698e0342",
+      "ruling": {
+        "for": "client",
+        "ruling_hash": "40593b0750711ee3e9a8a85c0366535c771fa14558fd1ee9282b9abb4be190ea"
+      },
       "parties_only": {
         "amount_micro_tari": 60000000,
         "memo": "Hexcrow invoice 3",
-        "text": "Invoice 0003 | Brand identity for a privacy wallet, milestone 3 of 3: guidelines and handoff | 60 tTARI",
-        "salt": "88a264284496c55d559b673b4aceac1f"
+        "text": "Invoice 0003 | Product video for a payments app: storyboard and voice-over | 60 tTARI",
+        "salt": "f38aa8ece1d5b98b33cc598a94a48ed3",
+        "ruling_text": "Ruling on invoice 0003. The contractor withdrew from the project on 29 October 2026 and will not deliver the storyboard or the voice-over. The escrow is returned to the client now, without waiting for the claim window to close.",
+        "ruling_salt": "69ec1df7a959734c24d783febb8cd59b"
       },
-      "approval_code": "hexcrow-approve-8c397ef76a7961c6bc130810626e4630",
+      "approval_code": null,
       "contractor_check": {
-        "recorded_at": "unix:1793291555",
+        "recorded_at": "unix:1793301708",
         "checks": [
           {
             "check": "the book names my key as contractor",
+            "ok": true
+          },
+          {
+            "check": "the book names the mediator we agreed on",
             "ok": true
           },
           {
@@ -250,7 +308,7 @@
             "ok": true
           },
           {
-            "check": "the client can still approve: epoch 12713, deadline 12716",
+            "check": "the client can still approve: epoch 12716, deadline 12720",
             "ok": true
           },
           {
@@ -270,7 +328,7 @@
             "ok": true
           }
         ],
-        "condition_root": "2c385b31e39438f3b46c29c53a90f4e629eca2612d30bfb77951ebe1e1d33fda",
+        "condition_root": "3a024609643ae8fcab20cc6a5fd1cc4c369802e26003135059a1b56e115ca119",
         "escrow_value_micro_tari": 60000000,
         "funds_locked_as_agreed": true
       },
@@ -279,33 +337,103 @@
           "kind": "issue",
           "label": "Issued by the contractor",
           "actor": "contractor",
-          "tx": "b5a2e42e5296b144c0b801d93c5e60c61bde0f89f5f570094ce4708592243561",
+          "tx": "7fb1c092041356026494ca0ac6f11ca29858907bb5365b2b1d1407d7fce13dd6",
           "accepted": true,
-          "fee_micro_tari": 10902
+          "fee_micro_tari": 10676
         },
         {
           "kind": "fund",
           "label": "Funded by the client",
           "actor": "client",
-          "tx": "29b8e91e52b08c902e719ad2271cc5cc86772210f4478c908f78f3c150f5f37a",
+          "tx": "9713f5faccec56254b697e2a766ec4eb52bda8723563cb4c24023fb619bfd491",
           "accepted": true,
-          "fee_micro_tari": 17279
+          "fee_micro_tari": 17382
         },
         {
-          "kind": "approve",
-          "label": "Approved by the client, approval code revealed",
-          "actor": "client",
-          "tx": "e8bd4e970f6f2c64dd2438ab6ac5be05c183098acc2862951f77745174ea0917",
+          "kind": "rule",
+          "label": "Ruled by the mediator for the client, who co-signed: the escrow went back to the client",
+          "actor": "mediator",
+          "for": "client",
+          "tx": "6a84034b98e7c256c897985945b3ddd0c6f977ab1a14a39b8a2bc3ea0dcb2364",
           "accepted": true,
-          "fee_micro_tari": 11169
-        },
+          "fee_micro_tari": 11707
+        }
+      ]
+    },
+    {
+      "no": 4,
+      "invoice_hash": "6252d2f050e36063f967042cb2a13680eab06b1b2ba15d4e99e9e233ee4516e8",
+      "deadline_epoch": 12718,
+      "claim_until": 12719,
+      "escrow_commitment": "ea7e9941adc2fabd5565af2ab1c1497da7c811b673323958e9c4b6c63adc954a",
+      "escrow_root": "d266326d0147f0e1e300aeb8258a6658fc8d5c711796d618b78f988891c672c9",
+      "client_key": "083b9ed5a59530eeffc56d94e74b1df9db368926d4a242718735712083719017",
+      "contractor_key": "044a260d83dd78f578be5f5a7e2b8d1e7f9879518f60564489e6142934ff271c",
+      "mediator_key": "64aa458719f0238f6b921bb4c828a013c2e15a8a976a0155c9fb96f703a87f0b",
+      "ruling": null,
+      "parties_only": {
+        "amount_micro_tari": 40000000,
+        "memo": "Hexcrow invoice 4",
+        "text": "Invoice 0004 | Landing page copy for a privacy wallet, milestone 1 of 2 | 40 tTARI",
+        "salt": "476ab9247b1ca2f5d3135756638e915b"
+      },
+      "approval_code": null,
+      "contractor_check": {
+        "recorded_at": "unix:1793301710",
+        "checks": [
+          {
+            "check": "the book names my key as contractor",
+            "ok": true
+          },
+          {
+            "check": "the book names the mediator we agreed on",
+            "ok": true
+          },
+          {
+            "check": "the invoice is funded",
+            "ok": true
+          },
+          {
+            "check": "the client can still approve: epoch 12716, deadline 12718",
+            "ok": true
+          },
+          {
+            "check": "the book's terms rebuild the book's condition root",
+            "ok": true
+          },
+          {
+            "check": "the escrow output exists and is unspent, by a verified proof",
+            "ok": true
+          },
+          {
+            "check": "the escrow output is locked by exactly that root, with no key path",
+            "ok": true
+          },
+          {
+            "check": "the escrow holds the expected 40 tTARI, read with the escrow view key",
+            "ok": true
+          }
+        ],
+        "condition_root": "d266326d0147f0e1e300aeb8258a6658fc8d5c711796d618b78f988891c672c9",
+        "escrow_value_micro_tari": 40000000,
+        "funds_locked_as_agreed": true
+      },
+      "timeline": [
         {
-          "kind": "claim",
-          "label": "Claimed by the contractor, invoice settled",
+          "kind": "issue",
+          "label": "Issued by the contractor",
           "actor": "contractor",
-          "tx": "04ba6480d1be5beddfa6ef9d63788e4e516e81344175291ab0c3b1a3522801c2",
+          "tx": "5074575ca73f387eb8fd53bb6ba1a12b0542b23d9d3f7db5592aa1d6e530280b",
           "accepted": true,
-          "fee_micro_tari": 11346
+          "fee_micro_tari": 10872
+        },
+        {
+          "kind": "fund",
+          "label": "Funded by the client",
+          "actor": "client",
+          "tx": "31726df1e70667ae9d8c349ca25a148a1a91de17c39f7a52b1fced530cf090b4",
+          "accepted": true,
+          "fee_micro_tari": 17449
         }
       ]
     }

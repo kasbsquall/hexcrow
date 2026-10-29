@@ -11,7 +11,7 @@ use tari_template_test_tooling::{
     engine_types::virtual_substate::{VirtualSubstate, VirtualSubstateId},
     support::assert_error::assert_reject_reason,
     template_lib_types::{ComponentAddress, Hash32, crypto::RistrettoPublicKeyBytes},
-    transaction::{args, builder::named_args::NamedArg},
+    transaction::{Transaction, args, builder::named_args::NamedArg},
 };
 
 const CODE: &[u8] = b"milestone-2 accepted: 31 Oct";
@@ -36,6 +36,7 @@ struct Fixture {
     book: ComponentAddress,
     contractor: Party,
     client: Party,
+    mediator: Party,
     stranger: Party,
 }
 
@@ -74,11 +75,13 @@ fn setup() -> Fixture {
     let contractor = party(&mut test, 11);
     let client = party(&mut test, 12);
     let stranger = party(&mut test, 13);
+    let mediator = party(&mut test, 15);
     Fixture {
         test,
         book,
         contractor,
         client,
+        mediator,
         stranger,
     }
 }
@@ -111,13 +114,42 @@ impl Fixture {
 
     fn issue(&mut self) {
         let client_key = self.client.public;
+        let mediator_key = self.mediator.public;
         let secret = self.contractor.secret.clone();
         self.call(&secret, "issue", args![
             sha256(b"invoice #2: brand system, milestone 2"),
             client_key,
+            mediator_key,
             DEADLINE,
             GRACE
         ]);
+    }
+
+    /// A ruling as it reaches the book on Esmeralda: in the escrow spend, sealed by the invoice's
+    /// escrow key and co-signed by each of `cosigners`.
+    fn ruling(&mut self, method: &str, cosigners: &[&RistrettoSecretKey]) -> Transaction {
+        let escrow = party(&mut self.test, 14);
+        let (first, rest) = cosigners.split_first().expect("a ruling has at least one co-signer");
+        let mut tx = self
+            .test
+            .transaction()
+            .call_method(self.book, method, args![1u64, sha256(b"ruling: milestone 2 delivered as specified")])
+            .add_signer(&escrow.public, first);
+        for secret in rest {
+            tx = tx.add_signer(&escrow.public, secret);
+        }
+        tx.seal(&escrow.secret)
+    }
+
+    fn rule(&mut self, method: &str, cosigners: &[&RistrettoSecretKey]) {
+        let tx = self.ruling(method, cosigners);
+        self.test.execute_expect_success(tx, vec![]);
+    }
+
+    fn rule_fails(&mut self, method: &str, cosigners: &[&RistrettoSecretKey], reason: &str) {
+        let tx = self.ruling(method, cosigners);
+        let reject = self.test.execute_expect_failure(tx, vec![]);
+        assert_reject_reason(reject, reason);
     }
 
     fn fund(&mut self) {
@@ -226,9 +258,12 @@ fn issue_rejects_past_deadline_and_self_dealing() {
     let contractor = f.contractor.secret.clone();
     let client_key = f.client.public;
     let contractor_key = f.contractor.public;
-    f.call_fails(&contractor, "issue", args![sha256(b"i"), client_key, 5u64, GRACE], "deadline must be in the future");
-    f.call_fails(&contractor, "issue", args![sha256(b"i"), client_key, DEADLINE, 0u64], "the claim window needs at least one epoch of grace");
-    f.call_fails(&contractor, "issue", args![sha256(b"i"), contractor_key, DEADLINE, GRACE], "client and contractor keys must differ");
+    let mediator_key = f.mediator.public;
+    f.call_fails(&contractor, "issue", args![sha256(b"i"), client_key, mediator_key, 5u64, GRACE], "deadline must be in the future");
+    f.call_fails(&contractor, "issue", args![sha256(b"i"), client_key, mediator_key, DEADLINE, 0u64], "the claim window needs at least one epoch of grace");
+    f.call_fails(&contractor, "issue", args![sha256(b"i"), contractor_key, mediator_key, DEADLINE, GRACE], "client and contractor keys must differ");
+    f.call_fails(&contractor, "issue", args![sha256(b"i"), client_key, client_key, DEADLINE, GRACE], "the mediator must hold a third key");
+    f.call_fails(&contractor, "issue", args![sha256(b"i"), client_key, contractor_key, DEADLINE, GRACE], "the mediator must hold a third key");
 }
 
 #[test]
@@ -321,4 +356,63 @@ fn no_approval_after_deadline_and_no_settle_after_claim_window() {
     set_epoch(&mut f.test, CLAIM_UNTIL);
     let contractor = f.contractor.secret.clone();
     f.call_fails(&contractor, "settle", args![1u64], "claim window has closed");
+}
+
+#[test]
+fn mediator_and_contractor_rule_for_the_contractor() {
+    // The client funded and went silent; the mediator both parties named rules for the contractor.
+    let mut f = setup();
+    f.issue();
+    f.fund();
+    set_epoch(&mut f.test, DEADLINE + 1);
+    let (mediator, contractor) = (f.mediator.secret.clone(), f.contractor.secret.clone());
+    f.rule("rule_for_contractor", &[&mediator, &contractor]);
+    assert!(f.state().contains(SETTLED));
+}
+
+#[test]
+fn mediator_and_client_rule_for_the_client() {
+    let mut f = setup();
+    f.issue();
+    f.fund();
+    let (mediator, client) = (f.mediator.secret.clone(), f.client.secret.clone());
+    f.rule("rule_for_client", &[&mediator, &client]);
+    assert!(f.state().contains(REFUNDED));
+}
+
+#[test]
+fn a_ruling_needs_the_mediator_and_the_party_it_pays() {
+    let mut f = setup();
+    f.issue();
+    f.fund();
+    let (mediator, contractor, client, stranger) =
+        (f.mediator.secret.clone(), f.contractor.secret.clone(), f.client.secret.clone(), f.stranger.secret.clone());
+    // The mediator cannot pay anyone on its own, the parties cannot rule without it, and it cannot
+    // pay the side that did not sign.
+    for (method, cosigners) in [
+        ("rule_for_contractor", vec![&mediator]),
+        ("rule_for_contractor", vec![&contractor]),
+        ("rule_for_contractor", vec![&mediator, &client]),
+        ("rule_for_contractor", vec![&stranger, &contractor]),
+        ("rule_for_client", vec![&mediator]),
+        ("rule_for_client", vec![&client]),
+        ("rule_for_client", vec![&mediator, &contractor]),
+    ] {
+        f.rule_fails(method, &cosigners, NOT_A_SIGNER);
+    }
+    let state = f.state();
+    assert!(!state.contains(SETTLED) && !state.contains(REFUNDED), "nothing was ruled: {state}");
+}
+
+#[test]
+fn no_ruling_after_approval_or_after_the_claim_window() {
+    let mut f = setup();
+    f.issue();
+    f.fund();
+    let (mediator, contractor, client) = (f.mediator.secret.clone(), f.contractor.secret.clone(), f.client.secret.clone());
+    set_epoch(&mut f.test, CLAIM_UNTIL);
+    f.rule_fails("rule_for_contractor", &[&mediator, &contractor], "claim window has closed");
+    set_epoch(&mut f.test, DEADLINE - 1);
+    f.call(&client, "approve", args![1u64, CODE.to_vec()]);
+    f.rule_fails("rule_for_client", &[&mediator, &client], "only a funded, unapproved invoice can be ruled on");
 }

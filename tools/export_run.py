@@ -26,6 +26,14 @@ ATTACKS = {
     "contractor-sets-lock": ("The contractor funds its own invoice with a code it chose", "Rejected by the book: only the client sets the approval lock"),
     "refund-after-approval": ("The client approves, then tries to take the money back", "Rejected by the chain: claim window still open"),
     "self-approve": ("The contractor approves its own invoice", "Rejected by the book: the signer is not the client"),
+    "mediator-alone": ("The mediator tries to pay itself through a ruling leaf", "Rejected by the chain: that leaf also needs the contractor's key"),
+    "ruling-without-mediator": ("The contractor tries a ruling leaf without the mediator", "Rejected by the chain: that leaf needs the mediator's key"),
+    "late-ruling": ("The mediator and the contractor rule after the claim window closed", "Rejected by the chain: the ruling leaves close with the claim window"),
+}
+
+RULED = {
+    "contractor": "Ruled by the mediator for the contractor, who co-signed: the escrow paid the contractor",
+    "client": "Ruled by the mediator for the client, who co-signed: the escrow went back to the client",
 }
 
 STEPS = {
@@ -77,7 +85,9 @@ def timeline_for(n: int, entries: list[dict]) -> list[dict]:
             if parts[2] != str(n):
                 continue
             label, why = ATTACKS[kind]
-            rows.append({"kind": "attack", "label": label, "why": why, "actor": role(e["signer_persona"])})
+            rows.append({"kind": "attack", "attack": kind, "label": label, "why": why, "actor": role(e["signer_persona"])})
+        elif parts[0] == "rule" and parts[1] == str(n):
+            rows.append({"kind": "rule", "label": RULED[parts[2]], "actor": "mediator", "for": parts[2]})
         elif parts[0] in STEPS and len(parts) > 1 and parts[1] == str(n):
             actor, label = STEPS[parts[0]]
             rows.append({"kind": parts[0], "label": label, "actor": actor})
@@ -103,6 +113,7 @@ def main() -> None:
         view = inspect(n)
         timeline = timeline_for(n, entries)
         approved = any(r["kind"] == "approve" and r["accepted"] for r in timeline)
+        ruling = view.get("mediator_ruling")
         invoices.append({
             "no": n,
             "invoice_hash": view["public"]["invoice_hash"],
@@ -112,11 +123,15 @@ def main() -> None:
             "escrow_root": view["public"]["escrow_root"],
             "client_key": view["parties"]["client_key"],
             "contractor_key": view["parties"]["contractor_key"],
+            "mediator_key": view["parties"]["mediator_key"],
+            # Public in the book: who the ruling paid and the hash of its text.
+            "ruling": {"for": ruling["for"], "ruling_hash": ruling["ruling_hash"]} if ruling else None,
             "parties_only": {
                 "amount_micro_tari": view["escrow_view_key_holders_see"]["amount_micro_tari"],
                 "memo": view["escrow_view_key_holders_see"]["memo"],
                 "text": view["accountant_opening"]["doc"],
                 "salt": view["accountant_opening"]["salt"],
+                **({"ruling_text": ruling["text"], "ruling_salt": ruling["salt"]} if ruling else {}),
             },
             "approval_code": local["approval_code"] if approved else None,
             "contractor_check": contractor_check(n, entries),

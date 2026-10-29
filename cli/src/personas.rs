@@ -15,15 +15,16 @@ use tari_utilities::{ByteArray, hex::Hex};
 pub const NETWORK: Network = Network::Esmeralda;
 
 /// Long-lived personas: `publisher` pays for the template and the book, `stranger` attacks.
-/// Every invoice gets its own `client-N`, `contractor-N` and `escrow-N` keys (see `invoice_names`),
-/// so nothing on-chain links one invoice to another or to a long-lived account.
+/// Every invoice gets its own `client-N`, `contractor-N`, `escrow-N` and `mediator-N` keys (see
+/// `invoice_names`), so nothing on-chain links one invoice to another or to a long-lived account.
 pub const NAMES: [&str; 2] = ["publisher", "stranger"];
 
-/// The one-time personas of invoice `n`: client, contractor, and the escrow viewing key both
-/// parties hold. The escrow key decrypts that invoice's escrow output and nothing else; it has no
-/// spending power, because the output is gated by its condition tree only.
-pub fn invoice_names(n: u64) -> [String; 3] {
-    [format!("client-{n}"), format!("contractor-{n}"), format!("escrow-{n}")]
+/// The one-time personas of invoice `n`: client, contractor, the escrow viewing key both parties
+/// hold, and the key the agreed mediator uses for this invoice only. The escrow key decrypts that
+/// invoice's escrow output and nothing else; it has no spending power, because the output is gated
+/// by its condition tree only. The mediator can only rule together with the party it rules for.
+pub fn invoice_names(n: u64) -> [String; 4] {
+    [format!("client-{n}"), format!("contractor-{n}"), format!("escrow-{n}"), format!("mediator-{n}")]
 }
 
 #[derive(Serialize, Deserialize)]
