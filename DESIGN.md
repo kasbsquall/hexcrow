@@ -22,6 +22,7 @@ colors:
   candle: "oklch(83% .12 80)"
   sello-night: "oklch(68% .16 27)"
   verde-night: "oklch(76% .1 155)"
+  moon: "oklch(94% .035 92 / .26)"
 typography:
   display:
     fontFamily: "Figtree, sans-serif"
@@ -39,10 +40,10 @@ typography:
     fontFeature: "\"tnum\", \"lnum\", \"zero\""
   headline:
     fontFamily: "Figtree, sans-serif"
-    fontSize: "44px"
+    fontSize: "45px"
     fontWeight: 650
-    lineHeight: 1.02
-    letterSpacing: "-0.028em"
+    lineHeight: 1.04
+    letterSpacing: "-0.03em"
   number:
     fontFamily: "Figtree, sans-serif"
     fontSize: "28px"
@@ -88,6 +89,11 @@ typography:
     fontSize: "11px"
     fontWeight: 600
     lineHeight: 1.5
+  mono:
+    fontFamily: "IBM Plex Mono, monospace"
+    fontSize: "12px"
+    fontWeight: 400
+    lineHeight: 1.6
 rounded:
   paper: "2px"
   dot: "50%"
@@ -99,7 +105,7 @@ spacing:
   md: "12px"
   box-x: "16px"
   lg: "24px"
-  page-top: "36px"
+  page-top: "30px"
   gutter: "40px"
   column-gap: "48px"
   section: "64px"
@@ -167,6 +173,16 @@ components:
     padding: "6px 12px"
   night-button-hover:
     backgroundColor: "{colors.night-2}"
+  replay-link:
+    textColor: "{colors.bone}"
+    typography: "{typography.body}"
+    rounded: "{rounded.paper}"
+    padding: "11px 14px"
+  cli:
+    textColor: "{colors.carbon}"
+    typography: "{typography.mono}"
+    rounded: "{rounded.paper}"
+    padding: "10px 12px"
 ---
 
 # Design System: Hexcrow
@@ -175,9 +191,9 @@ components:
 
 **Creative North Star: "Carbon copies at midnight"**
 
-Hexcrow is drawn as the multi-part carbon invoice pad every freelancer and accounts office has filled, lying on a desk at night. The pad has five copies of one invoice, each on its own paper stock, written in carbon-blue ink and ruled into boxes. Selective disclosure maps one to one onto the object: each viewer holds a different copy, and what did not transfer to that copy is a carbon smudge with a lock. A rubber stamp gives the invoice its status, a wax seal sits on the escrow while it holds the money and shows a crack once it is spent, and a crow perches on the copy tabs.
+Hexcrow is drawn as the multi-part carbon invoice pad every freelancer and accounts office has filled, lying on a desk at night. The pad has five copies of one invoice, each on its own paper stock, written in carbon-blue ink and ruled into boxes. Selective disclosure maps one to one onto the object: each viewer holds a different copy, and what did not transfer to that copy is a carbon smudge with a lock. A rubber stamp gives the invoice its status, a wax seal sits on the escrow while it holds the money and shows a crack once it is spent, and a crow perches on the copy tabs under a faint moon.
 
-The paper stays light so the form reads; the night is around it. The desk is a dark, cool ground (never pure black) lit by two soft radial glows and grained by a fixed noise layer, with bone-coloured text and hairline rules. One form carries the invoice, a 360px aside holds the invoices in the book and a tear-off list of transaction stubs, and below them the "Try to steal it" list replays every attack the chain refused. Everything is set in Figtree with tabular figures. Depth is paper physically stacking: the other copies peek out under the active sheet. Motion is paper motion: sheets slide, stamps land, the crow pecks.
+The paper stays light so the form reads; the night is around it. The desk is a dark, cool ground (never pure black) lit by two soft radial glows and grained by a fixed noise layer, with bone-coloured text and hairline rules. The page is two columns from the top: the copy viewer on the left, and on the right what ran on Esmeralda, the invoices in the book and a tear-off list of transaction stubs; below the viewer, the "Try to steal it" list replays every attack the chain refused. Everything is set in Figtree with tabular figures, except the contractor's check, set in IBM Plex Mono as the terminal printed it. Depth is paper physically stacking: the other copies peek out under the active sheet. Motion is paper motion: sheets slide, stamps land, the crow pecks.
 
 The form is one ruled object. It is never split into floating tiles with their own shadows.
 
@@ -194,7 +210,7 @@ The form is one ruled object. It is never split into floating tiles with their o
 Five paper stocks, one carbon ink and a stamp red on the paper; a cool night desk, bone ink and one candle on the ground.
 
 ### Primary
-- **Candle** (candle): the only warm light on the night. The focus ring on the desk, the live network pulse and its glow, the ring around the current invoice in the book, the icons beside "What the escrow adds", the crow's eye, the text selection tint (34% mix), and a THROUGH verdict if an attack were ever accepted.
+- **Candle** (candle): the only warm light on the night. The focus ring on the desk, the live network pulse and its glow, the ring around the current invoice in the book, the border and icons of the "Replay the attacks" link, the icons beside "What Hexcrow adds", the crow's eye, the text selection tint (34% mix), and a THROUGH verdict if an attack were ever accepted.
 
 ### Secondary
 - **Stamp Red** (sello): the SETTLED and REFUNDED stamps on the sheet, the REFUSED mini stamp on stubs, the wax of the escrow seal, and the dot beside a recorded (not live) status.
@@ -203,7 +219,7 @@ Five paper stocks, one carbon ink and a stamp red on the paper; a cool night des
 
 ### Tertiary
 - **Ledger Green** (verde): confirmation on paper only: the "Read live from the book" dot, confirmed verdicts on stubs, the contractor's pre-check ticks.
-- **Ledger Green, Night** (verde-night): "None got through" under the attack tally.
+- **Ledger Green, Night** (verde-night): "all refused again" under the attack tally, once the visitor has replayed them.
 
 ### Neutral
 - **Original** (original): the public copy; also the base paper for stubs and the current invoice row.
@@ -229,21 +245,23 @@ Five paper stocks, one carbon ink and a stamp red on the paper; a cool night des
 
 **Display Font:** Figtree (with sans-serif), weights 400 to 700 from Google Fonts
 **Body Font:** Figtree (with sans-serif)
+**Mono Font:** IBM Plex Mono 400 and 500 (OFL, Google Fonts), for the contractor's CLI transcript only
 
-**Character:** One quiet humanist sans does everything, as on a printed form; hierarchy comes from extreme scale contrast and weight 650, never from a second family. The body sets `tabular-nums lining-nums slashed-zero` for the whole page.
+**Character:** One quiet humanist sans does everything, as on a printed form; hierarchy comes from extreme scale contrast and weight 650, never from a second family. The one exception is a terminal transcript, set in mono because that is what it is. The body sets `tabular-nums lining-nums slashed-zero` for the whole page.
 
 ### Hierarchy
 - **Display** (650, 76px, 0.9, -0.035em; 64px under 720px): the amount on a copy that may see it, and the attack count in the intro proof (line-height 0.86, -0.04em). Sits next to a 12 or 13px label in the same block, a jump of about 6x.
-- **Tally** (650, 56px, 0.9, -0.04em): the count of attacks tried in "Try to steal it".
-- **Headline** (650, 44px, 1.02, -0.028em, max 15ch, balanced; 32px under 720px): the page h1 only.
+- **Tally** (650, 56px, 0.9, -0.04em): the count of attacks the chain refused in the run, at the head of "Try to steal it"; a 13px line under it reports what the visitor's replays found.
+- **Headline** (650, clamp 34 to 45px, 1.04, -0.03em, balanced, one line at 1440px; 32px under 720px): the page h1 only.
 - **Number** (600, 28px, 1.05, -0.02em): the invoice number on the form. Proof figures in the intro row run at 650, 24px.
-- **Title** (650, 22px, -0.02em): the form title "Hexcrow invoice" and the section headings on the desk (-0.018em, with a 24px icon). The copy picker heading steps to 20px.
+- **Title** (650, 22px, -0.02em): the form title "Hexcrow invoice" and the section headings on the desk (-0.018em, with a 24px icon). The copy picker heading steps to 17px.
 - **Title small** (650, 18px, -0.015em): aside heading; status and deadline values in the form run at 600, 18px. The caption that says what this copy is runs at 500, 17px, 1.42. Box headings inside the form (access, rules) and invoice row names step down to 650, 15px.
 - **Lead** (400, 16px, 1.5, max 60ch, pretty wrap; 15px under 720px): the intro paragraph. Section leads on the desk run at 14px, max 66ch.
 - **Body** (400 to 500, 14px, 1.5): box values. Invoice text runs at 500, 18px, 1.4, max 46ch. Attack titles run at 550, 15px.
 - **Body small** (13px): stubs, chips, buttons, table cells, footer, bar text.
 - **Label** (600, 12px): the printed caption at the top of a ruled box, with a Phosphor Light icon (15px) on every label except the invoice number. Also meta lines (400), definition terms and table heads.
-- **Micro** (600, 11px): the live/recorded note, the "used" and "yours" tags, proof row terms. Copy tab names drop to 11px under 720px.
+- **Micro** (600, 11px): copy tab names under 720px only. The live/recorded note, the "used" and "yours" tags and the proof terms run at 12px.
+- **Mono** (IBM Plex Mono 400, 500 for the command and the [ok] marks, 12px, 1.6, preformatted): the contractor's `hexcrow verify` transcript, with its epoch in the label above it.
 
 Stamps set their word in Figtree 700, 27 units, letter-spacing 3, uppercase, inside the stamp SVG. Uppercase appears nowhere else.
 
@@ -254,22 +272,22 @@ Stamps set their word in Figtree 700, 27 units, letter-spacing 3, uppercase, ins
 
 ## Layout
 
-A centred page, max 1320px, padding 36px 40px 96px, over a full-bleed shell bar. The intro is two columns (text and a 380px proof block, 40px apart, bottom aligned). The work area is a grid of the copy viewer at `minmax(0, 1fr)` and a 360px aside, 48px apart; "Try to steal it", "What the escrow adds" and the transparent-chain comparison follow under the viewer while the aside runs down the right.
+A centred page, max 1320px, padding 30px 40px 96px, over a full-bleed shell bar. From the top the page is one grid of two columns, `minmax(0, 1fr)` and 360px, 48px apart. The left column holds the h1 on one line, the lead (kept 210px clear of the crow), the copy viewer, "Try to steal it", "What Hexcrow adds" and the transparent-chain comparison. The right column holds what ran on Esmeralda (the attack count, four figures in a 2 by 2 grid and the replay link), the invoices in the book with a line that defines the book, and the transaction stubs. At 1440 by 900 the first viewport shows the sheet down to its deadlines and wax seal.
 
-At 1180px and below everything collapses to one column (viewer, aside at max 640px, attacks, additions, comparison). At 720px and below the page padding drops to 24px 16px 64px, the bar hides its guided-mode note, the tabs become five auto-width columns with the icon over the name and no role line, the form grid becomes two columns (number and status share a row), only one under-copy remains, the stamp moves to the top right at 136px, and the comparison table becomes stacked blocks with "Transparent:" and "Hexcrow:" prefixes.
+At 1180px and below everything collapses to one column in this order: intro, the invoice picker (four rows across, two on phones without their meta line) above the copy it changes, the viewer, what ran, the attacks, the stubs at max 640px, additions, comparison. At 720px and below the page padding drops to 24px 16px 64px, the bar hides its guided-mode note, the tabs become five auto-width columns with the icon over the name and no role line, the form grid becomes two columns (number and status share a row), only one under-copy remains, the stamp moves to the top right at 136px, and the comparison table becomes stacked blocks with "Transparent:" and "Hexcrow:" prefixes.
 
 Inside the form, a six-column grid of ruled boxes spans 1, 2, 3, 4 or 6 columns. The amount and text boxes hold a minimum height of 150px (120px on mobile) so a hidden value takes the same room as a visible one.
 
-Spacing groups tight and separates wide: 4px between tabs and invoice rows, 6 to 12px inside boxes, 18px under the copy picker heading, 40px under the intro, 48px between viewer and aside, 64px above the attacks, 72px above each later section, 80px above the footer, 96px at the page foot. The range from 4px to 96px is a 1:24 ratio.
+Spacing groups tight and separates wide: 4px between tabs and invoice rows, 6 to 12px inside boxes, 12px under the copy picker heading, 26px under the intro, 48px between viewer and aside, 64px above the attacks, 72px above each later section, 80px above the footer, 96px at the page foot. The range from 4px to 96px is a 1:24 ratio.
 
 ## Elevation & Depth
 
-Depth is physical paper on a dark desk. The active sheet lies on top of the other copies, offset 7, 14 and 21px down and right in their own paper colours at 80% brightness (Canario, Rosa, Azul; the active viewer's own stock is swapped for Original). Unselected tabs sit 6px lower at 86% brightness. Tabs and stubs carry perforations made of night-coloured dots. The desk itself has two radial glows (a cool blue pool behind the form and a faint warm one at the top right) and a fixed SVG noise layer at 0.55 opacity in soft-light. Shadows are few and tinted with the night hue, never pure black.
+Depth is physical paper on a dark desk. The active sheet lies on top of the other copies, offset 6, 12 and 18px down and right in their own paper colours at 92% brightness, each edged with a 1px night line and the nearest painted on top, so three stocks read apart (Canario, Rosa, Azul; the active viewer's own stock is swapped for Original). Unselected tabs sit 6px lower at 86% brightness. Tabs and stubs carry perforations made of night-coloured dots. The desk itself has two radial glows (a cool blue pool behind the form and a faint warm one at the top right) and a fixed SVG noise layer at 0.55 opacity in soft-light. Shadows are few and tinted with the night hue, never pure black.
 
 ### Shadow Vocabulary
 - **Sheet** (`box-shadow: 0 30px 60px -30px oklch(5% .02 265 / .9), 0 0 0 1px oklch(5% .02 265 / .3)`): the active form only; it lifts the paper off the desk.
 - **Box rules** (`box-shadow: 1px 0 0 var(--rule), 0 1px 0 var(--rule)`): the shared hairlines between ruled boxes, drawn as shadows so neighbours share one line.
-- **Current invoice ring** (`box-shadow: 0 0 0 2px var(--candle)`): the invoice being shown in the book.
+- **Current invoice ring** (`box-shadow: 0 0 0 2px var(--candle), 0 10px 24px -14px oklch(5% .02 265 / .9)`): the invoice being shown in the book.
 - **Live pulse glow** (`box-shadow: 0 0 10px var(--candle)`): the network dot while the indexer answers; removed when offline or waiting.
 
 ### Named Rules
@@ -277,7 +295,7 @@ Depth is physical paper on a dark desk. The active sheet lies on top of the othe
 
 ## Shapes
 
-Every surface takes the same 2px corner: tabs (top corners only), the sheet and under-copies (bottom corners only), chips, invoice rows, buttons, skeletons, tags and the focus ring. Circles are reserved for status dots, the stub index ring (22px) and the attacker avatar ring (34px). The only soft shapes are the 30px-radius blurred blot that stands in for a hidden figure and the scalloped wax seal. Boxes have no borders of their own; they are ruled by 1px hairlines shared with their neighbours under a strong top rule, and the accountant's check is separated by a dashed rule. Stamps are double-ruled frames with 3px and 1.5px corners, roughened by an ink displacement filter and always rotated (-8 degrees on the sheet, -6 and 5 on stubs, -7 in the attack list).
+Every surface takes the same 2px corner: tabs (top corners only), the sheet and under-copies (bottom corners only), chips, invoice rows, buttons, skeletons, tags and the focus ring. Circles are reserved for status dots, the stub index ring (26px) and the attacker avatar ring (34px). The only soft shapes are the 30px-radius blurred blot that stands in for a hidden figure and the scalloped wax seal. Boxes have no borders of their own; they are ruled by 1px hairlines shared with their neighbours under a strong top rule, and the accountant's check is separated by a dashed rule. Stamps are double-ruled frames with 3px and 1.5px corners, roughened by an ink displacement filter and always rotated (-8 degrees on the sheet, -6 and 5 on stubs, -7 in the attack list).
 
 ## Components
 
@@ -288,7 +306,7 @@ A dark strip (night mixed 70% with black), 52px tall (48px on mobile), with cell
 Torn stubs of the pad. A five-column row, 4px apart, each tab in its own viewer's paper with a 22px icon, the viewer name (650, 15px) and a one-line role ("Checks the books"). Unselected tabs sit 6px lower and dimmed with a perforated bottom edge; hover lifts to 2px and clears the dim, press goes to 4px with scale 0.99, the selected tab sits flush and joins the sheet. Transitions 160ms. Arrow keys, Home and End move between them. The focus ring on a tab is carbon, inset 4px.
 
 ### The crow
-An inline SVG crow (84 by 63px, 52 by 39px on mobile) perched on the top edge of the tab row at the right, feet on the last stub, ignoring the pointer. Its body is near-black night ink with a bone rim and a candle eye. Every 11s (starting after 2s) it pecks: a short rotation to -7, 2 and -3 degrees over the last 14% of the loop on the move easing. The same crow, in bone with a night eye, sits inside the brand mark.
+An inline SVG crow (136 by 102px, 64 by 48px on mobile) perched on the top edge of the tab row at the right, feet on the last stub, ignoring the pointer, in front of a moon: a 220px disc (120px on mobile) drawn as a radial gradient of warm bone from 26% to 4% alpha, lit from the upper left, behind the tabs. The crow rises 6px with the accountant's tab when that copy is on top, and hops 9px (280ms, added to its other motion) whenever the copy changes. Its body is near-black night ink with a bone rim and a candle eye. Every 11s (starting after 2s) it pecks: a short rotation to -7, 2 and -3 degrees over the last 14% of the loop on the move easing. The same crow, in bone with a night eye, sits inside the brand mark.
 
 ### Ruled box (form field)
 Padding 12px 16px 14px (10px 14px 12px on mobile). A 12px semibold label with an icon, then the value. The status box adds a line saying where the fact came from: a green dot and "Read live from the book", or a red dot and "Recorded status, indexer unreachable". The first box under the title is a caption, lightly tinted with carbon, that says in 17px what this copy is.
@@ -309,13 +327,16 @@ Inline chips with icon, action, state and, once done, a link to its transaction.
 A two-column list (one column on mobile) of the escrow's spending paths, each with a 20px icon, the path name, its condition, a carbon "yours" tag for the current viewer's path and an outlined "used" tag for the path that spent the escrow.
 
 ### Invoice rows (navigation)
-Full-width buttons on Original mixed 84% with night; hover goes to full Original, press scales to 0.98 (150ms), the current one gets the candle ring and `aria-current`. A funded invoice's hourglass turns half a revolution every 6s.
+Full-width buttons on Original mixed 95% with night; hover goes to full Original, press scales to 0.98 (150ms), the current one gets the candle ring and `aria-current`. A funded invoice's hourglass turns half a revolution every 6s.
 
 ### Transaction stubs
-A tear-off list on Original paper with perforations between stubs: a numbered ring, what happened, who signed an attack, the rejection reason in red ink, a transaction link and fee in µT, the live verdict with its icon, and the mini stamp. A "Check again on chain" link-button in bone sits above the list.
+A tear-off list on Original paper with perforations between stubs: a numbered ring, what happened, who signed an attack, the rejection reason in red ink, a transaction link and fee in µT, the live verdict with its icon, and the mini stamp. A "Check again on the indexer" link-button in bone sits above the list. A transaction id links to the indexer while it still serves the result, and to the result archived right after the run once it does not.
 
 ### Try to steal it
-A ruled list on the desk, one row per attack: a 34px ring with the signer's icon, the attack title and signer, the guard that refused it with its icon, and a "Try it" button (night-2 fill, strong night rule, 650, 13px). Pressing it asks the indexer, then hides the button, prints "Refused by the chain" with the reason and source, slams a REFUSED stamp onto the row (scale 1.25 to 0.96 to 1, 220ms) and plays the stamp sound. A 56px tally counts attempts, and "Replay them all" (outlined in bone-3) fires the rows 320ms apart.
+A ruled list on the desk, one row per attack: a 34px ring with the signer's icon, the attack title and signer, the guard that refused it with its icon, and a "Try it" button (night-2 fill, strong night rule, 650, 13px). Pressing it asks the indexer, or the archived result once the indexer has dropped it, and shows that answer, not the recording: "Refused by the chain" with the reason, the source and the fee, a REFUSED stamp slammed onto the row in place of the button (scale 1.25 to 0.96 to 1, 220ms) and the stamp sound. An answer that disagrees would stamp THROUGH in candle; an unreachable indexer stamps nothing and leaves a "Try again" button. Keyboard focus moves on to the next attack. The 56px tally shows how many the chain refused in the run, and "Replay them all" (outlined in bone-3) fires the rows 320ms apart.
+
+### What ran
+The first block of the right column: a 12px label with the run date, the attack count at display size beside "attacks sent to Esmeralda. The chain refused every one.", four figures in a 2 by 2 grid (invoices, invoice amounts in public, paid to the contractor, returned to the client), and a full-width link "Replay the N attacks yourself" with a candle border and candle icons that scrolls to the attacks and replays them.
 
 ### Skeleton
 A 2px-radius bar of the current text colour at 16%, pulsing to 0.45 opacity every 1.6s, with `role="status"` and a label saying what is being read. No default value is ever painted while a fact loads.
