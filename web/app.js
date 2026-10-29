@@ -75,7 +75,7 @@
     const t = setTimeout(() => ctl.abort(), FETCH_TIMEOUT_MS);
     try {
       const r = await fetch(state.run.indexer + path, { signal: ctl.signal, cache: 'no-store' });
-      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      if (!r.ok) throw Object.assign(new Error(`HTTP ${r.status}`), { status: r.status });
       return await r.json();
     } finally {
       clearTimeout(t);
@@ -104,13 +104,24 @@
     const fin = json.result && json.result.Finalized;
     if (!fin) return { state: 'bad', text: 'Not finalized on the indexer' };
     const res = fin.execution_result && fin.execution_result.finalize && fin.execution_result.finalize.result;
-    const kind = res ? Object.keys(res)[0] : '';
-    const committed = fin.final_decision === 'Commit' && kind === 'Accept';
-    const when = fin.finalized_time ? `, ${fin.finalized_time.slice(0, 16)} UTC` : '';
-    if (committed !== row.accepted) return { state: 'bad', text: 'Indexer disagrees with the recording' };
-    if (committed) return { state: 'ok', text: `Confirmed on the indexer${when}` };
-    if (kind === 'AcceptFeeRejectRest') return { state: 'neutral', text: `Rejection confirmed on the indexer, fee kept${when}` };
-    return { state: 'neutral', text: 'Rejection confirmed on the indexer, nothing committed' };
+    return judge({ final_decision: fin.final_decision, result: res ? Object.keys(res)[0] : '', finalized_time: fin.finalized_time }, row, 'on the indexer');
+  }
+
+  function judge(v, row, where) {
+    const committed = v.final_decision === 'Commit' && v.result === 'Accept';
+    const when = v.finalized_time ? `, ${v.finalized_time.slice(0, 16)} UTC` : '';
+    if (committed !== row.accepted) return { state: 'bad', text: `Disagrees with the recording (${where})` };
+    if (committed) return { state: 'ok', text: `Confirmed ${where}${when}` };
+    if (v.result === 'AcceptFeeRejectRest') return { state: 'neutral', text: `Rejection confirmed ${where}, fee kept${when}` };
+    return { state: 'neutral', text: `Rejection confirmed ${where}, nothing committed` };
+  }
+
+  // The indexer prunes transactions after 50 epochs. A 404 then falls back to the verdict
+  // snapshotted from the same indexer (tools/snapshot_verdicts.py), labelled as such.
+  function fromSnapshot(row) {
+    const snap = state.snapshot && state.snapshot.verdicts[row.tx];
+    if (!snap) return { state: 'off', text: 'Pruned from the indexer, no snapshot' };
+    return judge(snap, row, `in the ${state.snapshot.taken_utc} UTC snapshot (pruned since)`);
   }
 
   async function refreshNetwork() {
@@ -135,8 +146,8 @@
     await Promise.all(rows.map(async (r) => {
       try {
         state.verdicts.set(r.tx, readVerdict(await getJSON(`transactions/${r.tx}/result`), r));
-      } catch (_) {
-        state.verdicts.set(r.tx, { state: 'off', text: 'Indexer unreachable' });
+      } catch (e) {
+        state.verdicts.set(r.tx, e.status === 404 ? fromSnapshot(r) : { state: 'off', text: 'Indexer unreachable' });
       }
     }));
     renderStubs();
@@ -515,6 +526,12 @@
     } catch (err) {
       $('sheet').innerHTML = `<div class="box s6"><p class="val">${icon('warning')} The recorded run could not be loaded. Reload the page to try again.</p></div>`;
       return;
+    }
+    try {
+      const s = await fetch('data/verdicts.json', { cache: 'no-store' });
+      if (s.ok) state.snapshot = await s.json();
+    } catch (_) {
+      // Without a snapshot, pruned verdicts show as such; live reads are unaffected.
     }
     $('f-tests').textContent = `${state.run.engine_tests_passed} engine tests pass (local run of the compiled template)`;
     readURL();
