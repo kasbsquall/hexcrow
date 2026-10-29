@@ -333,6 +333,20 @@ pub fn log_evidence(label: &str, persona: &str, s: &Submitted, extra: Value) -> 
     Ok(())
 }
 
+/// Logs a read-only check (no transaction) next to the transactions it relates to.
+pub fn log_check(label: &str, persona: &str, result: Value) -> Result<()> {
+    let line = json!({
+        "step": label,
+        "signer_persona": persona,
+        "read_only": true,
+        "recorded_at": chrono_now(),
+        "result": result,
+    });
+    let mut f = OpenOptions::new().create(true).append(true).open(evidence_path())?;
+    writeln!(f, "{line}")?;
+    Ok(())
+}
+
 fn chrono_now() -> String {
     let secs = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)

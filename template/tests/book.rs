@@ -16,6 +16,8 @@ use tari_template_test_tooling::{
 
 const CODE: &[u8] = b"milestone-2 accepted: 31 Oct";
 const DEADLINE: u64 = 100;
+const GRACE: u64 = 3;
+const CLAIM_UNTIL: u64 = DEADLINE + GRACE;
 
 // Status is stored as an enum variant index: Issued 0, Funded 1, Approved 2, Settled 3, Refunded 4.
 const SETTLED: &str = "Array([Integer(3), Array([])])";
@@ -113,14 +115,14 @@ impl Fixture {
         self.call(&secret, "issue", args![
             sha256(b"invoice #2: brand system, milestone 2"),
             client_key,
-            sha256(CODE),
-            DEADLINE
+            DEADLINE,
+            GRACE
         ]);
     }
 
     fn fund(&mut self) {
         let secret = self.client.secret.clone();
-        self.call(&secret, "fund", args![1u64, sha256(b"escrow condition root")]);
+        self.call(&secret, "fund", args![1u64, sha256(CODE), sha256(b"escrow condition root")]);
     }
 
     fn state(&self) -> String {
@@ -147,8 +149,10 @@ fn refund_after_deadline() {
     f.issue();
     f.fund();
     let client = f.client.secret.clone();
-    f.call_fails(&client, "refund", args![1u64], "deadline has not passed yet");
+    f.call_fails(&client, "refund", args![1u64], "claim window is still open");
     set_epoch(&mut f.test, DEADLINE);
+    f.call_fails(&client, "refund", args![1u64], "claim window is still open");
+    set_epoch(&mut f.test, CLAIM_UNTIL);
     f.call(&client, "refund", args![1u64]);
     assert!(f.state().contains(REFUNDED));
 }
@@ -158,7 +162,7 @@ fn stranger_cannot_fund_approve_settle_or_refund() {
     let mut f = setup();
     f.issue();
     let stranger = f.stranger.secret.clone();
-    f.call_fails(&stranger, "fund", args![1u64, sha256(b"x")], NOT_A_SIGNER);
+    f.call_fails(&stranger, "fund", args![1u64, sha256(CODE), sha256(b"x")], NOT_A_SIGNER);
     f.fund();
     f.call_fails(&stranger, "approve", args![1u64, CODE.to_vec()], NOT_A_SIGNER);
     let client = f.client.secret.clone();
@@ -203,7 +207,7 @@ fn approved_invoice_cannot_be_refunded() {
     f.fund();
     let client = f.client.secret.clone();
     f.call(&client, "approve", args![1u64, CODE.to_vec()]);
-    set_epoch(&mut f.test, DEADLINE + 5);
+    set_epoch(&mut f.test, CLAIM_UNTIL + 5);
     f.call_fails(&client, "refund", args![1u64], "invoice can no longer be refunded");
 }
 
@@ -213,7 +217,7 @@ fn no_funding_or_approval_after_deadline() {
     f.issue();
     set_epoch(&mut f.test, DEADLINE);
     let client = f.client.secret.clone();
-    f.call_fails(&client, "fund", args![1u64, sha256(b"late")], "invoice deadline has passed");
+    f.call_fails(&client, "fund", args![1u64, sha256(CODE), sha256(b"late")], "invoice deadline has passed");
 }
 
 #[test]
@@ -222,8 +226,9 @@ fn issue_rejects_past_deadline_and_self_dealing() {
     let contractor = f.contractor.secret.clone();
     let client_key = f.client.public;
     let contractor_key = f.contractor.public;
-    f.call_fails(&contractor, "issue", args![sha256(b"i"), client_key, sha256(CODE), 5u64], "deadline must be in the future");
-    f.call_fails(&contractor, "issue", args![sha256(b"i"), contractor_key, sha256(CODE), DEADLINE], "client and contractor keys must differ");
+    f.call_fails(&contractor, "issue", args![sha256(b"i"), client_key, 5u64, GRACE], "deadline must be in the future");
+    f.call_fails(&contractor, "issue", args![sha256(b"i"), client_key, DEADLINE, 0u64], "the claim window needs at least one epoch of grace");
+    f.call_fails(&contractor, "issue", args![sha256(b"i"), contractor_key, DEADLINE, GRACE], "client and contractor keys must differ");
 }
 
 #[test]
@@ -272,4 +277,48 @@ fn escrow_key_alone_cannot_settle() {
         .build_and_seal(&escrow.secret);
     let reject = f.test.execute_expect_failure(tx, vec![]);
     assert_reject_reason(reject, NOT_A_SIGNER);
+}
+
+#[test]
+fn only_the_client_sets_the_approval_lock() {
+    // The contractor issues without a lock, so it cannot pick a code it already knows. The lock
+    // arrives with the client's funding, and only the client can fund.
+    let mut f = setup();
+    f.issue();
+    let contractor = f.contractor.secret.clone();
+    f.call_fails(&contractor, "fund", args![1u64, sha256(b"contractor's own code"), sha256(b"r")], NOT_A_SIGNER);
+    f.fund();
+    let client = f.client.secret.clone();
+    f.call_fails(&client, "approve", args![1u64, b"contractor's own code".to_vec()], "approval code does not match");
+    f.call(&client, "approve", args![1u64, CODE.to_vec()]);
+}
+
+#[test]
+fn approval_in_the_last_epoch_still_leaves_the_claim_window() {
+    let mut f = setup();
+    f.issue();
+    f.fund();
+    set_epoch(&mut f.test, DEADLINE - 1);
+    let client = f.client.secret.clone();
+    f.call(&client, "approve", args![1u64, CODE.to_vec()]);
+    set_epoch(&mut f.test, CLAIM_UNTIL - 1);
+    f.call_fails(&client, "refund", args![1u64], "invoice can no longer be refunded");
+    let contractor = f.contractor.secret.clone();
+    f.call(&contractor, "settle", args![1u64]);
+    assert!(f.state().contains(SETTLED));
+}
+
+#[test]
+fn no_approval_after_deadline_and_no_settle_after_claim_window() {
+    let mut f = setup();
+    f.issue();
+    f.fund();
+    let client = f.client.secret.clone();
+    set_epoch(&mut f.test, DEADLINE);
+    f.call_fails(&client, "approve", args![1u64, CODE.to_vec()], "invoice deadline has passed");
+    set_epoch(&mut f.test, DEADLINE - 1);
+    f.call(&client, "approve", args![1u64, CODE.to_vec()]);
+    set_epoch(&mut f.test, CLAIM_UNTIL);
+    let contractor = f.contractor.secret.clone();
+    f.call_fails(&contractor, "settle", args![1u64], "claim window has closed");
 }

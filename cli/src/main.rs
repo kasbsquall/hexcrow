@@ -32,6 +32,8 @@ use tari_ootle_transaction::{TransactionBuilder, args};
 use tari_utilities::hex::Hex;
 
 const TARI: u64 = 1_000_000;
+/// The longest claim window past the deadline a client agrees to fund, in epochs.
+const MAX_GRACE_EPOCHS: u64 = 48;
 const CARAVEL_FAUCET: &str = "component_568f84a0cc7ccfe49116ee86d072f02b99e246a4750e680a8cbfcd2b7862f37b";
 const CARAVEL_VAULT: &str = "vault_56c3c95ef08e843656e755100345d8fa0bf0a58853b40cd9d2894ab48a112ec6";
 const CARAVEL_RECEIPTS: &str = "resource_5694c70e0eaa25809e593c2f4ee85862b3fa71ea45d9ad01bf18f8accf35d621";
@@ -47,20 +49,26 @@ struct Cli {
 enum Cmd {
     /// Show persona addresses and the current epoch.
     Status,
-    /// Claim 1,000 tTARI from the public Caravel faucet into a persona, as a private coin.
+    /// Claim 1,000 tTARI from the public Caravel faucet into a persona (created if new), as a private coin.
     Faucet { who: String },
     /// Publish the hexcrow_book template (paid by the publisher persona).
     Publish { wasm: PathBuf },
     /// Create the invoice book component.
     NewBook,
-    /// Contractor issues an invoice; the client's approval code is generated here and kept local.
+    /// Contractor `contractor-N` issues invoice N to the one-time key `client-N`. No approval lock yet:
+    /// the client sets it when funding.
     Issue {
         #[arg(long)]
         doc: String,
+        /// Epochs from now until the client can no longer approve.
         #[arg(long, default_value_t = 30)]
         deadline_in: u64,
+        /// Epochs after the deadline during which the contractor can still claim an approved invoice.
+        #[arg(long, default_value_t = 2)]
+        grace: u64,
     },
-    /// Client funds an invoice: creates the escrow output and records it in the book, in one transaction.
+    /// Client funds an invoice: picks the approval code, creates the escrow output and records its
+    /// lock and condition root in the book, in one transaction.
     Fund {
         invoice: u64,
         #[arg(long)]
@@ -74,6 +82,14 @@ enum Cmd {
     Refund { invoice: u64 },
     /// Try to break an invoice. The network should refuse each attempt.
     Attack { invoice: u64, kind: String },
+    /// Contractor checks, from the public indexer, that the escrow exists and matches the invoice
+    /// terms before starting work.
+    Verify {
+        invoice: u64,
+        /// The amount the contractor agreed to, which the escrow must hold.
+        #[arg(long)]
+        expect_tari: u64,
+    },
     /// Print what each party can read about an invoice, as JSON for the web demo.
     Inspect { invoice: u64 },
     /// Trust the validator set handed over by the checkpoint ending EPOCH, for a first run after that epoch.
@@ -94,10 +110,13 @@ struct InvoiceLocal {
     doc: String,
     salt: String,
     invoice_hash: String,
-    approval_code: String,
+    /// Chosen by the client when funding; public once approved.
+    approval_code: Option<String>,
     deadline_epoch: u64,
+    claim_until: u64,
     contractor: String,
     client: String,
+    escrow: String,
     escrow_commitment: Option<String>,
     escrow_value: Option<u64>,
     escrow_root: Option<String>,
@@ -127,16 +146,10 @@ fn commitment_from_hex(h: &str) -> Result<PedersenCommitmentBytes> {
     PedersenCommitmentBytes::try_from(bytes.as_slice()).map_err(|_| anyhow!("commitment must be 32 bytes"))
 }
 
-fn random_hex(n: usize) -> String {
-    let bytes: Vec<u8> = (0..n).map(|_| rand_byte()).collect();
-    bytes.to_hex()
-}
-
-fn rand_byte() -> u8 {
-    use std::hash::{BuildHasher, Hasher};
-    let mut h = std::collections::hash_map::RandomState::new().build_hasher();
-    h.write_u128(std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_nanos());
-    (h.finish() & 0xff) as u8
+fn random_hex(n: usize) -> Result<String> {
+    let mut bytes = vec![0u8; n];
+    getrandom::getrandom(&mut bytes).map_err(|e| anyhow!("OS random source: {e}"))?;
+    Ok(bytes.to_hex())
 }
 
 /// The persona's largest coin, as a fee-paying input.
@@ -175,19 +188,23 @@ impl FromStrHex for ComponentAddress {
 #[tokio::main]
 async fn main() -> Result<()> {
     let cli = Cli::parse();
-    let personas = Personas::load_or_create(&PathBuf::from(".hexcrow/personas.json"))?;
+    let mut personas = Personas::load_or_create(&PathBuf::from(".hexcrow/personas.json"))?;
     let mut state = load_state()?;
     match cli.cmd {
         Cmd::Status => status(&personas, &state).await?,
-        Cmd::Faucet { who } => faucet(&personas, &mut state, &who).await?,
+        Cmd::Faucet { who } => {
+            personas.ensure(&who)?;
+            faucet(&personas, &mut state, &who).await?
+        },
         Cmd::Publish { wasm } => publish(&personas, &mut state, wasm).await?,
         Cmd::NewBook => new_book(&personas, &mut state).await?,
-        Cmd::Issue { doc, deadline_in } => issue(&personas, &mut state, doc, deadline_in).await?,
+        Cmd::Issue { doc, deadline_in, grace } => issue(&mut personas, &mut state, doc, deadline_in, grace).await?,
         Cmd::Fund { invoice, amount_tari } => fund(&personas, &mut state, invoice, amount_tari).await?,
-        Cmd::Approve { invoice } => book_call(&personas, &mut state, invoice, "client", "approve").await?,
+        Cmd::Approve { invoice } => book_call(&personas, &mut state, invoice, "approve").await?,
         Cmd::Claim { invoice } => spend_escrow(&personas, &mut state, invoice, false).await?,
         Cmd::Refund { invoice } => spend_escrow(&personas, &mut state, invoice, true).await?,
         Cmd::Attack { invoice, kind } => attack(&personas, &mut state, invoice, &kind).await?,
+        Cmd::Verify { invoice, expect_tari } => verify(&personas, &state, invoice, expect_tari).await?,
         Cmd::Inspect { invoice } => inspect(&personas, &state, invoice).await?,
         Cmd::AnchorTrust { epoch } => chain::anchor_trust(epoch).await?,
     }
@@ -198,7 +215,9 @@ async fn main() -> Result<()> {
 async fn status(personas: &Personas, state: &State) -> Result<()> {
     let s = Session::connect(personas, "publisher", &[]).await?;
     println!("epoch: {}", s.epoch().await?);
-    for name in personas::NAMES {
+    let per_invoice = state.invoices.keys().flat_map(|n| personas::invoice_names(*n));
+    for name in personas::NAMES.iter().map(|n| n.to_string()).chain(per_invoice) {
+        let name = name.as_str();
         let p = personas.provider(name)?;
         let coins: u64 = state.coins.get(name).map(|c| c.values().sum()).unwrap_or(0);
         println!("{name:<10} {}  coins: {} µT", p.address(), coins);
@@ -347,29 +366,35 @@ fn persona_key(personas: &Personas, name: &str) -> Result<ootle_rs::template_typ
     Ok(*personas.provider(name)?.address().account_public_key())
 }
 
+fn approval_code(inv: &InvoiceLocal) -> Result<&str> {
+    inv.approval_code.as_deref().ok_or_else(|| anyhow!("the client has not funded this invoice yet"))
+}
+
 fn terms(personas: &Personas, inv: &InvoiceLocal) -> Result<EscrowTerms> {
     Ok(EscrowTerms {
-        approval_lock: sha256(inv.approval_code.as_bytes()),
-        deadline_epoch: inv.deadline_epoch,
+        approval_lock: sha256(approval_code(inv)?.as_bytes()),
+        claim_until: inv.claim_until,
         contractor_key: persona_key(personas, &inv.contractor)?,
         client_key: persona_key(personas, &inv.client)?,
     })
 }
 
-async fn issue(personas: &Personas, state: &mut State, doc: String, deadline_in: u64) -> Result<()> {
+async fn issue(personas: &mut Personas, state: &mut State, doc: String, deadline_in: u64, grace: u64) -> Result<()> {
     let book = book_address(state)?;
-    let s = Session::connect(personas, "contractor", &[]).await?;
+    let id = state.invoices.keys().max().copied().unwrap_or(0) + 1;
+    let [client, contractor, escrow] = personas::invoice_names(id);
+    for name in [&client, &contractor, &escrow] {
+        personas.ensure(name)?;
+    }
+    let s = Session::connect(personas, &contractor, &[]).await?;
     let deadline_epoch = s.epoch().await? + deadline_in;
     drop(s);
-    let salt = random_hex(16);
+    let claim_until = deadline_epoch + grace;
+    let salt = random_hex(16)?;
     let invoice_hash = sha256(format!("{salt}|{doc}").as_bytes());
-    // The approval code belongs to the client; it only shares its hash with the contractor.
-    let approval_code = format!("hexcrow-approve-{}", random_hex(16));
-    let approval_lock = sha256(approval_code.as_bytes());
-    let client_key = persona_key(personas, "client")?;
-    let id = state.invoices.keys().max().copied().unwrap_or(0) + 1;
-    let (res, _) = paid_call(personas, state, "contractor", &format!("issue:{id}"), vec![], move |tx| {
-        tx.call_method(book, "issue", args![invoice_hash, client_key, approval_lock, deadline_epoch])
+    let client_key = persona_key(personas, &client)?;
+    let (res, _) = paid_call(personas, state, &contractor, &format!("issue:{id}"), vec![], move |tx| {
+        tx.call_method(book, "issue", args![invoice_hash, client_key, deadline_epoch, grace])
     })
     .await?;
     if !res.accepted {
@@ -381,31 +406,52 @@ async fn issue(personas: &Personas, state: &mut State, doc: String, deadline_in:
         doc,
         salt,
         invoice_hash: invoice_hash.to_string(),
-        approval_code,
+        approval_code: None,
         deadline_epoch,
-        contractor: "contractor".into(),
-        client: "client".into(),
+        claim_until,
+        contractor,
+        client,
+        escrow,
         escrow_commitment: None,
         escrow_value: None,
         escrow_root: None,
         txs,
     });
-    println!("invoice {id} issued, deadline epoch {deadline_epoch}");
+    println!("invoice {id} issued: approve before epoch {deadline_epoch}, claim before epoch {claim_until}");
     Ok(())
 }
 
 async fn fund(personas: &Personas, state: &mut State, invoice: u64, amount_tari: u64) -> Result<()> {
     let book = book_address(state)?;
-    let inv = state.invoices.get(&invoice).cloned().ok_or_else(|| anyhow!("unknown invoice {invoice}"))?;
+    let mut inv = state.invoices.get(&invoice).cloned().ok_or_else(|| anyhow!("unknown invoice {invoice}"))?;
+    // The client funds the terms the book holds, not the ones it was told: its own key, an open
+    // invoice, and a claim window it accepts.
+    let entry = read_book_entry(state, invoice).await?;
+    if entry.client_key != persona_key(personas, &inv.client)?.to_string() || entry.status != 0 {
+        bail!("invoice {invoice} in the book is not an open invoice to this client");
+    }
+    if entry.claim_until.saturating_sub(entry.deadline_epoch) > MAX_GRACE_EPOCHS {
+        bail!("the claim window of invoice {invoice} runs {} epochs past the deadline; refusing to fund", entry.claim_until - entry.deadline_epoch);
+    }
+    inv.deadline_epoch = entry.deadline_epoch;
+    inv.claim_until = entry.claim_until;
+    // The approval code is the client's: generated here, on the funding side, and shared with no
+    // one until approval. Only its hash goes on chain, in the book and in the escrow's claim leaf.
+    // It is saved before the transaction is sent, so an error after acceptance cannot lose it.
+    let code = format!("hexcrow-approve-{}", random_hex(16)?);
+    inv.approval_code = Some(code.clone());
+    state.invoices.insert(invoice, inv.clone());
+    save_state(state)?;
     let t = terms(personas, &inv)?;
+    let lock = t.approval_lock;
     let root: Hash32 = t.root()?;
-    let escrow_addr = personas.provider("escrow")?.address().clone();
+    let escrow_addr = personas.provider(&inv.escrow)?.address().clone();
     let value = amount_tari * TARI;
     let escrow_out = Output::new(escrow_addr, TARI_TOKEN, NonZeroU64::new(value).unwrap())
         .with_spend_conditions(t.conditions())
         .with_memo_message(format!("Hexcrow invoice {invoice}"));
-    let (res, prepared) = paid_call(personas, state, "client", &format!("fund:{invoice}"), vec![escrow_out], move |tx| {
-        tx.call_method(book, "fund", args![invoice, root])
+    let (res, prepared) = paid_call(personas, state, &inv.client, &format!("fund:{invoice}"), vec![escrow_out], move |tx| {
+        tx.call_method(book, "fund", args![invoice, lock, root])
     })
     .await?;
     if !res.accepted {
@@ -413,6 +459,7 @@ async fn fund(personas: &Personas, state: &mut State, invoice: u64, amount_tari:
     }
     let escrow_commitment = prepared.statement.stealth_outputs()[0].commitment().to_hex();
     let inv = state.invoices.get_mut(&invoice).unwrap();
+    inv.approval_code = Some(code);
     inv.escrow_commitment = Some(escrow_commitment.clone());
     inv.escrow_value = Some(value);
     inv.escrow_root = Some(root.to_string());
@@ -421,12 +468,12 @@ async fn fund(personas: &Personas, state: &mut State, invoice: u64, amount_tari:
     Ok(())
 }
 
-async fn book_call(personas: &Personas, state: &mut State, invoice: u64, persona: &str, method: &str) -> Result<()> {
+async fn book_call(personas: &Personas, state: &mut State, invoice: u64, method: &str) -> Result<()> {
     let book = book_address(state)?;
     let inv = state.invoices.get(&invoice).cloned().ok_or_else(|| anyhow!("unknown invoice {invoice}"))?;
-    let code = inv.approval_code.as_bytes().to_vec();
+    let code = approval_code(&inv)?.as_bytes().to_vec();
     let m = method.to_string();
-    let (res, _) = paid_call(personas, state, persona, &format!("{method}:{invoice}"), vec![], move |tx| {
+    let (res, _) = paid_call(personas, state, &inv.client, &format!("{method}:{invoice}"), vec![], move |tx| {
         if m == "approve" {
             tx.call_method(book, "approve", args![invoice, code.clone()])
         } else {
@@ -445,7 +492,7 @@ async fn spend_escrow(personas: &Personas, state: &mut State, invoice: u64, refu
     let persona = if refund { inv.client.clone() } else { inv.contractor.clone() };
     let label = format!("{}:{invoice}", if refund { "refund" } else { "claim" });
     let book_method = if refund { "refund" } else { "settle" };
-    let witness_code = if refund { Vec::new() } else { inv.approval_code.as_bytes().to_vec() };
+    let witness_code = if refund { Vec::new() } else { approval_code(&inv)?.as_bytes().to_vec() };
     run_escrow_spend(personas, state, invoice, &persona, &label, book_method, refund, witness_code).await
 }
 
@@ -471,7 +518,7 @@ async fn run_escrow_spend(
     let value = inv.escrow_value.unwrap_or_default();
     // The escrow key seals (it is the only key that can decrypt the escrow output) and the acting
     // party co-signs; the leaf's AccessRule and the book both look for the party's signature.
-    let mut s = Session::connect(personas, "escrow", &[persona]).await?;
+    let mut s = Session::connect(personas, &inv.escrow, &[persona]).await?;
     let escrow_addr = s.address.clone();
     let party_addr = personas.provider(persona)?.address().clone();
     let spend = Spend {
@@ -513,7 +560,7 @@ async fn run_escrow_spend(
 
 async fn attack(personas: &Personas, state: &mut State, invoice: u64, kind: &str) -> Result<()> {
     let inv = state.invoices.get(&invoice).cloned().ok_or_else(|| anyhow!("unknown invoice {invoice}"))?;
-    let code = inv.approval_code.as_bytes().to_vec();
+    let code = approval_code(&inv).map(|c| c.as_bytes().to_vec()).unwrap_or_default();
     match kind {
         // A stranger who learned the approval code tries to take the money.
         "stranger-claim" => {
@@ -529,6 +576,28 @@ async fn attack(personas: &Personas, state: &mut State, invoice: u64, kind: &str
             "settle",
             false,
             b"i-did-the-work".to_vec(),
+        )
+        .await,
+        // The contractor tries to fund its own invoice with an approval code it chose itself.
+        "contractor-sets-lock" => {
+            let book = book_address(state)?;
+            let own_lock = sha256(b"a code the contractor already knows");
+            paid_call(personas, state, &inv.contractor, &format!("attack:contractor-sets-lock:{invoice}"), vec![], move |tx| {
+                tx.call_method(book, "fund", args![invoice, own_lock, own_lock])
+            })
+            .await
+            .map(|_| ())
+        },
+        // The client approves, then tries to take the money back while the claim window is open.
+        "refund-after-approval" => run_escrow_spend(
+            personas,
+            state,
+            invoice,
+            &inv.client,
+            &format!("attack:refund-after-approval:{invoice}"),
+            "refund",
+            true,
+            Vec::new(),
         )
         .await,
         // The client tries to take the money back before the deadline.
@@ -556,6 +625,155 @@ async fn attack(personas: &Personas, state: &mut State, invoice: u64, kind: &str
     }
 }
 
+/// The book entry of one invoice, as the public indexer serves it. Field order follows `Invoice`
+/// in the template: hash, contractor, client, deadline, claim_until, lock, root, code, status.
+struct BookEntry {
+    contractor_key: String,
+    client_key: String,
+    deadline_epoch: u64,
+    claim_until: u64,
+    approval_lock: Option<String>,
+    escrow_root: Option<String>,
+    status: u64,
+}
+
+fn cbor_hex(v: &serde_json::Value) -> Option<String> {
+    v.get("hex").and_then(|h| h.as_str()).map(str::to_string)
+}
+
+/// Reads one invoice from the book as plain JSON from the public indexer, the read the web demo
+/// makes. Unlike the escrow output in `verify`, this read is not checked against a proof.
+async fn read_book_entry(state: &State, invoice: u64) -> Result<BookEntry> {
+    let book = state.book.as_ref().ok_or_else(|| anyhow!("no book yet"))?;
+    let indexer = ootle_rs::default_indexer_url(personas::NETWORK).to_string();
+    let url = format!("{}/substates/{book}", indexer.trim_end_matches('/'));
+    let json: serde_json::Value = reqwest::Client::new()
+        .get(url)
+        .header("User-Agent", "hexcrow-cli")
+        .send()
+        .await?
+        .error_for_status()?
+        .json()
+        .await?;
+    let entries = json
+        .pointer("/state/up/substate/Component/body/state/0/entries")
+        .and_then(|e| e.as_array())
+        .ok_or_else(|| anyhow!("unexpected book state shape"))?;
+    let f = entries
+        .iter()
+        .find(|e| e[0].as_u64() == Some(invoice))
+        .map(|e| &e[1])
+        .ok_or_else(|| anyhow!("invoice {invoice} is not in the book"))?;
+    Ok(BookEntry {
+        contractor_key: cbor_hex(&f[1]).unwrap_or_default(),
+        client_key: cbor_hex(&f[2]).unwrap_or_default(),
+        deadline_epoch: f[3].as_u64().unwrap_or_default(),
+        claim_until: f[4].as_u64().unwrap_or_default(),
+        approval_lock: cbor_hex(&f[5]),
+        escrow_root: cbor_hex(&f[6]),
+        status: f[8][0].as_u64().unwrap_or(u64::MAX),
+    })
+}
+
+/// The escrow output as a substate, read through the provider, which checks the indexer's proof
+/// against the validator set: its condition root, whether it has a key path, and its value,
+/// decrypted with the invoice's escrow view key.
+struct EscrowSeen {
+    condition_root: Option<String>,
+    has_key_path: bool,
+    value: Option<u64>,
+}
+
+async fn read_escrow(personas: &Personas, inv: &InvoiceLocal) -> Result<Option<EscrowSeen>> {
+    use ootle_rs::key_provider::DiffieHellmanKdfKeyProvider as _;
+    use tari_utilities::ByteArray as _;
+
+    let commitment = commitment_from_hex(inv.escrow_commitment.as_ref().ok_or_else(|| anyhow!("no escrow commitment"))?)?;
+    let s = Session::connect(personas, &inv.escrow, &[]).await?;
+    let Some(substate) = s.provider.get_substate(utxo_input(&commitment)).await? else {
+        return Ok(None);
+    };
+    let Some(out) = substate.substate_value().as_utxo().and_then(|u| u.output.clone()) else {
+        return Ok(None);
+    };
+    let nonce = tari_crypto::ristretto::RistrettoPublicKey::from_canonical_bytes(out.output.public_nonce.as_ref())
+        .map_err(|e| anyhow!("escrow nonce: {e}"))?;
+    let key = personas.provider(&inv.escrow)?.create_kdf_dh_encrypted_data_key(&nonce).await?;
+    let value = ootle_rs::crypto::encrypted_data::unblind_output(&commitment, &out.output.encrypted_data, &key, true)
+        .ok()
+        .map(|d| d.mask_and_value.value);
+    Ok(Some(EscrowSeen {
+        condition_root: out.auth.condition_root().map(|r| r.to_string()),
+        has_key_path: out.auth.spend_key().is_some(),
+        value,
+    }))
+}
+
+/// What the contractor checks before starting work, with public data, its own key and the
+/// invoice's escrow view key: the book lists it as contractor, the invoice is funded and can still
+/// be approved, the escrow output exists unspent, is locked by exactly the condition root the
+/// book's terms produce, and holds the amount the contractor expects. Passing means the money is
+/// locked as agreed; being paid still needs the client's approval.
+async fn verify(personas: &Personas, state: &State, invoice: u64, expect_tari: u64) -> Result<()> {
+    let inv = state.invoices.get(&invoice).ok_or_else(|| anyhow!("unknown invoice {invoice}"))?;
+    let entry = read_book_entry(state, invoice).await?;
+    let epoch = Session::connect(personas, &inv.contractor, &[]).await?.epoch().await?;
+
+    let me = persona_key(personas, &inv.contractor)?.to_string();
+    let mut checks = Vec::new();
+    checks.push(("the book names my key as contractor".to_string(), entry.contractor_key == me));
+    checks.push(("the invoice is funded".to_string(), entry.status == 1));
+    checks.push((
+        format!("the client can still approve: epoch {epoch}, deadline {}", entry.deadline_epoch),
+        epoch < entry.deadline_epoch,
+    ));
+    let rebuilt = match &entry.approval_lock {
+        Some(lock) => EscrowTerms {
+            approval_lock: Hash32::from_hex(lock).map_err(|e| anyhow!("lock: {e:?}"))?,
+            claim_until: entry.claim_until,
+            contractor_key: entry.contractor_key.parse().map_err(|e| anyhow!("contractor key: {e:?}"))?,
+            client_key: entry.client_key.parse().map_err(|e| anyhow!("client key: {e:?}"))?,
+        }
+        .root()?
+        .to_string(),
+        None => String::new(),
+    };
+    checks.push(("the book's terms rebuild the book's condition root".to_string(), entry.escrow_root.as_deref() == Some(rebuilt.as_str())));
+
+    let seen = read_escrow(personas, inv).await?;
+    checks.push(("the escrow output exists and is unspent, by a verified proof".to_string(), seen.is_some()));
+    checks.push((
+        "the escrow output is locked by exactly that root, with no key path".to_string(),
+        seen.as_ref().is_some_and(|e| !e.has_key_path && e.condition_root.as_deref() == Some(rebuilt.as_str())),
+    ));
+    let held = seen.as_ref().and_then(|e| e.value);
+    checks.push((
+        format!("the escrow holds the expected {expect_tari} tTARI, read with the escrow view key"),
+        held == Some(expect_tari * TARI),
+    ));
+
+    let locked = checks.iter().all(|(_, ok)| *ok);
+    println!("invoice {invoice}: approve before epoch {}, claim before epoch {}", entry.deadline_epoch, entry.claim_until);
+    for (what, ok) in &checks {
+        println!("  [{}] {what}", if *ok { "ok" } else { "FAIL" });
+    }
+    println!(
+        "{}",
+        if locked {
+            "funds locked as agreed; payment still needs the client's approval"
+        } else {
+            "do not start work"
+        }
+    );
+    chain::log_check(&format!("verify:{invoice}"), &inv.contractor, serde_json::json!({
+        "funds_locked_as_agreed": locked,
+        "checks": checks.iter().map(|(w, ok)| serde_json::json!({ "check": w, "ok": ok })).collect::<Vec<_>>(),
+        "escrow_value_micro_tari": held,
+        "condition_root": rebuilt,
+    }))?;
+    Ok(())
+}
+
 async fn inspect(personas: &Personas, state: &State, invoice: u64) -> Result<()> {
     let inv = state.invoices.get(&invoice).ok_or_else(|| anyhow!("unknown invoice {invoice}"))?;
     let out = serde_json::json!({
@@ -565,6 +783,7 @@ async fn inspect(personas: &Personas, state: &State, invoice: u64) -> Result<()>
         "public": {
             "invoice_hash": inv.invoice_hash,
             "deadline_epoch": inv.deadline_epoch,
+            "claim_until": inv.claim_until,
             "escrow_commitment": inv.escrow_commitment,
             "escrow_root": inv.escrow_root,
             "txs": inv.txs,

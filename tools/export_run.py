@@ -16,13 +16,15 @@ CLI = ROOT / "cli"
 EVIDENCE = ROOT / "evidence" / "esmeralda-run.jsonl"
 OUT = ROOT / "web" / "data" / "run.json"
 STATE = CLI / ".hexcrow" / "state.json"
-BIN = CLI / "target" / "debug" / ("hexcrow.exe" if sys.platform == "win32" else "hexcrow")
+BIN = CLI / "target" / "release" / ("hexcrow.exe" if sys.platform == "win32" else "hexcrow")
 
 ATTACKS = {
     "stranger-claim": ("A stranger tries to claim", "Rejected by the chain: access denied on the escrow spend"),
     "stranger-claim:after-approval": ("A stranger claims with the now-public approval code", "Rejected by the chain: access denied on the escrow spend"),
     "claim-without-code": ("The contractor claims without the approval code", "Rejected by the chain: hash lock not satisfied"),
-    "early-refund": ("The client refunds before the deadline", "Rejected by the chain: deadline not reached"),
+    "early-refund": ("The client refunds before the deadline", "Rejected by the chain: claim window still open"),
+    "contractor-sets-lock": ("The contractor funds its own invoice with a code it chose", "Rejected by the book: only the client sets the approval lock"),
+    "refund-after-approval": ("The client approves, then tries to take the money back", "Rejected by the chain: claim window still open"),
     "self-approve": ("The contractor approves its own invoice", "Rejected by the book: the signer is not the client"),
 }
 
@@ -31,7 +33,7 @@ STEPS = {
     "fund": ("client", "Funded by the client"),
     "approve": ("client", "Approved by the client, approval code revealed"),
     "claim": ("contractor", "Claimed by the contractor, invoice settled"),
-    "refund": ("client", "Refunded to the client after the deadline"),
+    "refund": ("client", "Refunded to the client after the claim window closed"),
 }
 
 
@@ -40,8 +42,27 @@ def inspect(n: int) -> dict:
     return json.loads(out.stdout)
 
 
-def v2_entries() -> list[dict]:
-    """Entries after the note that retired template v1."""
+def role(persona: str) -> str:
+    """`client-3` acts as the client of invoice 3; the run log keeps the one-time persona name."""
+    return persona.rsplit("-", 1)[0]
+
+
+def engine_tests_passed() -> int:
+    text = (ROOT / "evidence" / "local-engine-tests.txt").read_text(encoding="utf-8")
+    return sum(1 for l in text.splitlines() if l.startswith("test ") and l.endswith("... ok"))
+
+
+def contractor_check(n: int, entries: list[dict]) -> dict | None:
+    """The last read-only `hexcrow verify n` the contractor ran before starting work."""
+    checks = [e for e in entries if e["step"] == f"verify:{n}" and e.get("read_only")]
+    if not checks:
+        return None
+    last = checks[-1]
+    return {"recorded_at": last["recorded_at"], **last["result"]}
+
+
+def run_entries() -> list[dict]:
+    """Entries after the last note, which marks the current template version."""
     lines = [json.loads(l) for l in EVIDENCE.read_text(encoding="utf-8").splitlines() if l.strip()]
     notes = [i for i, l in enumerate(lines) if l.get("step") == "note"]
     return lines[notes[-1] + 1:] if notes else lines
@@ -56,7 +77,7 @@ def timeline_for(n: int, entries: list[dict]) -> list[dict]:
             if parts[2] != str(n):
                 continue
             label, why = ATTACKS[kind]
-            rows.append({"kind": "attack", "label": label, "why": why, "actor": e["signer_persona"]})
+            rows.append({"kind": "attack", "label": label, "why": why, "actor": role(e["signer_persona"])})
         elif parts[0] in STEPS and len(parts) > 1 and parts[1] == str(n):
             actor, label = STEPS[parts[0]]
             rows.append({"kind": parts[0], "label": label, "actor": actor})
@@ -73,7 +94,7 @@ def timeline_for(n: int, entries: list[dict]) -> list[dict]:
 
 def main() -> None:
     state = json.loads(STATE.read_text(encoding="utf-8"))
-    entries = v2_entries()
+    entries = run_entries()
     book_steps = {e["step"]: e["tx_id"] for e in entries if e["step"] in ("publish-template", "new-book")}
     invoices = []
     for key in sorted(state["invoices"], key=int):
@@ -86,6 +107,7 @@ def main() -> None:
             "no": n,
             "invoice_hash": view["public"]["invoice_hash"],
             "deadline_epoch": view["public"]["deadline_epoch"],
+            "claim_until": view["public"]["claim_until"],
             "escrow_commitment": view["public"]["escrow_commitment"],
             "escrow_root": view["public"]["escrow_root"],
             "client_key": view["parties"]["client_key"],
@@ -97,6 +119,7 @@ def main() -> None:
                 "salt": view["accountant_opening"]["salt"],
             },
             "approval_code": local["approval_code"] if approved else None,
+            "contractor_check": contractor_check(n, entries),
             "timeline": timeline,
         })
     run = {
@@ -105,7 +128,7 @@ def main() -> None:
         "template": view["template"],
         "book": view["book"],
         "book_txs": book_steps,
-        "engine_tests_passed": 12,
+        "engine_tests_passed": engine_tests_passed(),
         "invoices": invoices,
     }
     OUT.parent.mkdir(parents=True, exist_ok=True)

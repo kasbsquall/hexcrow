@@ -32,7 +32,8 @@
     view: 'public',
     invoice: 1,
     epoch: null,            // number once read, 'off' if the indexer is unreachable
-    book: null,             // Map(no -> {status, deadline, hash, code}) once read, 'off' if unreachable
+    book: null,             // Map(no -> {status, deadline, claimUntil, hash, code}) once read, 'off' if unreachable
+    escrows: new Map(),     // invoice no -> {state: 'unspent'|'spent'|'off', root}
     verdicts: new Map(),    // tx id -> {state: 'wait'|'ok'|'bad'|'off', text}
   };
 
@@ -84,19 +85,34 @@
 
   const hexOf = (v) => (v && v['@cbor'] === 'bytes' ? v.hex : null);
 
-  // The book's state is a CBOR map: invoice no -> [hash, contractor, client, lock, deadline, root, code, [status, []]].
+  // The book's state is a CBOR map: invoice no ->
+  // [hash, contractor, client, deadline, claim_until, lock, root, code, [status, []]].
   function decodeBook(json) {
     const entries = json.state.up.substate.Component.body.state[0].entries;
     const out = new Map();
     for (const [no, f] of entries) {
       out.set(no, {
         hash: hexOf(f[0]),
-        deadline: f[4],
-        code: Array.isArray(f[6]) ? String.fromCharCode(...f[6]) : null,
-        status: STATUS[f[7][0]],
+        deadline: f[3],
+        claimUntil: f[4],
+        code: Array.isArray(f[7]) ? String.fromCharCode(...f[7]) : null,
+        status: STATUS[f[8][0]],
       });
     }
     return out;
+  }
+
+  // The escrow output as a substate: up while unspent (with the condition root it is locked by),
+  // down once a leaf spent it. Unlike transaction results, the indexer does not prune this.
+  const UTXO_PREFIX = 'utxo_' + '01'.repeat(32) + '_';
+  async function readEscrow(i) {
+    try {
+      const json = await getJSON('substates/' + UTXO_PREFIX + i.escrow_commitment);
+      const auth = json.state.up.substate.Utxo.output.auth;
+      return { state: 'unspent', root: auth && auth.Script };
+    } catch (e) {
+      return { state: e.status === 404 ? 'spent' : 'off' };
+    }
   }
 
   // A verdict as the indexer finalized it, compared with what the run recorded.
@@ -135,6 +151,7 @@
     } catch (_) {
       state.book = 'off';
     }
+    await Promise.all(state.run.invoices.map(async (i) => state.escrows.set(i.no, await readEscrow(i))));
     paintNet();
     render();
   }
@@ -209,17 +226,32 @@
   function deadlineBox(i) {
     const { status } = liveStatus(i);
     let now;
-    if (status === 'Settled' || status === 'Approved') {
-      now = 'Approved before the deadline';
+    if (status === 'Settled') {
+      now = 'Approved and claimed in time';
+    } else if (status === 'Approved') {
+      now = 'Approved; the contractor can claim until the window closes';
     } else if (status === 'Refunded') {
-      now = 'Refunded after the deadline';
+      now = 'Never approved; refunded after the claim window closed';
     } else if (epochKnown()) {
       const left = i.deadline_epoch - state.epoch;
-      now = `Current epoch ${ep(state.epoch)}, ${left > 0 ? `${left} ${left === 1 ? 'epoch' : 'epochs'} left` : 'deadline passed'}`;
+      now = `Current epoch ${ep(state.epoch)}, ${left > 0 ? `${left} ${left === 1 ? 'epoch' : 'epochs'} left to approve` : 'approval deadline passed'}`;
     } else {
       now = state.epoch === 'off' ? 'Current epoch unknown' : sk('Reading the current epoch');
     }
-    return `<div class="box s2 b-deadline"><p class="lab">${icon('hourglass-medium')}Deadline</p><p class="val">Epoch ${ep(i.deadline_epoch)}</p><p class="small">${now}</p></div>`;
+    return `<div class="box s2 b-deadline"><p class="lab">${icon('hourglass-medium')}Deadlines</p><p class="val">Approve by ${ep(i.deadline_epoch)}<br>Claim by ${ep(i.claim_until)}</p><p class="small">Epochs. ${now}</p></div>`;
+  }
+
+  function escrowBox(i) {
+    const e = state.escrows.get(i.no);
+    let line;
+    if (!e) line = sk('Reading the escrow output');
+    else if (e.state === 'unspent') {
+      line = e.root === i.escrow_root
+        ? `${icon('lock-key')}Unspent, locked by exactly this root, read live`
+        : `${icon('warning')}Unspent, but locked by a different root`;
+    } else if (e.state === 'spent') line = `${icon('lock-key-open')}Spent through one of its two leaves, read live`;
+    else line = `${icon('cloud-slash')}Indexer unreachable`;
+    return `<div class="box s3"><p class="lab">${icon('cube')}Escrow output</p><p class="val mono-ish" title="${i.escrow_commitment}">${short(i.escrow_commitment, 12, 8)}</p><p class="small">${line}</p></div>`;
   }
 
   function privateBoxes(i, view) {
@@ -282,14 +314,14 @@
   }
 
   function clientActions(i, status) {
-    const d = ep(i.deadline_epoch);
     const passed = epochKnown() && state.epoch >= i.deadline_epoch;
+    const closed = epochKnown() && state.epoch >= i.claim_until;
     const settledOrApproved = status === 'Approved' || status === 'Settled';
     const approve = tx(i, 'approve') ? 'Done'
-      : status === 'Refunded' || passed ? 'No longer possible' : `Possible until epoch ${d}`;
+      : status === 'Refunded' || passed ? 'No longer possible' : `Possible before epoch ${ep(i.deadline_epoch)}`;
     const refund = tx(i, 'refund') ? 'Done'
       : settledOrApproved ? 'No longer possible: approved'
-      : passed ? 'Possible now' : `From epoch ${d}`;
+      : closed ? 'Possible now' : `From epoch ${ep(i.claim_until)}`;
     return act('lock-key', 'Fund', tx(i, 'fund') ? 'Done' : 'Next', tx(i, 'fund'))
       + act('check-circle', 'Approve', approve, tx(i, 'approve'))
       + act('arrow-counter-clockwise', 'Refund', refund, tx(i, 'refund'));
@@ -298,8 +330,19 @@
   function contractorActions(i, status) {
     const claim = tx(i, 'claim') ? 'Done'
       : status === 'Refunded' ? 'No longer possible: refunded'
-      : status === 'Approved' ? `Possible now, before epoch ${ep(i.deadline_epoch)}` : 'After approval';
+      : status === 'Approved' ? `Possible now, before epoch ${ep(i.claim_until)}` : 'After approval';
     return act('hand-coins', 'Claim', claim, tx(i, 'claim'));
+  }
+
+  // `hexcrow verify`, run by the contractor before starting work, from public data only.
+  function contractorCheck(i) {
+    const c = i.contractor_check;
+    if (!c) return '';
+    const rows = c.checks.map((k) => `<li>${icon(k.ok ? 'check' : 'x')}${esc(k.check[0].toUpperCase() + k.check.slice(1))}</li>`).join('');
+    // Runs before the amount check existed recorded `safe_to_start_work`; later ones `funds_locked_as_agreed`.
+    const ok = c.funds_locked_as_agreed ?? c.safe_to_start_work;
+    const verdict = ok ? "funds locked as agreed. Payment still needs the client's approval" : 'do not start work';
+    return `<div class="precheck"><p class="lab">${icon(ok ? 'seal-check' : 'warning')}Before starting work, the contractor checked the escrow: ${verdict}</p><ul>${rows}</ul></div>`;
   }
 
   function accessBox(i, view, status) {
@@ -308,15 +351,17 @@
       return `<h2>${icon('globe-simple')}This copy has no actions</h2><p class="lead">This is what anyone with the chain reads: hashes, one-time keys, the deadline and the status. No amount, no names, no invoice text.</p>${approvalLine(i, view)}`;
     }
     if (view === 'client') return `<h2>${icon('buildings')}Client actions</h2>${approvalLine(i, view)}<div class="actions">${clientActions(i, s)}</div>`;
-    if (view === 'contractor') return `<h2>${icon('pen-nib')}Contractor actions</h2>${approvalLine(i, view)}<div class="actions">${contractorActions(i, s)}</div>`;
+    if (view === 'contractor') return `<h2>${icon('pen-nib')}Contractor actions</h2>${approvalLine(i, view)}${contractorCheck(i)}<div class="actions">${contractorActions(i, s)}</div>`;
     return `<h2>${icon('calculator')}Accountant: reads, cannot spend</h2><p class="lead">The escrow has no key path, only its two conditional leaves. The view key reads the amount; it cannot move it.</p>`;
   }
 
   function sheetHTML(i, view) {
     const { status } = liveStatus(i);
     const word = STAMP[status || recordedStatus(i)];
-    const yours = (r) => (view === r ? '<span class="yours">Your path</span>' : '');
-    const d = ep(i.deadline_epoch);
+    // "Your path" only marks a leaf this holder can still use.
+    const s = status || recordedStatus(i);
+    const open = { contractor: s === 'Funded' || s === 'Approved', client: s === 'Issued' || s === 'Funded' };
+    const yours = (r) => (view === r && open[r] ? '<span class="yours">Your path</span>' : '');
     return `
       <div class="stamp" data-word="${word}">${stampSVG(word, word.length > 7 ? 196 : 178)}</div>
       <div class="grid">
@@ -330,15 +375,15 @@
         ${partyBox('contractor', i.contractor_key, view)}
         ${deadlineBox(i)}
         ${hashBox(i, view)}
-        <div class="box s3"><p class="lab">${icon('cube')}Escrow commitment</p><p class="val mono-ish" title="${i.escrow_commitment}">${short(i.escrow_commitment, 12, 8)}</p></div>
+        ${escrowBox(i)}
         <div class="box s3"><p class="lab">${icon('tree-structure')}Condition root</p><p class="val mono-ish" title="${i.escrow_root}">${short(i.escrow_root, 12, 8)}</p></div>
         <div class="box s6 access">${accessBox(i, view, status)}</div>
         <div class="box s6 rules">
           <h2>${icon('scroll')}The rules</h2>
           <p class="fine">Public, enforced by the chain, not by Hexcrow.</p>
           <div class="rule-rows">
-            <div class="rule-row">${icon('hand-coins')}<b>Claim ${yours('contractor')}</b><span>Approval code + contractor key + before epoch ${d}</span></div>
-            <div class="rule-row">${icon('arrow-counter-clockwise')}<b>Refund ${yours('client')}</b><span>Client key + from epoch ${d}</span></div>
+            <div class="rule-row">${icon('hand-coins')}<b>Claim ${yours('contractor')}</b><span>Approval code + contractor key + before epoch ${ep(i.claim_until)}</span></div>
+            <div class="rule-row">${icon('arrow-counter-clockwise')}<b>Refund ${yours('client')}</b><span>Client key + from epoch ${ep(i.claim_until)}</span></div>
           </div>
         </div>
       </div>`;
@@ -350,7 +395,7 @@
       ['coins', 'Amount', `${amount}, in the contract balance`, 'Hidden in a commitment. The parties and the holders of the view key read it.'],
       ['buildings', 'Who paid', 'The client account, on the deposit', `A one-time key, ${short(i.client_key, 8, 0)}`],
       ['pen-nib', 'Who got paid', 'The contractor account, on the release', `A one-time key, ${short(i.contractor_key, 8, 0)}`],
-      ['link', 'Other payments of the same people', 'Linkable through the whole history of both accounts', 'Linkable only if keys are reused. This demo reuses them for invoices 0001 and 0002.'],
+      ['link', 'Other payments of the same people', 'Linkable through the whole history of both accounts', 'Not through keys: each invoice has its own client, contractor and escrow keys. Timing can still hint.'],
       ['scroll', 'The rules and the status', 'Public', 'Public'],
     ];
     $('vs-body').innerHTML = rows.map(([ic, fact, open, ours]) =>
@@ -364,7 +409,7 @@
       const st = status ? `${status === 'Funded' ? `<span class="spin">${icon('hourglass-simple')}</span>` : icon(STATUS_ICON[status])}${status}` : sk('Reading the status');
       return `<li><button class="inv" type="button" data-no="${i.no}" aria-current="${i.no === state.invoice}">
         <span class="nm">Invoice ${pad4(i.no)}</span><span class="st">${st}</span>
-        <span class="meta">Deadline epoch ${ep(i.deadline_epoch)}, ${i.timeline.length} transactions</span></button></li>`;
+        <span class="meta">Approve by epoch ${ep(i.deadline_epoch)}, ${i.timeline.length} transactions</span></button></li>`;
     }).join('');
   }
 

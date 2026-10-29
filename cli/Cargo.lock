@@ -1289,8 +1289,10 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "clap",
+ "getrandom 0.2.17",
  "hex",
  "ootle-rs",
+ "reqwest",
  "serde",
  "serde_json",
  "sha2",
