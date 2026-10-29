@@ -49,7 +49,7 @@ Run on 29-oct-2026 with template v4, all refused (`evidence/esmeralda-run.jsonl`
 | The contractor uses a ruling leaf without the mediator | Engine: access denied, the mediator did not sign | cb635914… |
 | The client approves, then tries to refund while the claim window is open | Engine: `AfterEpoch(12722)` not satisfied | acfc88f8… |
 | A stranger claims with the approval code already public | Engine: access denied on the stealth spend | 1f3b07c8… |
-| The mediator and the contractor rule after the claim window closed | Engine: `BeforeEpoch` not satisfied | LATE_RULING… |
+| The mediator and the contractor rule after the claim window closed | Engine: `BeforeEpoch(12719)` not satisfied | 993341d9… |
 
 ## Fixed after review
 

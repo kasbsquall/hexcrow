@@ -65,9 +65,9 @@ The last milestone of the project in invoice 1, with its own keys: client `6ad2f
 |---|---|---|---|---|
 | 1 | Issue | contractor | `be798041c486b37cd9ced72bbfd8e91244ce48976ebc08ca56c7c2c78fd2f6d1` | `Accept` |
 | 2 | Fund, 120 tTARI into the escrow | client | `9a038fcc883122961f27e312466fc551290eef8f4c263bbcc00ba8ddf55813ae` | `Accept` |
-| 3 | Ruling for the contractor, once the deadline had passed without an approval | mediator and contractor (co-signing with the invoice's escrow key) | `@@B:rule2@@` | `Accept` |
+| 3 | Ruling for the contractor, once the deadline had passed without an approval | mediator and contractor (co-signing with the invoice's escrow key) | `15d5cd6781b6718342b9bd3ccb1ca96f83b095962407a2bfcda1c20b61fb70c0` | `Accept` |
 
-The contractor ran `hexcrow verify 2` after funding, recorded as `verify:2`, and every check passed. In transaction 3 the witness shows the ruling leaf the engine checked: `BeforeEpoch(12720)`, the mediator's key and the contractor's key. The book records the ruling's hash, `@@B:rule2hash@@`. Nobody can open that hash: a second copy of our stage B script, started by mistake, began the same ruling and overwrote the salt in the local state before it was saved. Its own submission failed, since the escrow output was already spent, so only one ruling reached the chain and the money moved once. The ruling on invoice 3 below keeps its salt and text, and the demo checks that hash in the browser.
+The contractor ran `hexcrow verify 2` after funding, recorded as `verify:2`, and every check passed. In transaction 3 the witness shows the ruling leaf the engine checked: `BeforeEpoch(12720)`, the mediator's key and the contractor's key. The book records the ruling's hash, `51e21e8437f07d91c6741445675cdf7be44bdd8933d46a9f8a04d93978e41d1b`. Nobody can open that hash: a second copy of our stage B script, started by mistake, began the same ruling and overwrote the salt in the local state before it was saved. Its own submission failed, since the escrow output was already spent, so only one ruling reached the chain and the money moved once. The ruling on invoice 3 below keeps its salt and text, and the demo checks that hash in the browser.
 
 ## Invoice 3: the contractor withdrew, the mediator ruled for the client
 
@@ -89,8 +89,8 @@ Its own keys: client `083b9ed5a59530eeffc56d94e74b1df9db368926d4a242718735712083
 |---|---|---|---|---|
 | 1 | Issue | contractor | `5074575ca73f387eb8fd53bb6ba1a12b0542b23d9d3f7db5592aa1d6e530280b` | `Accept` |
 | 2 | Fund, 40 tTARI into the escrow | client | `31726df1e70667ae9d8c349ca25a148a1a91de17c39f7a52b1fced530cf090b4` | `Accept` |
-| 3 | Attack: the mediator and the contractor rule after the claim window closed | mediator and contractor | `@@B:late4@@` | `@@B:late4why@@` |
-| 4 | Refund from epoch 12719 | client (co-signing with the invoice's escrow key) | `@@B:refund4@@` | `Accept` |
+| 3 | Attack: the mediator and the contractor rule after the claim window closed | mediator and contractor | `993341d98ca51866dea5830fcd03a9a32e86fb4ba8fa07c847f9cd4efee5436d` | `Reject`, `BeforeEpoch(12719)` not satisfied |
+| 4 | Refund from epoch 12719 | client (co-signing with the invoice's escrow key) | `7686ac6e3c06f51026583abaaff354f3a20a6cbdb95d085103d8ef0dee271eca` | `Accept` |
 
 The contractor ran `hexcrow verify 4` after funding, recorded as `verify:4`, and every check passed.
 

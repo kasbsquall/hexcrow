@@ -1,6 +1,6 @@
 {
-  "taken_utc": "2026-10-29 19:26",
-  "taken_epoch": 12716,
+  "taken_utc": "2026-10-29 21:57",
+  "taken_epoch": 12719,
   "indexer": "https://ootle-indexer-a.tari.com/",
   "verdicts": {
     "20054eebb90806608ca03b48e0df54c03ce87b142eab07cb170681cf31ca4078": {
@@ -92,6 +92,11 @@
       "result": "Accept",
       "finalized_time": "2026-10-29 19:21:33.0"
     },
+    "15d5cd6781b6718342b9bd3ccb1ca96f83b095962407a2bfcda1c20b61fb70c0": {
+      "final_decision": "Commit",
+      "result": "Accept",
+      "finalized_time": "2026-10-29 20:48:56.0"
+    },
     "7fb1c092041356026494ca0ac6f11ca29858907bb5365b2b1d1407d7fce13dd6": {
       "final_decision": "Commit",
       "result": "Accept",
@@ -116,6 +121,18 @@
       "final_decision": "Commit",
       "result": "Accept",
       "finalized_time": "2026-10-29 19:21:40.0"
+    },
+    "993341d98ca51866dea5830fcd03a9a32e86fb4ba8fa07c847f9cd4efee5436d": {
+      "final_decision": {
+        "Abort": "ExecutionFailure"
+      },
+      "result": "Reject",
+      "finalized_time": "2026-10-29 21:55:25.0"
+    },
+    "7686ac6e3c06f51026583abaaff354f3a20a6cbdb95d085103d8ef0dee271eca": {
+      "final_decision": "Commit",
+      "result": "Accept",
+      "finalized_time": "2026-10-29 21:57:25.0"
     }
   }
 }

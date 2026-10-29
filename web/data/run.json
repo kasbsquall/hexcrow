@@ -447,6 +447,24 @@
           "tx": "31726df1e70667ae9d8c349ca25a148a1a91de17c39f7a52b1fced530cf090b4",
           "accepted": true,
           "fee_micro_tari": 17449
+        },
+        {
+          "kind": "attack",
+          "attack": "late-ruling",
+          "label": "The mediator and the contractor rule after the claim window closed",
+          "why": "Refused by the chain: rulings close with the claim window",
+          "actor": "mediator",
+          "tx": "993341d98ca51866dea5830fcd03a9a32e86fb4ba8fa07c847f9cd4efee5436d",
+          "accepted": false,
+          "fee_micro_tari": null
+        },
+        {
+          "kind": "refund",
+          "label": "Refunded to the client after the claim window closed",
+          "actor": "client",
+          "tx": "7686ac6e3c06f51026583abaaff354f3a20a6cbdb95d085103d8ef0dee271eca",
+          "accepted": true,
+          "fee_micro_tari": 11574
         }
       ]
     }
