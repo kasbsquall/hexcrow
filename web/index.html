@@ -18,7 +18,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400..700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400..700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/light/style.css">
 <link rel="stylesheet" href="styles.css">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23e9e2d0' stroke-width='1.6'%3E%3Cpath d='M12 2.5 20.2 7.2v9.6L12 21.5 3.8 16.8V7.2Z'/%3E%3Cpath d='M8 10.5h8M8 13.5h5.5' stroke-linecap='round'/%3E%3C/svg%3E">
@@ -58,83 +58,85 @@
   </div>
   <div class="guided"><i class="ph-light ph-film-strip" aria-hidden="true"></i><span>A real run on Esmeralda testnet, replayed. Status, epoch and every escrow output are checked live on the public indexer.</span></div>
   <div class="net" aria-live="polite"><span class="pulse" id="pulse" data-state="wait" aria-hidden="true"></span><span id="net-text"><span class="hide-sm">Esmeralda testnet, epoch</span><span class="show-sm">Epoch</span> <span class="sk" aria-label="Reading the current epoch"></span></span></div>
-  <button class="mute" id="mute" type="button" aria-pressed="false"><i class="ph-light ph-speaker-simple-high" aria-hidden="true"></i><span class="lbl">Sound on</span></button>
+  <button class="mute" id="mute" type="button" aria-pressed="true"><i class="ph-light ph-speaker-simple-high" aria-hidden="true"></i><span class="lbl">Sound</span></button>
 </header>
 
 <main class="page">
-  <section class="intro">
-    <div class="rise" style="--d:0">
-      <h1>Milestone escrow nobody else can read.</h1>
-      <p class="sub">A contractor invoices, the client locks the money, approval releases it, and a mediator both sides chose settles a dispute. On Tari Ootle the amount and the parties stay hidden; only the rules are public.</p>
-      <noscript><p class="sub">This page reads the public indexer with JavaScript. The run it replays: four invoices on Esmeralda testnet on 29 October 2026. One was approved and claimed, one paid to the contractor by the mediator's ruling, one returned to the client by a ruling, and one refunded after its claim window. Ten attacks were sent to the escrow and the chain refused all ten. Every transaction, and how to check it yourself: <a href="https://github.com/kasbsquall/hexcrow/blob/main/PROOF.md">PROOF.md</a>.</p></noscript>
-    </div>
-    <div class="proof rise" style="--d:1" aria-labelledby="proof-h">
-      <p class="proof-h" id="proof-h"><i class="ph-light ph-seal-check" aria-hidden="true"></i>What ran on Esmeralda, 29 October 2026</p>
-      <div class="proof-main">
-        <p class="big" id="pr-attacks"><span class="sk" aria-label="Counting the attacks"></span></p>
-        <p class="lbl">attacks sent to the escrow. <span id="pr-attacks-note">The chain refused every one.</span></p>
-      </div>
-      <dl class="proof-row">
-        <div><dt><i class="ph-light ph-files" aria-hidden="true"></i>Invoices</dt><dd id="pr-invoices"><span class="sk" aria-label="Counting the invoices"></span></dd></div>
-        <div><dt><i class="ph-light ph-hand-coins" aria-hidden="true"></i>Paid out</dt><dd id="pr-paid"><span class="sk" aria-label="Reading the book"></span></dd></div>
-        <div><dt><i class="ph-light ph-arrow-u-up-left" aria-hidden="true"></i>Returned</dt><dd id="pr-returned"><span class="sk" aria-label="Reading the book"></span></dd></div>
-        <div><dt><i class="ph-light ph-eye-slash" aria-hidden="true"></i>Amounts in public</dt><dd>0</dd></div>
-      </dl>
-    </div>
-  </section>
-
   <div class="work">
-    <section class="viewer rise" style="--d:2" aria-labelledby="pick-h">
-      <div class="pick">
-        <h2 id="pick-h">Whose copy are you holding?</h2>
-        <p>One invoice, five copies. What did not transfer to a copy is what its holder cannot see.</p>
-      </div>
-      <div class="tabs" role="tablist" aria-label="Whose copy of the invoice">
-        <button class="tab" role="tab" data-v="public" id="tab-public" aria-controls="sheet" aria-selected="true" tabindex="0"><i class="ph-light ph-globe-simple" aria-hidden="true"></i><span class="t">Public</span><span class="n">Reads the chain</span></button>
-        <button class="tab" role="tab" data-v="client" id="tab-client" aria-controls="sheet" aria-selected="false" tabindex="-1"><i class="ph-light ph-buildings" aria-hidden="true"></i><span class="t">Client</span><span class="n">Locks and approves</span></button>
-        <button class="tab" role="tab" data-v="contractor" id="tab-contractor" aria-controls="sheet" aria-selected="false" tabindex="-1"><i class="ph-light ph-pen-nib" aria-hidden="true"></i><span class="t">Contractor</span><span class="n">Is owed the money</span></button>
-        <button class="tab" role="tab" data-v="mediator" id="tab-mediator" aria-controls="sheet" aria-selected="false" tabindex="-1"><i class="ph-light ph-scales" aria-hidden="true"></i><span class="t">Mediator</span><span class="n">Rules if called in</span></button>
-        <button class="tab" role="tab" data-v="accountant" id="tab-accountant" aria-controls="sheet" aria-selected="false" tabindex="-1"><i class="ph-light ph-calculator" aria-hidden="true"></i><span class="t">Accountant</span><span class="n">Checks the books</span></button>
-        <svg class="perch" viewBox="0 0 64 48" aria-hidden="true"><use href="#crow"/></svg>
+    <div class="intro rise" style="--d:0">
+      <h1>Milestone escrow nobody else can read.</h1>
+      <p class="sub">A contractor invoices, the client locks the money, approval releases it, and a mediator both sides chose settles a dispute. On Tari Ootle the amount, the work and the parties stay hidden; the rules, the fees and the status are public.</p>
+      <noscript><p class="sub">This page reads the public indexer with JavaScript. The run it replays: four invoices on Esmeralda testnet on 29 October 2026. One was approved and claimed, one paid to the contractor by the mediator’s ruling, one returned to the client by a ruling, and one refunded after its claim window. Ten attacks were sent to Esmeralda and the chain refused all ten. Every transaction, and how to check it yourself: <a href="https://github.com/kasbsquall/hexcrow/blob/main/PROOF.md">PROOF.md</a>.</p></noscript>
+    </div>
+
+    <section class="viewer rise" style="--d:1" aria-labelledby="pick-h">
+      <h2 class="pick" id="pick-h">Whose copy are you holding?</h2>
+      <div class="pad">
+        <div class="tabs" role="tablist" aria-labelledby="pick-h">
+          <button class="tab" role="tab" data-v="public" id="tab-public" aria-controls="sheet" aria-selected="true" tabindex="0"><i class="ph-light ph-globe-simple" aria-hidden="true"></i><span class="t">Public</span><span class="n">Reads the chain</span></button>
+          <button class="tab" role="tab" data-v="client" id="tab-client" aria-controls="sheet" aria-selected="false" tabindex="-1"><i class="ph-light ph-buildings" aria-hidden="true"></i><span class="t">Client</span><span class="n">Locks and approves</span></button>
+          <button class="tab" role="tab" data-v="contractor" id="tab-contractor" aria-controls="sheet" aria-selected="false" tabindex="-1"><i class="ph-light ph-pen-nib" aria-hidden="true"></i><span class="t">Contractor</span><span class="n">Is owed the money</span></button>
+          <button class="tab" role="tab" data-v="mediator" id="tab-mediator" aria-controls="sheet" aria-selected="false" tabindex="-1"><i class="ph-light ph-scales" aria-hidden="true"></i><span class="t">Mediator</span><span class="n">Rules if called in</span></button>
+          <button class="tab" role="tab" data-v="accountant" id="tab-accountant" aria-controls="sheet" aria-selected="false" tabindex="-1"><i class="ph-light ph-calculator" aria-hidden="true"></i><span class="t">Accountant</span><span class="n">Checks the books</span></button>
+        </div>
+        <span class="moon" aria-hidden="true"></span>
+        <svg class="perch" id="perch" viewBox="0 0 64 48" aria-hidden="true"><use href="#crow"/></svg>
       </div>
       <div class="sheet-wrap">
-        <span class="under u1" aria-hidden="true"></span><span class="under u2" aria-hidden="true"></span><span class="under u3" aria-hidden="true"></span>
+        <span class="under u3" aria-hidden="true"></span><span class="under u2" aria-hidden="true"></span><span class="under u1" aria-hidden="true"></span>
         <article class="sheet" id="sheet" role="tabpanel" aria-labelledby="tab-public" tabindex="0"></article>
       </div>
       <p class="next-copy" id="next-copy"></p>
     </section>
 
-    <aside class="rise" style="--d:3">
-      <nav class="book" aria-labelledby="book-h">
+    <div class="side">
+      <section class="proof rise" style="--d:2" aria-labelledby="proof-h">
+        <p class="proof-h" id="proof-h"><i class="ph-light ph-seal-check" aria-hidden="true"></i>What ran on Esmeralda, 29 October 2026</p>
+        <div class="proof-main">
+          <p class="big" id="pr-attacks"><span class="sk" aria-label="Counting the attacks"></span></p>
+          <p class="lbl">attacks sent to Esmeralda. <span id="pr-attacks-note">The chain refused every one.</span></p>
+        </div>
+        <dl class="proof-row">
+          <div><dt><i class="ph-light ph-files" aria-hidden="true"></i>Invoices</dt><dd id="pr-invoices"><span class="sk" aria-label="Counting the invoices"></span></dd></div>
+          <div><dt><i class="ph-light ph-eye-slash" aria-hidden="true"></i>Invoice amounts in public</dt><dd>0</dd></div>
+          <div><dt><i class="ph-light ph-hand-coins" aria-hidden="true"></i>Paid to the contractor</dt><dd id="pr-paid"><span class="sk" aria-label="Reading the book"></span></dd></div>
+          <div><dt><i class="ph-light ph-arrow-u-up-left" aria-hidden="true"></i>Returned to the client</dt><dd id="pr-returned"><span class="sk" aria-label="Reading the book"></span></dd></div>
+        </dl>
+        <a class="to-tries" id="to-tries" href="#hex-h"><i class="ph-light ph-lightning" aria-hidden="true"></i><span id="to-tries-l">Replay the attacks yourself</span><i class="ph-light ph-arrow-down" aria-hidden="true"></i></a>
+      </section>
+
+      <nav class="book rise" style="--d:3" aria-labelledby="book-h">
         <h2 id="book-h"><i class="ph-light ph-book-open" aria-hidden="true"></i>Invoices in the book</h2>
+        <p class="book-note">The book is a public record on chain with no owner: each invoice’s hash, one-time keys, deadlines and status.</p>
         <ul class="invs" id="invs"></ul>
       </nav>
-      <section aria-labelledby="tl-h">
+
+      <section class="tl rise" style="--d:3" aria-labelledby="tl-h">
         <h2 id="tl-h">Invoice on chain</h2>
         <p class="count" id="tl-count"></p>
         <ol class="stubs" id="stubs"></ol>
       </section>
-    </aside>
+    </div>
 
     <section class="hexes rise" style="--d:4" aria-labelledby="hex-h">
       <div class="hex-head">
         <div>
-          <h2 id="hex-h"><i class="ph-light ph-skull" aria-hidden="true"></i>Try to steal it</h2>
-          <p class="lead">Every attempt below was sent to Esmeralda during the run, signed by the party named. Press one to replay it: the verdict is the chain's, checked again as you press.</p>
+          <h2 id="hex-h" tabindex="-1"><i class="ph-light ph-skull" aria-hidden="true"></i>Try to steal it</h2>
+          <p class="lead">Every attempt below was sent to Esmeralda during the run, signed by the party named. Press one to replay it: the page asks the indexer again and, once the indexer has dropped the result, shows the one archived right after the run.</p>
         </div>
-        <div class="tally" aria-live="polite"><span class="n" id="tally-n">0</span><span class="of">of <span id="tally-of">0</span> tried</span><span class="through" id="tally-through"></span></div>
+        <div class="tally" id="tally" tabindex="-1" aria-live="polite"><span class="n" id="tally-n"><span class="sk" aria-label="Counting the attacks"></span></span><span class="of" id="tally-of"></span><span class="through" id="tally-through"></span></div>
       </div>
       <ol class="tries" id="tries"></ol>
       <button class="try-all" id="try-all" type="button"><i class="ph-light ph-lightning" aria-hidden="true"></i>Replay them all</button>
     </section>
 
     <section class="adds rise" style="--d:4" aria-labelledby="adds-h">
-      <h2 id="adds-h"><i class="ph-light ph-puzzle-piece" aria-hidden="true"></i>What the escrow adds to a hash lock</h2>
+      <h2 id="adds-h"><i class="ph-light ph-puzzle-piece" aria-hidden="true"></i>What Hexcrow adds to Ootle’s hash lock and time lock</h2>
       <dl>
         <div><dt><i class="ph-light ph-book-open-text" aria-hidden="true"></i>An invoice book an accountant can check</dt><dd>Each invoice is a salted hash in a public book with no owner. Whoever is shown the text recomputes the hash and finds the record, its deadlines and what happened to it.</dd></div>
         <div><dt><i class="ph-light ph-key" aria-hidden="true"></i>A key per invoice for every party</dt><dd>Client, contractor, mediator and view key are new for each invoice, so two invoices between the same people share nothing on chain.</dd></div>
         <div><dt><i class="ph-light ph-magnifying-glass" aria-hidden="true"></i>A check before the work starts</dt><dd>The contractor confirms from public data that the escrow exists, holds the agreed amount and is locked by exactly these rules, with no key that could take it back early.</dd></div>
-        <div><dt><i class="ph-light ph-scales" aria-hidden="true"></i>A mediator for disputes</dt><dd>It can pay either side, only together with that side's key, and only until the claim window closes. Its ruling stays off chain; the book keeps its hash.</dd></div>
+        <div><dt><i class="ph-light ph-scales" aria-hidden="true"></i>A mediator for disputes</dt><dd>It can pay either side, only together with that side’s key, and only until the claim window closes. Its ruling stays off chain; the book keeps its hash.</dd></div>
       </dl>
     </section>
 
@@ -149,13 +151,17 @@
   </div>
 
   <footer class="rise" style="--d:5">
-    <span><i class="ph-light ph-github-logo" aria-hidden="true"></i><a href="https://github.com/kasbsquall/hexcrow">Code</a></span>
-    <span><i class="ph-light ph-seal-check" aria-hidden="true"></i><a href="https://github.com/kasbsquall/hexcrow/blob/main/PROOF.md">Every transaction, and how to check it</a></span>
-    <span><i class="ph-light ph-shield" aria-hidden="true"></i><a href="https://github.com/kasbsquall/hexcrow/blob/main/THREAT_MODEL.md">What leaks</a></span>
-    <span><i class="ph-light ph-test-tube" aria-hidden="true"></i><span id="f-tests">Engine tests of the compiled template</span></span>
-    <span><i class="ph-light ph-scales" aria-hidden="true"></i>MIT</span>
-    <span><i class="ph-light ph-database" aria-hidden="true"></i>Indexer: <a href="https://ootle-indexer-a.tari.com/info">ootle-indexer-a.tari.com</a></span>
-    <span><i class="ph-light ph-music-notes" aria-hidden="true"></i>Sounds: Kenney, CC0</span>
+    <p>
+      <span><i class="ph-light ph-github-logo" aria-hidden="true"></i><a href="https://github.com/kasbsquall/hexcrow">Code</a></span>
+      <span><i class="ph-light ph-seal-check" aria-hidden="true"></i><a href="https://github.com/kasbsquall/hexcrow/blob/main/PROOF.md">Every transaction, and how to check it</a></span>
+      <span><i class="ph-light ph-shield" aria-hidden="true"></i><a href="https://github.com/kasbsquall/hexcrow/blob/main/THREAT_MODEL.md">What leaks</a></span>
+      <span><i class="ph-light ph-database" aria-hidden="true"></i>Indexer: <a href="https://ootle-indexer-a.tari.com/info">ootle-indexer-a.tari.com</a></span>
+    </p>
+    <p>
+      <span><i class="ph-light ph-test-tube" aria-hidden="true"></i><span id="f-tests">Engine tests of the compiled template</span></span>
+      <span><i class="ph-light ph-scales" aria-hidden="true"></i>MIT</span>
+      <span><i class="ph-light ph-music-notes" aria-hidden="true"></i>Sounds: Kenney, CC0</span>
+    </p>
   </footer>
 </main>
 

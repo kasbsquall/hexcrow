@@ -93,31 +93,43 @@ button{ font: inherit; }
 .mute:focus-visible{ outline-offset: -4px; }
 .show-sm{ display: none; }
 
-.page{ position: relative; z-index: 1; max-width: 1320px; margin: 0 auto; padding: 36px 40px 96px; }
+.page{ position: relative; z-index: 1; max-width: 1320px; margin: 0 auto; padding: 30px 40px 96px; }
+h2{ text-wrap: balance; }
 
-/* Intro: the claim, and what ran */
-.intro{ display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 40px; align-items: end; margin-bottom: 40px; }
-h1{ font-size: 44px; line-height: 1.02; font-weight: 650; letter-spacing: -.028em; text-wrap: balance; max-width: 15ch; }
-.sub{ font-size: 16px; line-height: 1.5; max-width: 60ch; margin-top: 14px; color: var(--bone-2); text-wrap: pretty; }
+/* Two columns from the top: the paper on the left; what ran, the book and the stubs on the right */
+.work{ display: grid; grid-template-columns: minmax(0, 1fr) 360px; column-gap: 48px; align-items: start;
+  grid-template-areas: "intro side" "form side" "hexes side" "adds side" "versus side"; grid-template-rows: auto auto auto auto 1fr; }
+.intro{ grid-area: intro; } .viewer{ grid-area: form; } .side{ grid-area: side; } .hexes{ grid-area: hexes; } .adds{ grid-area: adds; } .versus{ grid-area: versus; }
+
+/* Intro: the claim on one line where it fits; the sub stays clear of the crow on the right */
+.intro{ margin-bottom: 26px; }
+h1{ font-size: clamp(34px, 3.15vw, 45px); line-height: 1.04; font-weight: 650; letter-spacing: -.03em; text-wrap: balance; }
+.sub{ font-size: 16px; line-height: 1.5; max-width: min(64ch, calc(100% - 210px)); margin-top: 12px; color: var(--bone-2); text-wrap: pretty; }
+
+/* What ran: the first block of the right column */
 .proof{ border-top: 1px solid var(--night-rule-strong); padding-top: 12px; }
 .proof-h{ font-size: 12px; font-weight: 600; color: var(--bone-2); display: flex; gap: 6px; align-items: center; }
-.proof-main{ display: grid; grid-template-columns: auto 1fr; gap: 0 14px; align-items: end; margin-top: 6px; }
+.proof-main{ display: grid; grid-template-columns: auto 1fr; gap: 0 14px; align-items: end; margin-top: 8px; }
 .proof-main .big{ font-size: 76px; font-weight: 650; line-height: .86; letter-spacing: -.04em; color: var(--bone); }
 .proof-main .big .sk{ width: 1.2em; min-width: 0; height: .8em; }
 .proof-main .lbl{ font-size: 13px; line-height: 1.35; color: var(--bone-2); padding-bottom: 4px; max-width: 24ch; }
 .proof-main .lbl span{ color: var(--bone); font-weight: 600; }
-.proof-row{ display: grid; grid-template-columns: repeat(4, auto); justify-content: space-between; gap: 12px; margin-top: 18px; padding-top: 10px; border-top: 1px solid var(--night-rule); }
-.proof-row dt{ font-size: 11px; font-weight: 600; color: var(--bone-3); display: flex; gap: 4px; align-items: center; white-space: nowrap; }
+.proof-row{ display: grid; grid-template-columns: 1fr 1fr; gap: 10px 20px; margin-top: 16px; padding-top: 10px; border-top: 1px solid var(--night-rule); }
+.proof-row dt{ font-size: 12px; font-weight: 600; color: var(--bone-3); display: flex; gap: 4px; align-items: center; }
 .proof-row dt .ph-light{ font-size: 13px; }
 .proof-row dd{ font-size: 24px; font-weight: 650; letter-spacing: -.02em; line-height: 1.1; margin-top: 2px; }
 .proof-row dd .sk{ min-width: 1.4em; }
+.to-tries{ margin-top: 16px; display: flex; gap: 10px; align-items: center; padding: 11px 14px; border-radius: var(--r);
+  border: 1px solid color-mix(in oklab, var(--candle) 55%, transparent); color: var(--bone); font-size: 14px; font-weight: 650; text-decoration: none;
+  transition: background-color 150ms var(--ease-out), transform 120ms var(--ease-out); }
+.to-tries span{ flex: 1; }
+.to-tries .ph-light{ color: var(--candle); font-size: 18px; }
+.to-tries:hover{ background: var(--night-2); }
+.to-tries:active{ transform: scale(.98); }
+.book{ margin-top: 34px; }
+.tl{ margin-top: 30px; }
 
-.work{ display: grid; grid-template-columns: minmax(0, 1fr) 360px; grid-template-areas: "form aside" "hexes aside" "adds aside" "versus aside"; grid-template-rows: auto auto auto 1fr; gap: 0 48px; align-items: start; }
-.viewer{ grid-area: form; } .work > aside{ grid-area: aside; } .hexes{ grid-area: hexes; } .adds{ grid-area: adds; } .versus{ grid-area: versus; }
-
-.pick h2{ font-size: 20px; font-weight: 650; letter-spacing: -.015em; }
-.pick p{ font-size: 14px; color: var(--bone-2); margin-top: 2px; max-width: 70ch; }
-.pick{ margin-bottom: 18px; }
+.pick{ font-size: 17px; font-weight: 650; letter-spacing: -.012em; margin-bottom: 12px; }
 
 /* Copy tabs: torn stubs of a pad */
 .tabs{ display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; align-items: stretch; position: relative; }
@@ -146,11 +158,16 @@ h1{ font-size: 44px; line-height: 1.02; font-weight: 650; letter-spacing: -.028e
 .tab[data-v="accountant"]{ --tab-paper: var(--azul); }
 .tab:focus-visible{ outline-offset: -4px; outline-color: var(--carbon); }
 
-/* The crow on the pad */
-/* Anchored to the top edge of the tabs: its feet land on the last stub whatever the tab height. */
-.perch{ position: absolute; right: 16px; bottom: calc(100% - 10px); width: 84px; height: 63px; z-index: 3; pointer-events: none;
-  transform-origin: 50% 100%; animation: peck 11s var(--ease-move) infinite 2s; }
-.perch{ --crow-body: oklch(11% .015 265); --crow-rim: oklch(92% .016 85 / .55); --crow-wing: oklch(21% .022 265); --crow-eye: var(--candle); }
+/* The crow on the pad, under the moon */
+/* Anchored to the top edge of the tabs: its feet land on the last stub whatever the tab height,
+   and it rises with that stub when the accountant's copy is on top. */
+.pad{ position: relative; }
+.perch{ position: absolute; right: 14px; bottom: calc(100% - 9px); width: 136px; height: 102px; z-index: 3; pointer-events: none;
+  transform-origin: 50% 100%; animation: peck 11s var(--ease-move) infinite 2s; transition: translate 160ms var(--ease-out); }
+.pad:has(#tab-accountant[aria-selected="true"]) .perch{ translate: 0 -6px; }
+.perch{ --crow-body: oklch(11% .015 265); --crow-rim: oklch(92% .016 85 / .6); --crow-wing: oklch(21% .022 265); --crow-eye: var(--candle); }
+.moon{ position: absolute; z-index: -1; right: -26px; bottom: calc(100% - 64px); width: 220px; height: 220px; border-radius: 50%; pointer-events: none;
+  background: radial-gradient(circle at 40% 38%, oklch(94% .035 92 / .26), oklch(90% .035 92 / .15) 42%, oklch(88% .035 92 / .1) 55%, oklch(88% .035 92 / .04) 57%, transparent 72%); }
 .brand .mark{ --crow-body: var(--bone); --crow-wing: oklch(70% .02 262); --crow-eye: var(--night); }
 @keyframes peck{ 0%, 86%, 100%{ transform: none; } 89%{ transform: rotate(-7deg) translateY(-1px); } 92%{ transform: rotate(2deg); } 95%{ transform: rotate(-3deg); } }
 
@@ -179,7 +196,7 @@ h1{ font-size: 44px; line-height: 1.02; font-weight: 650; letter-spacing: -.028e
 .b-no .num{ font-size: 28px; font-weight: 600; letter-spacing: -.02em; line-height: 1.05; }
 .b-status .val{ font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
 .b-status .by{ font-size: 12px; font-weight: 600; margin-top: 2px; display: flex; gap: 5px; align-items: center; }
-.live{ display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; color: var(--ink-2); margin-top: 4px; }
+.live{ display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; color: var(--ink-2); margin-top: 4px; }
 .live .dot{ width: 6px; height: 6px; border-radius: 50%; background: var(--verde); }
 .live[data-state="recorded"] .dot{ background: var(--sello); }
 
@@ -246,11 +263,14 @@ h1{ font-size: 44px; line-height: 1.02; font-weight: 650; letter-spacing: -.028e
 .code{ margin-top: 10px; display: flex; gap: 8px; align-items: flex-start; font-size: 13px; }
 .code .ph-light{ margin-top: 2px; }
 .code b{ font-weight: 650; overflow-wrap: anywhere; }
+/* The contractor's check, as the CLI printed it before work started */
 .precheck{ margin-top: 12px; font-size: 13px; }
 .precheck .lab{ color: var(--carbon); font-size: 13px; }
-.precheck ul{ list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 3px; color: var(--ink-2); }
-.precheck li{ display: flex; gap: 6px; align-items: baseline; }
-.precheck li .ph-light{ color: var(--verde); }
+.cli{ margin-top: 6px; padding: 10px 12px; border: 1px solid var(--rule); border-radius: var(--r); overflow-x: auto;
+  background: color-mix(in oklab, var(--carbon) 5%, var(--copy)); font-family: "IBM Plex Mono", monospace; font-size: 12px; line-height: 1.6; white-space: pre; }
+.cli .cmd{ font-weight: 500; }
+.cli .ok{ color: var(--verde); font-weight: 500; }
+.cli .fail{ color: var(--sello-ink); font-weight: 500; }
 
 .rules{ background: color-mix(in oklab, var(--carbon) 4%, transparent); }
 .rules .fine{ font-size: 12px; color: var(--ink-2); margin-top: 2px; }
@@ -258,8 +278,8 @@ h1{ font-size: 44px; line-height: 1.02; font-weight: 650; letter-spacing: -.028e
 .rule-row{ display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; padding: 8px 0; border-top: 1px solid var(--rule); align-items: start; }
 .rule-row .ph-light{ font-size: 20px; grid-row: span 2; padding-top: 2px; }
 .rule-row b{ font-weight: 650; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-.rule-row.used b::after{ content: "used"; font-size: 11px; font-weight: 650; padding: 1px 6px; border-radius: var(--r); border: 1px solid var(--rule-strong); }
-.yours{ font-size: 11px; font-weight: 650; padding: 1px 6px; border-radius: var(--r); background: var(--carbon); color: var(--copy); }
+.rule-row.used b::after{ content: "used"; font-size: 12px; font-weight: 650; padding: 1px 6px; border-radius: var(--r); border: 1px solid var(--rule-strong); }
+.yours{ font-size: 12px; font-weight: 650; padding: 1px 6px; border-radius: var(--r); background: var(--carbon); color: var(--copy); }
 
 /* On-chain ids: folded, for whoever wants to check */
 .ids summary{ cursor: pointer; list-style: none; display: flex; gap: 8px; align-items: center; font-size: 13px; font-weight: 650; }
@@ -276,32 +296,32 @@ h1{ font-size: 44px; line-height: 1.02; font-weight: 650; letter-spacing: -.028e
 .stamp{ position: absolute; left: 196px; top: 8px; width: min(200px, calc(50% - 212px)); z-index: 4; pointer-events: none; transform: rotate(-8deg); color: var(--sello); }
 .stamp[data-word="FUNDED"], .stamp[data-word="ISSUED"], .stamp[data-word="APPROVED"]{ color: var(--carbon); opacity: .8; }
 
-.next-copy{ margin-top: 16px; font-size: 13px; color: var(--bone-2); display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.next-copy{ margin-top: 36px; font-size: 13px; color: var(--bone-2); display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 .next-copy button{ appearance: none; border: 1px solid var(--night-rule-strong); background: transparent; color: var(--bone); cursor: pointer;
   font-size: 13px; font-weight: 600; padding: 6px 12px; border-radius: var(--r); display: inline-flex; gap: 6px; align-items: center;
   transition: background-color 150ms var(--ease-out), transform 120ms var(--ease-out); }
 .next-copy button:hover{ background: var(--night-2); }
 .next-copy button:active{ transform: scale(.97); }
 
-/* Aside: invoices in the book, then the stub list */
-aside h2{ font-size: 18px; font-weight: 650; letter-spacing: -.015em; }
-aside .count{ font-size: 13px; color: var(--bone-2); margin-top: 2px; }
-.book{ margin-bottom: 30px; }
+/* Right column: the book of invoices, then the stub list */
+.tl h2{ font-size: 18px; font-weight: 650; letter-spacing: -.015em; }
+.tl .count{ font-size: 13px; color: var(--bone-2); margin-top: 2px; }
 .book h2{ font-size: 13px; font-weight: 600; color: var(--bone-2); display: flex; gap: 6px; align-items: center; }
-.invs{ list-style: none; padding: 0; margin-top: 8px; display: grid; gap: 4px; }
+.book-note{ font-size: 12px; line-height: 1.4; color: var(--bone-3); margin-top: 2px; text-wrap: pretty; }
+.invs{ list-style: none; padding: 0; margin-top: 8px; display: grid; gap: 5px; }
 .inv{
   width: 100%; appearance: none; border: 0; color: var(--carbon); text-align: left; cursor: pointer;
   display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 2px 12px;
-  background: color-mix(in oklab, var(--original) 84%, var(--night)); padding: 10px 14px; border-radius: var(--r);
+  background: color-mix(in oklab, var(--original) 95%, var(--night)); padding: 10px 14px; border-radius: var(--r);
   transition: transform 150ms var(--ease-out), background-color 150ms var(--ease-out);
 }
 .inv:hover{ background: var(--original); }
 .inv:active{ transform: scale(.98); }
-.inv[aria-current="true"]{ background: var(--original); box-shadow: 0 0 0 2px var(--candle); }
+.inv[aria-current="true"]{ background: var(--original); box-shadow: 0 0 0 2px var(--candle), 0 10px 24px -14px oklch(5% .02 265 / .9); }
 .inv .nm{ font-size: 15px; font-weight: 650; letter-spacing: -.01em; }
 .inv .st{ font-size: 12px; font-weight: 650; display: inline-flex; gap: 6px; align-items: center; }
 .inv .st .ph-light{ font-size: 15px; }
-.inv .meta{ grid-column: 1 / -1; font-size: 12px; color: color-mix(in oklab, var(--carbon) 70%, var(--original)); }
+.inv .meta{ grid-column: 1 / -1; font-size: 12px; color: color-mix(in oklab, var(--carbon) 80%, var(--original)); }
 .spin{ display: inline-block; animation: turn 6s var(--ease-move) infinite; }
 @keyframes turn{ 0%,40%{ transform: rotate(0); } 50%,90%{ transform: rotate(180deg); } 100%{ transform: rotate(180deg); } }
 
@@ -312,7 +332,7 @@ aside .count{ font-size: 13px; color: var(--bone-2); margin-top: 2px; }
 }
 .stub + .stub::before{ content:""; position: absolute; left: 0; right: 0; top: -2px; height: 4px;
   background: radial-gradient(circle at 4px 2px, var(--night) 1.4px, transparent 1.8px) repeat-x 0 0 / 8px 4px; }
-.stub .i{ position: absolute; left: 14px; top: 12px; font-size: 13px; font-weight: 650; width: 22px; height: 22px; display: grid; place-items: center;
+.stub .i{ position: absolute; left: 12px; top: 11px; font-size: 12px; font-weight: 650; letter-spacing: -.02em; width: 26px; height: 26px; display: grid; place-items: center;
   border: 1px solid var(--rule-strong); border-radius: 50%; }
 .stub .what{ font-size: 13px; font-weight: 600; line-height: 1.35; }
 .stub > p{ padding-right: 84px; }
@@ -337,6 +357,8 @@ aside .count{ font-size: 13px; color: var(--bone-2); margin-top: 2px; }
 
 /* Try to steal it */
 .hexes{ margin-top: 64px; }
+#hex-h{ scroll-margin-top: 24px; }
+#hex-h:focus-visible, .tally:focus-visible{ outline-offset: 6px; }
 .hex-head{ display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 24px; align-items: end; }
 .hexes h2, .adds h2, .versus h2{ font-size: 22px; font-weight: 650; letter-spacing: -.018em; display: flex; gap: 10px; align-items: center; }
 .hexes h2 .ph-light, .adds h2 .ph-light, .versus h2 .ph-light{ font-size: 24px; }
@@ -344,7 +366,9 @@ aside .count{ font-size: 13px; color: var(--bone-2); margin-top: 2px; }
 .tally{ text-align: right; display: grid; justify-items: end; }
 .tally .n{ font-size: 56px; font-weight: 650; letter-spacing: -.04em; line-height: .9; }
 .tally .of{ font-size: 13px; color: var(--bone-2); }
-.tally .through{ font-size: 13px; font-weight: 650; color: var(--verde-night); min-height: 1.5em; }
+.tally .through{ font-size: 13px; font-weight: 650; color: var(--bone-2); min-height: 1.5em; }
+.tally .through[data-state="refused"]{ color: var(--verde-night); }
+.tally .through[data-state="through"]{ color: var(--sello-night); }
 .tries{ list-style: none; padding: 0; margin-top: 18px; border-top: 1px solid var(--night-rule-strong); }
 .try{ display: grid; grid-template-columns: 34px minmax(0, 1fr) 150px 132px; gap: 4px 16px; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--night-rule); position: relative; }
 .try .who{ width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--night-rule-strong); display: grid; place-items: center; color: var(--bone-2); }
@@ -358,21 +382,25 @@ aside .count{ font-size: 13px; color: var(--bone-2); margin-top: 2px; }
   transition: background-color 150ms var(--ease-out), transform 120ms var(--ease-out), border-color 150ms var(--ease-out); }
 .try .go:hover{ background: var(--night-3); border-color: var(--bone-3); }
 .try .go:active{ transform: scale(.97); }
-.try .go[disabled]{ cursor: default; opacity: .6; }
-.try .out{ grid-column: 2 / -1; font-size: 13px; color: var(--bone-2); display: none; gap: 4px 12px; flex-wrap: wrap; align-items: baseline; }
+.try .go[aria-disabled="true"]{ cursor: default; opacity: .6; }
+.try .out{ grid-column: 2 / -1; font-size: 13px; color: var(--bone-2); display: none; gap: 4px 12px; flex-wrap: wrap; align-items: baseline; padding-right: 140px; }
 .try[data-state="done"] .out, .try[data-state="wait"] .out{ display: flex; }
-.try .out .ver{ font-weight: 650; color: var(--sello-night); display: inline-flex; gap: 5px; align-items: center; }
+.try .out .ver{ font-weight: 650; color: var(--bone-2); display: inline-flex; gap: 5px; align-items: center; }
+.try .out .ver[data-state="refused"]{ color: var(--sello-night); }
 .try .out .ver[data-state="through"]{ color: var(--candle); }
 .try .refused{ position: absolute; right: 0; top: 8px; width: 132px; color: var(--sello-night); transform: rotate(-7deg); pointer-events: none; opacity: 0; }
-.try[data-state="done"] .refused{ opacity: 1; animation: slam 220ms var(--ease-out); }
-.try[data-state="done"] .go{ visibility: hidden; }
+.try .refused[data-word="THROUGH"]{ color: var(--candle); }
+/* The stamp takes the button's place once the chain has answered; an unchecked try keeps its button. */
+.try[data-state="done"]:not([data-verdict="off"]) .refused{ opacity: 1; animation: slam 220ms var(--ease-out); }
+.try[data-state="done"]:not([data-verdict="off"]) .go{ visibility: hidden; }
 @keyframes slam{ from{ opacity: 0; transform: rotate(-7deg) scale(1.25); } 60%{ opacity: 1; transform: rotate(-7deg) scale(.96); } to{ transform: rotate(-7deg) scale(1); } }
 .try-all{ appearance: none; margin-top: 16px; border: 1px solid var(--bone-3); background: transparent; color: var(--bone); cursor: pointer;
   font-size: 14px; font-weight: 650; padding: 10px 16px; border-radius: var(--r); display: inline-flex; gap: 8px; align-items: center;
   transition: background-color 150ms var(--ease-out), transform 120ms var(--ease-out); }
 .try-all:hover{ background: var(--night-2); }
 .try-all:active{ transform: scale(.97); }
-.try-all[disabled]{ opacity: .5; cursor: default; }
+.try-all[aria-disabled="true"]{ opacity: .5; cursor: default; }
+.try-all[aria-disabled="true"]:hover{ background: transparent; }
 
 /* What the escrow adds */
 .adds{ margin-top: 72px; }
@@ -390,14 +418,17 @@ aside .count{ font-size: 13px; color: var(--bone-2); margin-top: 2px; }
 .versus td{ color: var(--bone); }
 .versus td.open{ color: var(--sello-night); font-weight: 500; }
 
-footer{ margin-top: 80px; padding-top: 16px; border-top: 1px solid var(--night-rule-strong); display: flex; flex-wrap: wrap; gap: 8px 28px; font-size: 13px; color: var(--bone-2); }
+/* Two lines on purpose: where to check the run, then what it is built on */
+footer{ margin-top: 80px; padding-top: 16px; border-top: 1px solid var(--night-rule-strong); display: grid; gap: 10px; font-size: 13px; color: var(--bone-2); }
+footer p{ display: flex; flex-wrap: wrap; gap: 6px 26px; }
 footer span{ display: inline-flex; gap: 6px; align-items: center; }
 
-/* The other copies peek out under the active sheet, like a real pad */
-.under{ position: absolute; inset: 0; border-radius: 0 0 var(--r) var(--r); z-index: 0; pointer-events: none; filter: brightness(.8); }
-.under.u1{ transform: translate(7px, 7px); background: var(--canario); }
-.under.u2{ transform: translate(14px, 14px); background: var(--rosa); }
-.under.u3{ transform: translate(21px, 21px); background: var(--azul); }
+/* The other copies peek out under the active sheet, like a real pad, each one its own colour */
+.under{ position: absolute; inset: 0; border-radius: 0 0 var(--r) var(--r); z-index: 0; pointer-events: none; filter: brightness(.92);
+  box-shadow: 0 0 0 1px oklch(8% .02 265 / .55); }
+.under.u1{ transform: translate(6px, 6px); background: var(--canario); }
+.under.u2{ transform: translate(12px, 12px); background: var(--rosa); }
+.under.u3{ transform: translate(18px, 18px); background: var(--azul); }
 html[data-view="client"] .under.u1{ background: var(--original); }
 html[data-view="contractor"] .under.u2{ background: var(--original); }
 html[data-view="accountant"] .under.u3{ background: var(--original); }
@@ -412,11 +443,15 @@ html[data-view="accountant"] .under.u3{ background: var(--original); }
 }
 
 /* Responsive */
+/* One column: the invoice picker above the copy it changes, "Try to steal it" right after the copy */
 @media (max-width: 1180px){
-  .intro, .work{ grid-template-columns: minmax(0, 1fr); }
-  .work{ grid-template-areas: "form" "aside" "hexes" "adds" "versus"; grid-template-rows: none; }
-  .work > aside{ margin-top: 48px; max-width: 640px; }
-  .proof{ max-width: 520px; }
+  .work{ grid-template-columns: minmax(0, 1fr); grid-template-areas: "intro" "book" "form" "proof" "hexes" "tl" "adds" "versus"; grid-template-rows: none; }
+  .side{ display: contents; }
+  .proof{ grid-area: proof; margin-top: 56px; max-width: 560px; }
+  .book{ grid-area: book; margin: 0 0 28px; }
+  .tl{ grid-area: tl; margin-top: 64px; max-width: 640px; }
+  .invs{ grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .inv{ align-content: start; }
 }
 @media (max-width: 720px){
   .bar{ grid-template-columns: auto minmax(0, 1fr) auto; min-height: 48px; }
@@ -424,20 +459,23 @@ html[data-view="accountant"] .under.u3{ background: var(--original); }
   .bar > *{ padding: 0 12px; }
   .mute{ padding: 0 14px; }
   .bar .net{ justify-content: flex-end; font-size: 12px; }
-  .mute .lbl{ display: none; }
+  .mute .lbl{ position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   .page{ padding: 24px 16px 64px; }
   h1{ font-size: 32px; }
-  .sub{ font-size: 15px; }
-  .intro{ gap: 28px; margin-bottom: 32px; }
+  .sub{ font-size: 15px; max-width: none; }
+  .intro{ margin-bottom: 24px; }
   .proof-main .big{ font-size: 64px; }
-  .proof-row{ grid-template-columns: repeat(2, auto); justify-content: start; gap: 12px 32px; }
+  .invs{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .inv{ padding: 9px 12px; grid-template-columns: 1fr; }
+  .inv .meta{ display: none; }
+  .moon{ width: 120px; height: 120px; right: -10px; bottom: calc(100% - 36px); }
   /* Each stub as wide as its label plus an equal share of the rest, so "Accountant" fits at 11px on a 360px phone. */
   .tabs{ grid-template-columns: repeat(5, auto); gap: 3px; }
   .tab{ grid-template-columns: 1fr; padding: 8px 4px 10px 6px; justify-items: start; row-gap: 4px; }
   .tab .ph-light{ grid-row: auto; font-size: 18px; }
   .tab .t{ font-size: 11px; letter-spacing: -.01em; }
   .tab .n{ display: none; }
-  .perch{ bottom: calc(100% - 8px); right: 6px; width: 52px; height: 39px; }
+  .perch{ bottom: calc(100% - 8px); right: 6px; width: 64px; height: 48px; }
   .grid{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .s2, .s3, .s4, .s6{ grid-column: span 2; }
   .b-no, .b-status{ grid-column: span 1; }

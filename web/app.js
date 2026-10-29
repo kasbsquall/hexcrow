@@ -68,9 +68,10 @@
       clips[name] = a;
     }
     const btn = $('mute');
+    // A toggle named "Sound" that reads pressed while the sound is on.
     const paint = () => {
-      btn.setAttribute('aria-pressed', String(muted));
-      btn.innerHTML = `${icon(muted ? 'speaker-simple-slash' : 'speaker-simple-high')}<span class="lbl">${muted ? 'Sound off' : 'Sound on'}</span>`;
+      btn.setAttribute('aria-pressed', String(!muted));
+      btn.innerHTML = `${icon(muted ? 'speaker-simple-slash' : 'speaker-simple-high')}<span class="lbl">Sound</span>`;
     };
     btn.addEventListener('click', () => {
       muted = !muted;
@@ -114,6 +115,7 @@
         hash: hexOf(f[0]),
         deadline: f[3],
         claimUntil: f[4],
+        root: hexOf(f[6]) || (typeof f[6] === 'string' ? f[6] : null),
         code: Array.isArray(f[7]) ? String.fromCharCode(...f[7]) : null,
         status: STATUS[f[8][0]],
         ruling: hexOf(f[10]),
@@ -121,6 +123,7 @@
     }
     return out;
   }
+  const bookEntry = (i) => (state.book instanceof Map ? state.book.get(i.no) || null : null);
 
   // The escrow output as a substate: up while unspent (with the condition root it is locked by),
   // down once a leaf spent it. Unlike transaction results, the indexer does not prune this.
@@ -168,23 +171,18 @@
     try {
       return readVerdict(await getJSON(`transactions/${row.tx}/result`), row);
     } catch (e) {
-      return e.status === 404 ? fromSnapshot(row) : { state: 'off', text: 'Indexer unreachable' };
+      // Dropped by the indexer, or the indexer is down: the archived result still answers, and says so.
+      if (e.status === 404 || (state.snapshot && state.snapshot.verdicts[row.tx])) return fromSnapshot(row);
+      return { state: 'off', text: 'Indexer unreachable' };
     }
   }
 
+  // The three reads run together; the epoch shows as soon as it arrives.
   async function refreshNetwork() {
-    try {
-      state.epoch = (await getJSON('network')).epoch;
-    } catch (_) {
-      state.epoch = 'off';
-    }
-    try {
-      state.book = decodeBook(await getJSON('substates/' + state.run.book));
-    } catch (_) {
-      state.book = 'off';
-    }
-    await Promise.all(state.run.invoices.map(async (i) => state.escrows.set(i.no, await readEscrow(i))));
-    paintNet();
+    const epoch = getJSON('network').then((j) => { state.epoch = j.epoch; }, () => { state.epoch = 'off'; }).then(paintNet);
+    const book = getJSON('substates/' + state.run.book).then((j) => { state.book = decodeBook(j); }, () => { state.book = 'off'; });
+    const escrows = Promise.all(state.run.invoices.map(async (i) => state.escrows.set(i.no, await readEscrow(i))));
+    await Promise.all([epoch, book, escrows]);
     render();
   }
 
@@ -224,14 +222,17 @@
 
   const epochKnown = () => typeof state.epoch === 'number';
 
-  // How the money left the escrow, if it did: which leaf, in plain words.
+  // How the money left the escrow, if it did: which of the four ways out, in plain words.
   function exitOf(i) {
-    if (tx(i, 'claim')) return { leaf: 'claim', words: 'the claim leaf, on the client’s approval' };
+    if (tx(i, 'claim')) return { leaf: 'claim', words: 'the claim, on the client’s approval' };
     const r = ruling(i);
     if (r) return { leaf: r.for === 'contractor' ? 'ruling-contractor' : 'ruling-client', words: `the mediator’s ruling for the ${r.for}` };
-    if (tx(i, 'refund')) return { leaf: 'refund', words: 'the refund leaf, after the claim window closed' };
+    if (tx(i, 'refund')) return { leaf: 'refund', words: 'the refund, after the claim window closed' };
     return null;
   }
+  const paidOut = (exit) => exit.leaf === 'claim' || exit.leaf === 'ruling-contractor';
+  // A ruling the mediator and the contractor signed after the window closed, which the chain refused.
+  const lateRuling = (i) => i.timeline.some((t) => t.attack === 'late-ruling');
 
   // ---- rendering: shell --------------------------------------------------------------------
   function paintNet() {
@@ -252,6 +253,7 @@
     const through = attacks.filter((t) => t.accepted).length;
     $('pr-attacks').textContent = String(attacks.length);
     $('pr-attacks-note').textContent = through ? `${through} got through.` : 'The chain refused every one.';
+    $('to-tries-l').textContent = `Replay the ${attacks.length} attacks yourself`;
     $('pr-invoices').textContent = String(state.run.invoices.length);
     if (state.book === null) return;
     const statuses = state.run.invoices.map((i) => liveStatus(i).status);
@@ -263,8 +265,15 @@
   const smudge = () => `<svg class="smudge" preserveAspectRatio="none" aria-hidden="true"><rect width="100%" height="100%" filter="url(#smudge)"/></svg>`;
   const notOnCopy = (what) => `${smudge()}<span class="notcopy">${icon('lock-simple')}Not on this copy<span class="sr-only">: ${what} is hidden from this holder</span></span>`;
   const stampSVG = (word, w) => `<svg viewBox="0 0 ${w} 60" aria-hidden="true"><g filter="url(#ink)" fill="none" stroke="currentColor"><rect x="3" y="3" width="${w - 6}" height="54" rx="3" stroke-width="3.2"/><rect x="9" y="9" width="${w - 18}" height="42" rx="1.5" stroke-width="1.3"/><text x="${w / 2}" y="41" text-anchor="middle" fill="currentColor" stroke="none" font-family="Figtree, sans-serif" font-weight="700" font-size="27" letter-spacing="3">${word}</text></g></svg>`;
-  const txLink = (id, label) => `<a href="${state.run.indexer}transactions/${id}/result" title="Open the raw result on the indexer">${label || short(id, 16, 0)}</a>`;
   const archiveLink = (id, label) => `<a href="${ARCHIVE}${id}.json" title="The raw result the indexer served right after the run">${label}</a>`;
+  // The indexer drops transaction results within a few epochs: a transaction links to the indexer only
+  // while the indexer still serves its result, and to the archived copy otherwise.
+  const txLink = (id, label) => {
+    const v = state.verdicts.get(id);
+    const live = v && !v.archived && (v.state === 'ok' || v.state === 'neutral' || v.state === 'bad');
+    return live ? `<a href="${state.run.indexer}transactions/${id}/result" title="Open the raw result on the indexer">${label || short(id, 16, 0)}</a>`
+      : archiveLink(id, label || short(id, 16, 0));
+  };
 
   // A wax seal on the escrow while it holds the money; broken once a leaf spent it.
   const sealSVG = (open) => `<svg class="seal${open ? ' open' : ''}" viewBox="0 0 56 56" aria-hidden="true">
@@ -303,11 +312,13 @@
     if (view === 'public') {
       return ['globe-simple', `Anyone with the chain can read that invoice ${pad4(i.no)} exists, when it is due, and that it was ${outcome}. <b>The amount, the work and who the two sides are did not transfer to this copy.</b>`];
     }
+    const late = lateRuling(i);
     if (view === 'client') {
       const tail = !exit ? 'It holds the approval code; nothing moves until it approves, the mediator rules, or the window closes.'
         : exit.leaf === 'claim' ? 'It chose the approval code, and its approval is what released the money.'
         : exit.leaf === 'ruling-contractor' ? 'It never answered, so the mediator both sides chose ruled for the contractor.'
         : exit.leaf === 'ruling-client' ? 'The contractor withdrew, and the mediator returned the money without waiting for the window to close.'
+        : late ? 'It never approved, and a ruling sent after the window closed was refused, so the money came back to it.'
         : 'Nobody approved or called the mediator, so the money came back once the claim window closed.';
       return ['buildings', `The client sees what it locked, ${amt}, and for what work. ${tail}`];
     }
@@ -316,17 +327,21 @@
         : exit.leaf === 'claim' ? 'It was paid when the client approved.'
         : exit.leaf === 'ruling-contractor' ? 'The client went silent, and the mediator’s ruling paid it.'
         : exit.leaf === 'ruling-client' ? 'It withdrew, and the mediator returned the money to the client.'
+        : late ? 'The client never approved; the ruling it signed with the mediator came after the window closed, the chain refused it, and the money went back to the client.'
         : 'Nobody approved, so the money went back to the client.';
-      return ['pen-nib', `The contractor sees what it is owed, ${amt}, and for what. Before starting work it checked, from public data, that this exact amount was locked under these rules. ${tail}`];
+      return ['pen-nib', `The contractor sees what it is owed, ${amt}, and for what. ${tail}`];
     }
     if (view === 'mediator') {
       if (r) {
         const caller = r.for === 'contractor' ? 'contractor' : 'client';
         return ['scales', `The ${caller} called the mediator in and showed it the invoice. <b>The mediator ruled for the ${r.for}.</b> Its written ruling stays off chain; the book keeps only its hash, checked below.`];
       }
-      return ['scales', `Nobody called the mediator in, so <b>its copy stayed blank.</b> Its key can act only together with the client or the contractor, and only until epoch ${ep(i.claim_until)}.`];
+      if (late) {
+        return ['scales', 'The mediator and the contractor signed a ruling after the claim window had closed. <b>The chain refused it,</b> and the money went back to the client.'];
+      }
+      return ['scales', `Nobody called the mediator in, so <b>its copy stayed blank.</b> Its key can act only together with the client or the contractor, and only before epoch ${ep(i.claim_until)}.`];
     }
-    return ['calculator', 'Given the invoice text and its salt, the accountant recomputes the hash stored in the book and reads the amount with the invoice’s view key. <b>It can check everything and move nothing.</b>'];
+    return ['calculator', 'Given the invoice text and its salt, the accountant recomputes the hash stored in the book and reads the amount with the invoice’s view key. <b>It can check this invoice and move nothing.</b>'];
   }
 
   function captionBox(i, view) {
@@ -348,11 +363,14 @@
       <div class="box s2 b-amount"><p class="lab">${icon('coins')}${AMOUNT_LABEL[view]}</p><p class="amount"><span class="big">${tari(p.amount_micro_tari)}</span><span class="unit">tTARI</span></p></div>`;
   }
 
-  function partyBox(role, key, view) {
+  // The two sides chose each other and the mediator; only the public cannot tell who they are.
+  function partyBox(role, key, view, i) {
     const names = { client: ['buildings', 'Client'], contractor: ['pen-nib', 'Contractor'], mediator: ['scales', 'Mediator'] };
     const [ic, name] = names[role];
-    const who = view === role
-      ? `<p class="who">${icon('user-circle')}This is you</p>`
+    const r = ruling(i);
+    const knows = view === 'client' || view === 'contractor' || (view === 'mediator' && r && r.for === role);
+    const who = view === role ? `<p class="who">${icon('user-circle')}This is you</p>`
+      : knows ? `<p class="who">${icon('handshake')}Known to you off chain; only this key is on chain</p>`
       : `<p class="who away">${icon('eye-slash')}Who it is: not on this copy</p>`;
     return `<div class="box s2 party"><p class="lab">${icon(ic)}${name}</p>${who}<p class="key mono-ish" title="${key}">One-time key ${short(key, 6, 6)}</p></div>`;
   }
@@ -364,39 +382,45 @@
       const exit = exitOf(i);
       now = exit ? `Closed through ${exit.words}` : 'Closed';
     } else if (status === 'Approved') {
-      now = 'Approved; the contractor can claim until the window closes';
+      now = `Approved; the contractor can claim before epoch ${ep(i.claim_until)}`;
     } else if (epochKnown()) {
       const left = i.deadline_epoch - state.epoch;
       now = `Current epoch ${ep(state.epoch)}, ${left > 0 ? `${left} ${left === 1 ? 'epoch' : 'epochs'} left to approve` : 'approval deadline passed'}`;
     } else {
       now = state.epoch === 'off' ? 'Current epoch unknown' : sk('Reading the current epoch');
     }
-    return `<div class="box s3 b-deadline"><p class="lab">${icon('hourglass-medium')}Deadlines, in epochs</p><p class="val">Approve by ${ep(i.deadline_epoch)}<br>Claim or rule by ${ep(i.claim_until)}</p><p class="small">${now}</p></div>`;
+    return `<div class="box s3 b-deadline"><p class="lab">${icon('hourglass-medium')}Deadlines, in epochs of about 70 min</p><p class="val">Approve before epoch ${ep(i.deadline_epoch)}<br>Claim or rule before epoch ${ep(i.claim_until)}</p><p class="small">${now}</p></div>`;
   }
 
+  // While the escrow read is on its way the seal follows the recording; the words wait for the chain.
   function escrowBox(i) {
     const e = state.escrows.get(i.no);
     const exit = exitOf(i);
+    const where = exit ? (paidOut(exit) ? 'paid to the contractor' : 'returned to the client') : '';
     let val;
-    let line;
+    let line = '';
+    let open = Boolean(exit);
     if (!e) {
-      val = 'Sealed escrow';
-      line = sk('Reading the escrow output');
+      val = sk('Reading the escrow output');
     } else if (e.state === 'unspent') {
+      const fromBook = bookEntry(i) && bookEntry(i).root;
+      open = false;
       val = 'Sealed: holds the money';
-      line = e.root === i.escrow_root ? 'Locked by exactly these rules, with no key that can open it. Checked live.' : `${icon('warning')}Locked by a different root than the book records`;
+      line = e.root === (fromBook || i.escrow_root) ? 'Locked by exactly these rules, with no key that can open it. Checked live.'
+        : `${icon('warning')}Locked by a different root than ${fromBook ? 'the book records' : 'the recorded run'}`;
     } else if (e.state === 'spent') {
-      val = exit ? 'Opened and paid out' : 'Opened';
+      open = true;
+      val = exit ? `Opened: ${where}` : 'Opened';
       line = `${exit ? `Through ${exit.words}. ` : ''}Checked live: the output is gone from the chain.`;
     } else {
-      val = 'Sealed escrow';
+      val = exit ? 'Opened, as recorded' : 'Sealed, as recorded';
       line = `${icon('cloud-slash')}Indexer unreachable`;
     }
-    return `<div class="box s3 b-escrow"><p class="lab">${icon('vault')}Escrow</p>${sealSVG(e && e.state === 'spent')}<div><p class="val">${val}</p><p class="small">${line}</p></div></div>`;
+    return `<div class="box s3 b-escrow"><p class="lab">${icon('vault')}Escrow</p>${sealSVG(open)}<div><p class="val">${val}</p>${line ? `<p class="small">${line}</p>` : ''}</div></div>`;
   }
 
   function idsBox(i) {
-    const live = state.book instanceof Map && state.book.get(i.no);
+    const live = bookEntry(i);
     const publicHash = live ? live.hash : i.invoice_hash;
     const rows = [
       ['book-open', 'Book', state.run.book],
@@ -420,7 +444,7 @@
         <dt>Salt</dt><dd>${esc(i.parties_only.salt)}</dd>
         <dt>sha256(salt|text)</dt><dd id="acct-hash">${sk('Computing the hash in your browser')}</dd>
         <dt>Result</dt><dd id="acct-result">${sk('Comparing with the book')}</dd>
-        <dt>View key memo</dt><dd>${esc(i.parties_only.memo)}</dd>
+        <dt>Memo, read with the view key</dt><dd>${esc(i.parties_only.memo)}</dd>
       </dl></div>`;
     }
     if (view === 'mediator' && i.ruling && i.parties_only.ruling_text) {
@@ -433,33 +457,39 @@
     return '';
   }
 
+  // The nodes are taken before the hash is computed, so a slow hash of a previous sheet writes nowhere.
   async function runChecks(i) {
-    const live = state.book instanceof Map && state.book.get(i.no);
-    if ($('acct-hash')) {
-      const p = i.parties_only;
+    const live = bookEntry(i);
+    const p = i.parties_only;
+    const acct = $('acct-hash');
+    if (acct) {
+      const res = $('acct-result');
       const hex = await sha256hex(`${p.salt}|${p.text}`);
       const target = live ? live.hash : i.invoice_hash;
-      if (!$('acct-hash')) return;
-      $('acct-hash').textContent = hex;
-      $('acct-result').innerHTML = hex === target
+      if (!acct.isConnected) return;
+      acct.textContent = hex;
+      res.innerHTML = hex === target
         ? `<span class="match">${icon('seal-check')}Matches the ${live ? 'hash in the book, computed in your browser' : 'recorded invoice hash'}</span>`
         : `<span class="match no">${icon('warning')}Does not match the invoice hash</span>`;
     }
-    if ($('rule-hash')) {
-      const p = i.parties_only;
+    const rule = $('rule-hash');
+    if (rule) {
+      const res = $('rule-result');
       const hex = await sha256hex(`${p.ruling_salt}|${p.ruling_text}`);
       const target = live && live.ruling ? live.ruling : i.ruling.ruling_hash;
-      if (!$('rule-hash')) return;
-      $('rule-hash').textContent = hex;
-      $('rule-result').innerHTML = hex === target
+      if (!rule.isConnected) return;
+      rule.textContent = hex;
+      res.innerHTML = hex === target
         ? `<span class="match">${icon('seal-check')}Matches the ruling hash ${live && live.ruling ? 'in the book, computed in your browser' : 'recorded for this invoice'}</span>`
         : `<span class="match no">${icon('warning')}Does not match the ruling hash</span>`;
     }
   }
 
   function approvalLine(i, view) {
-    if (i.approval_code) {
-      return `<p class="code">${icon('key')}<span>Approval code, public in the book since approval: <b>${esc(i.approval_code)}</b>. On its own it cannot move the money: the claim also needs the contractor’s key.</span></p>`;
+    const live = bookEntry(i);
+    const code = (live && live.code) || i.approval_code;
+    if (code) {
+      return `<p class="code">${icon('key')}<span>Approval code, public in the book since approval: <b>${esc(code)}</b>. On its own it cannot move the money: the claim also needs the contractor’s key.</span></p>`;
     }
     if (view === 'client' && !exitOf(i)) return `<p class="code">${icon('key')}<span>You hold the approval code. It stays off chain until you approve.</span></p>`;
     return '';
@@ -479,27 +509,37 @@
       : exit ? 'No longer possible: already closed'
       : status === 'Approved' ? 'No longer possible: approved'
       : closed ? 'Possible now' : `From epoch ${ep(i.claim_until)}`;
+    const r = ruling(i);
     return act('lock-key', 'Fund', tx(i, 'fund') ? 'Done' : 'Next', tx(i, 'fund'))
       + act('check-circle', 'Approve', approve, tx(i, 'approve'))
-      + act('arrow-u-up-left', 'Refund', refund, tx(i, 'refund'));
+      + act('arrow-u-up-left', 'Refund', refund, tx(i, 'refund'))
+      + (r && r.for === 'client' ? act('scales', 'Co-sign the ruling', 'Done', r.tx) : '');
   }
 
   function contractorActions(i, status) {
     const exit = exitOf(i);
+    const r = ruling(i);
     const claim = tx(i, 'claim') ? 'Done'
       : exit ? 'No longer possible: already closed'
       : status === 'Approved' ? `Possible now, before epoch ${ep(i.claim_until)}` : 'After approval';
-    return act('hand-coins', 'Claim', claim, tx(i, 'claim'));
+    return act('hand-coins', 'Claim', claim, tx(i, 'claim'))
+      + (r && r.for === 'contractor' ? act('scales', 'Co-sign the ruling', 'Done', r.tx) : '');
   }
 
-  // `hexcrow verify`, run by the contractor before starting work, from public data only.
+  // `hexcrow verify`, run by the contractor before starting work, from public data only. Shown as the
+  // CLI printed it (cli/src/main.rs, `verify`), at the epoch it ran, so its first person and its epoch read as recorded.
   function contractorCheck(i) {
     const c = i.contractor_check;
     if (!c) return '';
-    const rows = c.checks.map((k) => `<li>${icon(k.ok ? 'check' : 'x')}${esc(k.check[0].toUpperCase() + k.check.slice(1))}</li>`).join('');
     const ok = c.funds_locked_as_agreed ?? c.safe_to_start_work;
-    const verdict = ok ? "funds locked as agreed. Payment still needs the client's approval or a ruling" : 'do not start work';
-    return `<div class="precheck"><p class="lab">${icon(ok ? 'seal-check' : 'warning')}Before starting work, the contractor checked the escrow: ${verdict}</p><ul>${rows}</ul></div>`;
+    const at = (c.checks.map((k) => /epoch (\d+)/.exec(k.check)).find(Boolean) || [])[1];
+    const lines = [
+      `<span class="cmd">$ hexcrow verify ${i.no} --expect-tari ${tari(i.parties_only.amount_micro_tari)}</span>`,
+      `invoice ${i.no}: approve before epoch ${ep(i.deadline_epoch)}, claim before epoch ${ep(i.claim_until)}`,
+      ...c.checks.map((k) => `  <span class="${k.ok ? 'ok' : 'fail'}">[${k.ok ? 'ok' : 'FAIL'}]</span> ${esc(k.check)}`),
+      ok ? 'funds locked as agreed; payment still needs the client\'s approval' : 'do not start work',
+    ];
+    return `<div class="precheck"><p class="lab">${icon('terminal-window')}Run by the contractor before starting work${at ? `, at epoch ${ep(Number(at))}` : ''}</p><pre class="cli">${lines.join('\n')}</pre></div>`;
   }
 
   function accessBox(i, view, status) {
@@ -508,13 +548,16 @@
       return `<h2>${icon('globe-simple')}This copy has no actions</h2><p class="lead">This is what anyone with the chain reads: one-time keys, the deadlines, the status and the hashes under “On-chain ids”. No amount, no names, no invoice text.</p>${approvalLine(i, view)}`;
     }
     if (view === 'client') return `<h2>${icon('buildings')}Client actions</h2>${approvalLine(i, view)}<div class="actions">${clientActions(i, s)}</div>`;
-    if (view === 'contractor') return `<h2>${icon('pen-nib')}Contractor actions</h2>${approvalLine(i, view)}${contractorCheck(i)}<div class="actions">${contractorActions(i, s)}</div>`;
+    if (view === 'contractor') return `<h2>${icon('pen-nib')}Contractor actions</h2>${approvalLine(i, view)}<div class="actions">${contractorActions(i, s)}</div>${contractorCheck(i)}`;
     if (view === 'mediator') {
       const r = ruling(i);
-      const did = r ? act('scales', `Ruled for the ${r.for}`, 'Done', r.tx) : act('scales', 'Rule', 'Only if called in, with that side’s key', null);
+      const closed = exitOf(i) || (epochKnown() && state.epoch >= i.claim_until);
+      const did = r ? act('scales', `Ruled for the ${r.for}`, 'Done', r.tx)
+        : closed ? act('scales', 'Rule', 'No longer possible: already closed', null)
+        : act('scales', 'Rule', 'Only if called in, with that side’s key', null);
       return `<h2>${icon('scales')}Mediator actions</h2><p class="lead">The mediator cannot pay itself, cannot act alone, and loses its say when the claim window closes.</p><div class="actions">${did}</div>`;
     }
-    return `<h2>${icon('calculator')}Accountant: reads, cannot spend</h2><p class="lead">The escrow has no key path, only its four conditional leaves. The view key reads the amount; it cannot move it.</p>`;
+    return `<h2>${icon('calculator')}Accountant: reads, cannot spend</h2><p class="lead">No key can take the money out of the escrow: it opens only under its four rules. The view key reads the amount; it cannot move it.</p>`;
   }
 
   function rulesBox(i, view, status) {
@@ -546,9 +589,9 @@
         ${statusBox(i)}
         ${captionBox(i, view)}
         ${privateBoxes(i, view)}
-        ${partyBox('client', i.client_key, view)}
-        ${partyBox('contractor', i.contractor_key, view)}
-        ${partyBox('mediator', i.mediator_key, view)}
+        ${partyBox('client', i.client_key, view, i)}
+        ${partyBox('contractor', i.contractor_key, view, i)}
+        ${partyBox('mediator', i.mediator_key, view, i)}
         ${deadlineBox(i)}
         ${escrowBox(i)}
         ${checkBox(i, view)}
@@ -584,7 +627,7 @@
     claim: 'Approved, then claimed',
     'ruling-contractor': 'Client went silent; the mediator paid the contractor',
     'ruling-client': 'Contractor withdrew; the mediator returned it',
-    refund: 'Nobody acted; refunded after the window',
+    refund: 'No approval in time; refunded after the window',
   };
 
   function renderInvoices() {
@@ -592,7 +635,7 @@
       const { status } = liveStatus(i);
       const st = status ? `${status === 'Funded' ? `<span class="spin">${icon('hourglass-simple')}</span>` : icon(STATUS_ICON[status])}${status}` : sk('Reading the status');
       const exit = exitOf(i);
-      const story = exit ? STORY[exit.leaf] : `Approve by epoch ${ep(i.deadline_epoch)}`;
+      const story = exit ? STORY[exit.leaf] : `Approve before epoch ${ep(i.deadline_epoch)}`;
       return `<li><button class="inv" type="button" data-no="${i.no}" aria-current="${i.no === state.invoice}">
         <span class="nm">Invoice ${pad4(i.no)}</span><span class="st">${st}</span>
         <span class="meta">${story} · ${i.timeline.length} transactions</span></button></li>`;
@@ -612,12 +655,20 @@
     return `<span class="ver" data-state="${v.state}">${icon(ic)}<span>${text}</span></span>`;
   }
 
+  // Who signed an attack, as the try names it ("the mediator and the contractor"), not only its first signer.
+  const signedBy = (r) => {
+    const t = TRIES[r.attack];
+    return t ? t.by[0].toLowerCase() + t.by.slice(1) : `signed by the ${r.actor}`;
+  };
+
   function renderStubs() {
     const i = inv();
     const rows = i.timeline;
     const rejected = rows.filter((r) => !r.accepted).length;
+    const keep = document.activeElement && document.activeElement.id === 'recheck';
     $('tl-h').textContent = `Invoice ${pad4(i.no)} on chain`;
-    $('tl-count').innerHTML = `${rows.length} transactions on Esmeralda: ${rows.length - rejected} committed, ${rejected} refused. Fees in µT, 1 tTARI = 1,000,000 µT. The indexer drops results after a few hours; each one was archived as served. <button class="recheck" id="recheck" type="button">${icon('arrows-clockwise')}Check again on chain</button>`;
+    $('tl-count').innerHTML = `${rows.length} transactions on Esmeralda: ${rows.length - rejected} committed, ${rejected} refused. Fees in µT, 1 tTARI = 1,000,000 µT. The indexer drops results after a few hours; each one was archived as served. <button class="recheck" id="recheck" type="button">${icon('arrows-clockwise')}Check again on the indexer</button>`;
+    if (keep) $('recheck').focus({ preventScroll: true });
     // The entrance plays once per invoice; live refreshes repaint without replaying it.
     $('stubs').classList.toggle('settled', state.paintedInvoice === i.no);
     state.paintedInvoice = i.no;
@@ -626,7 +677,7 @@
       const fee = r.fee_micro_tari ? `<span>Fee ${num(r.fee_micro_tari)} µT</span>` : '<span>No fee</span>';
       return `<li class="stub ${r.accepted ? 'ok' : 'rej'}" style="--i:${Math.min(n, 7)}">
         <span class="i">${n + 1}</span>
-        <p class="what">${esc(stubLabel(r, state.view, i))}${r.kind === 'attack' ? ` <span class="who">signed by the ${esc(r.actor)}</span>` : ''}</p>
+        <p class="what">${esc(stubLabel(r, state.view, i))}${r.kind === 'attack' ? ` <span class="who">${esc(signedBy(r))}</span>` : ''}</p>
         ${r.why ? `<p class="why">${esc(r.why)}</p>` : ''}
         <p class="meta">${txLink(r.tx)}${fee}</p>
         <p class="meta">${verdictHTML(r, v)}</p>
@@ -650,52 +701,101 @@
         <span class="who" title="${esc(r.actor)}">${icon(ACTOR_ICON[r.actor] || 'user')}</span>
         <p class="what">${esc(t.title)}<small>${esc(t.by)}, invoice ${pad4(r.invoice)}</small></p>
         <p class="guard">${icon(t.guard[0])}${esc(t.guard[1])}</p>
-        <button class="go" type="button">${icon('lightning')}Try it</button>
+        <button class="go" type="button">${icon('lightning')}<span class="lbl">Try it</span><span class="sr-only">: ${esc(t.title)}</span></button>
         <p class="out" aria-live="polite"></p>
-        <span class="refused" aria-hidden="true">${stampSVG(r.accepted ? 'THROUGH' : 'REFUSED', 164)}</span>
+        <span class="refused" aria-hidden="true"></span>
       </li>`;
     }).join('');
   }
 
+  // The headline number is what the run recorded; the line under it is what the replays found just now.
   function paintTally() {
     const rows = attackRows();
-    const tried = rows.filter((r) => state.tried.has(r.tx));
-    $('tally-n').textContent = String(tried.length);
-    const through = tried.filter((r) => r.accepted).length;
-    $('tally-through').textContent = tried.length ? (through ? `${through} got through` : 'None got through') : '';
-    $('try-all').disabled = tried.length === rows.length;
+    $('tally-n').textContent = String(rows.filter((r) => !r.accepted).length);
+    $('tally-of').textContent = `of ${rows.length} refused on Esmeralda`;
+    const tried = rows.map((r) => state.tried.get(r.tx)).filter(Boolean);
+    const refused = tried.filter((v) => v.state === 'neutral').length;
+    const through = tried.filter((v) => v.state === 'ok' || v.state === 'bad').length;
+    const off = tried.filter((v) => v.state === 'off').length;
+    const line = $('tally-through');
+    if (!tried.length) {
+      line.textContent = 'Replay them to ask the indexer again';
+      line.dataset.state = '';
+    } else {
+      const parts = [refused === tried.length ? `${tried.length === 1 ? 'refused' : 'all refused'} again` : `${refused} refused again`];
+      if (through) parts.push(`${through} got through`);
+      if (off) parts.push(`${off} not checked`);
+      line.textContent = `Replayed ${tried.length} of ${rows.length}: ${parts.join(', ')}`;
+      line.dataset.state = through ? 'through' : refused ? 'refused' : '';
+    }
+    const all = tried.length === rows.length && !off;
+    $('try-all').setAttribute('aria-disabled', String(all));
   }
 
+  // The verdict shown is the one the indexer (or the archive) gives now, not the recording's.
   async function tryOne(li) {
-    if (li.dataset.state !== 'idle') return;
+    if (li.dataset.state === 'wait' || (li.dataset.state === 'done' && li.dataset.verdict !== 'off')) return;
     const row = attackRows().find((r) => r.tx === li.dataset.tx);
+    const btn = li.querySelector('.go');
+    const hadFocus = document.activeElement === btn;
     li.dataset.state = 'wait';
-    li.querySelector('.go').disabled = true;
+    btn.setAttribute('aria-disabled', 'true');
     const out = li.querySelector('.out');
-    out.innerHTML = `<span class="ver">${icon('circle-notch')}Asking the chain for its verdict</span>`;
+    out.innerHTML = `<span class="ver">${icon('circle-notch')}Asking the indexer for the verdict</span>`;
     const v = await verdictOf(row);
     state.verdicts.set(row.tx, v);
     state.tried.set(row.tx, v);
-    const through = row.accepted;
+    const [st, ic, head] = v.state === 'neutral' ? ['refused', 'shield-check', 'Refused by the chain']
+      : v.state === 'off' ? ['off', 'cloud-slash', `Not checked: ${v.text}`]
+      : ['through', 'warning', v.text];
     const source = v.archived ? archiveLink(row.tx, 'result archived from the indexer')
-      : v.state === 'off' ? esc(v.text) : txLink(row.tx, 'confirmed live on the indexer');
-    out.innerHTML = `<span class="ver" data-state="${through ? 'through' : 'refused'}">${icon(through ? 'warning' : 'shield-check')}${through ? 'The chain accepted it' : 'Refused by the chain'}</span><span>${esc(row.why ? row.why.replace(/^Rejected by the (chain|book): /, '') : '')}</span><span>${source}${row.fee_micro_tari ? `, fee ${num(row.fee_micro_tari)} µT kept` : ', nothing committed'}</span>`;
+      : st === 'off' ? '' : txLink(row.tx, 'confirmed live on the indexer');
+    const fee = st === 'refused' ? (row.fee_micro_tari ? `fee ${num(row.fee_micro_tari)} µT kept` : 'nothing committed') : '';
+    const reason = st === 'refused' && row.why ? row.why.replace(/^Rejected by the (chain|book): /, '') : '';
+    out.innerHTML = `<span class="ver" data-state="${st}">${icon(ic)}${esc(head)}</span>${reason ? `<span>${esc(reason)}</span>` : ''}${source || fee ? `<span>${[source, fee].filter(Boolean).join(', ')}</span>` : ''}`;
+    li.dataset.verdict = st;
     li.dataset.state = 'done';
-    sound.play('stamp');
+    if (st === 'off') {
+      btn.removeAttribute('aria-disabled');
+      btn.querySelector('.lbl').textContent = 'Try again';
+    } else {
+      const word = st === 'refused' ? 'REFUSED' : 'THROUGH';
+      const stamp = li.querySelector('.refused');
+      stamp.dataset.word = word;
+      stamp.innerHTML = stampSVG(word, 164);
+      sound.play('stamp');
+      // The button gives way to the stamp: keyboard focus moves on to the next attack, or to the tally.
+      if (hadFocus) {
+        const next = document.querySelector('.try[data-state="idle"] .go');
+        (next || $('tally')).focus({ preventScroll: Boolean(next) });
+      }
+    }
     paintTally();
   }
 
   async function replayAll() {
-    $('try-all').disabled = true;
-    for (const li of [...document.querySelectorAll('.try[data-state="idle"]')]) {
+    if ($('try-all').getAttribute('aria-disabled') === 'true') return;
+    $('try-all').setAttribute('aria-disabled', 'true');
+    const rows = [...document.querySelectorAll('.try')].filter((li) => li.dataset.state === 'idle' || li.dataset.verdict === 'off');
+    for (const li of rows) {
       tryOne(li);
       await new Promise((r) => setTimeout(r, reduce.matches ? 0 : REPLAY_STEP_MS));
     }
   }
 
   // ---- render + transitions ----------------------------------------------------------------
+  // A re-render rewrites buttons; whoever had focus gets it back on the button that replaced it.
+  function focusKey() {
+    const a = document.activeElement;
+    if (!a || a === document.body) return null;
+    if (a.classList.contains('inv')) return `.inv[data-no="${a.dataset.no}"]`;
+    if (a.id === 'next-btn' || a.id === 'recheck') return `#${a.id}`;
+    return $('sheet').contains(a) ? '#sheet' : null;
+  }
+
   function render() {
     const i = inv();
+    const keep = focusKey();
     document.documentElement.dataset.view = state.view;
     const sheet = $('sheet');
     const openIds = sheet.querySelector('.ids[open]') !== null;
@@ -708,6 +808,17 @@
     renderVersus(i);
     renderNextCopy();
     runChecks(i);
+    const back = keep && document.querySelector(keep);
+    if (back && back !== document.activeElement) back.focus({ preventScroll: true });
+  }
+
+  // The crow hops when a copy changes hands.
+  function hop() {
+    if (reduce.matches) return;
+    try {
+      $('perch').animate([{ translate: '0 0' }, { translate: '0 -9px' }, { translate: '0 0' }],
+        { duration: 280, easing: 'cubic-bezier(.23,1,.32,1)', composite: 'add' });
+    } catch (_) { /* individual transform properties unsupported: no hop */ }
   }
 
   function writeURL() {
@@ -752,6 +863,7 @@
     paintTabs();
     render();
     if (after) after();
+    hop();
     writeURL();
     sound.play('switch');
   }
@@ -787,6 +899,14 @@
       if (b) tryOne(b.closest('.try'));
     });
     $('try-all').addEventListener('click', replayAll);
+    // From "What ran": go to the attacks and replay them, so the verdicts land as the list arrives.
+    $('to-tries').addEventListener('click', (e) => {
+      e.preventDefault();
+      const h = $('hex-h');
+      h.scrollIntoView({ behavior: reduce.matches ? 'auto' : 'smooth', block: 'start' });
+      h.focus({ preventScroll: true });
+      setTimeout(replayAll, reduce.matches ? 0 : 500);
+    });
   }
 
   function readURL() {
