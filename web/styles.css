@@ -82,7 +82,7 @@ button{ font: inherit; }
 .bar .guided{ font-size: 13px; color: var(--bone-2); gap: 8px; }
 .bar .net{ gap: 10px; font-size: 13px; }
 .bar .net b{ font-weight: 600; }
-.pulse{ width: 7px; height: 7px; border-radius: 50%; background: var(--candle); box-shadow: 0 0 10px var(--candle); }
+.pulse{ width: 7px; height: 7px; border-radius: 50%; background: var(--candle); }
 .pulse[data-state="off"]{ background: var(--sello-night); box-shadow: none; }
 .pulse[data-state="wait"]{ background: var(--bone-3); box-shadow: none; }
 .mute{ appearance: none; border: 0; background: transparent; color: inherit; font-size: 13px; cursor: pointer; gap: 8px;
@@ -163,11 +163,10 @@ h1{ font-size: clamp(34px, 3.15vw, 45px); line-height: 1.04; font-weight: 650; l
 /* Anchored to the top edge of the tabs: its feet land on the last stub whatever the tab height,
    and it rises with that stub when the accountant's copy is on top. */
 .pad{ position: relative; }
-.perch{ position: absolute; right: 18px; bottom: calc(100% - 12px); width: 176px; height: 132px; z-index: 3; pointer-events: none;
+.perch{ position: absolute; right: 14px; bottom: calc(100% - 7px); width: 192px; height: auto; z-index: 3; pointer-events: none;
   transform-origin: 50% 100%; animation: peck 11s var(--ease-move) infinite 2s; transition: translate 160ms var(--ease-out); }
 .pad:has(#tab-accountant[aria-selected="true"]) .perch{ translate: 0 -6px; }
-.perch{ --crow-body: oklch(11% .015 265); --crow-rim: none; --crow-wing: oklch(21% .022 265); --crow-eye: var(--candle); }
-.moon{ position: absolute; z-index: -1; right: 6px; bottom: calc(100% - 40px); width: 168px; height: 168px; border-radius: 50%; pointer-events: none;
+.moon{ position: absolute; z-index: -1; right: 0; bottom: calc(100% - 22px); width: 150px; height: 150px; border-radius: 50%; pointer-events: none;
   background: radial-gradient(circle at 38% 36%, oklch(90% .03 92), oklch(84% .03 90) 70%, oklch(80% .03 88));
   box-shadow: inset -22px -14px 0 oklch(72% .03 88 / .45), 0 0 60px 6px oklch(86% .04 90 / .12); }
 .brand .mark{ --crow-body: var(--bone); --crow-wing: oklch(70% .02 262); --crow-eye: var(--night); }
@@ -218,17 +217,16 @@ h1{ font-size: clamp(34px, 3.15vw, 45px); line-height: 1.04; font-weight: 650; l
 .b-text .given{ font-size: 12px; color: var(--ink-2); margin-top: 8px; display: flex; gap: 6px; align-items: center; }
 
 .smudge{ position: absolute; inset: 30px 16px 10px; width: calc(100% - 32px); height: calc(100% - 40px); pointer-events: none;
-  background: repeating-linear-gradient(135deg, color-mix(in oklab, var(--carbon) 30%, transparent) 0 1.4px, transparent 1.4px 6px),
-    repeating-linear-gradient(45deg, color-mix(in oklab, var(--carbon) 16%, transparent) 0 1px, transparent 1px 9px); }
+  background: repeating-linear-gradient(135deg, color-mix(in oklab, var(--carbon) 17%, transparent) 0 1.2px, transparent 1.2px 6px),
+    repeating-linear-gradient(45deg, color-mix(in oklab, var(--carbon) 9%, transparent) 0 1px, transparent 1px 9px); }
 .smudge rect{ display: none; }
-@keyframes drift{ to{ opacity: .38; transform: translateX(6px); } }
 .ghostfig{ display: flex; align-items: baseline; gap: 10px; margin-top: auto; }
 .ghostfig .unit{ font-size: 20px; font-weight: 600; color: var(--ink-2); }
 .notcopy{ position: relative; display: inline-flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 600; color: var(--ink-2);
   background: color-mix(in oklab, var(--copy) 82%, transparent); padding: 3px 8px 3px 6px; border-radius: var(--r); }
 .b-text.hidden{ display: flex; flex-direction: column; }
 .b-text.hidden .notcopy{ margin-top: auto; align-self: flex-start; }
-.ghostnum{ display: block; width: 150px; height: 58px; border-radius: var(--r); background: repeating-linear-gradient(135deg, color-mix(in oklab, var(--carbon) 46%, transparent) 0 2px, transparent 2px 4.5px); }
+.ghostnum{ display: block; width: 150px; height: 58px; border-radius: var(--r); background: repeating-linear-gradient(135deg, color-mix(in oklab, var(--carbon) 26%, transparent) 0 1.6px, transparent 1.6px 4.5px); }
 .b-amount.hidden .notcopy{ margin-top: 10px; align-self: flex-start; }
 
 .party .key{ font-size: 12px; color: var(--ink-2); margin-top: 2px; }
@@ -367,9 +365,10 @@ h1{ font-size: clamp(34px, 3.15vw, 45px); line-height: 1.04; font-weight: 650; l
 .hexes h2, .adds h2, .versus h2{ font-size: 22px; font-weight: 650; letter-spacing: -.018em; display: flex; gap: 10px; align-items: center; }
 .hexes h2 .ph-light, .adds h2 .ph-light, .versus h2 .ph-light{ font-size: 24px; }
 .hexes .lead, .versus .lead{ font-size: 14px; color: var(--bone-2); margin-top: 4px; max-width: 66ch; text-wrap: pretty; }
-.tally{ text-align: right; display: grid; justify-items: end; }
-.tally .n{ font-size: 56px; font-weight: 650; letter-spacing: -.04em; line-height: .9; }
-.tally .of{ font-size: 13px; color: var(--bone-2); }
+.tally{ text-align: right; display: grid; grid-template-columns: auto auto; justify-content: end; align-items: baseline; column-gap: 6px; }
+.tally .n{ font-size: 20px; font-weight: 650; letter-spacing: -.02em; line-height: 1.2; }
+.tally .of{ font-size: 15px; color: var(--bone-2); }
+.tally .through{ grid-column: 1 / -1; }
 .tally .through{ font-size: 13px; font-weight: 650; color: var(--bone-2); min-height: 1.5em; }
 .tally .through[data-state="refused"]{ color: var(--verde-night); }
 .tally .through[data-state="through"]{ color: var(--sello-night); }
@@ -431,9 +430,9 @@ footer span{ display: inline-flex; gap: 6px; align-items: center; }
 /* The other copies peek out under the active sheet, like a real pad, each one its own colour */
 .under{ position: absolute; inset: 0; border-radius: 0 0 var(--r) var(--r); z-index: 0; pointer-events: none; filter: brightness(.92);
   box-shadow: 0 0 0 1px oklch(8% .02 265 / .55); }
-.under.u1{ transform: translate(8px, 7px) rotate(.45deg); background: var(--canario); }
-.under.u2{ transform: translate(16px, 13px) rotate(-.35deg); background: var(--rosa); }
-.under.u3{ transform: translate(24px, 19px) rotate(.8deg); background: var(--azul); }
+.under.u1{ transform: translate(10px, 8px) rotate(.9deg); background: var(--canario); }
+.under.u2{ transform: translate(18px, 14px) rotate(-.7deg); background: var(--rosa); }
+.under.u3{ transform: translate(26px, 20px) rotate(1.5deg); background: var(--azul); }
 html[data-view="client"] .under.u1{ background: var(--original); }
 html[data-view="contractor"] .under.u2{ background: var(--original); }
 html[data-view="accountant"] .under.u3{ background: var(--original); }
@@ -480,7 +479,7 @@ html[data-view="accountant"] .under.u3{ background: var(--original); }
   .tab .ph-light{ grid-row: auto; font-size: 18px; }
   .tab .t{ font-size: 11px; letter-spacing: -.01em; }
   .tab .n{ display: none; }
-  .perch{ bottom: calc(100% - 8px); right: 6px; width: 64px; height: 48px; }
+  .perch{ bottom: calc(100% - 5px); right: 6px; width: 96px; height: auto; }
   .grid{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .s2, .s3, .s4, .s6{ grid-column: span 2; }
   .b-no, .b-status{ grid-column: span 1; }
@@ -498,7 +497,7 @@ html[data-view="accountant"] .under.u3{ background: var(--original); }
   .ids summary .hint{ display: none; }
   .under.u2, .under.u3{ display: none; }
   .under.u1{ transform: translate(6px, 6px); }
-  .perch{ width: 72px; height: 54px; }
+  .perch{ width: 92px; height: auto; }
   .moon{ width: 76px; height: 76px; right: 4px; bottom: calc(100% - 14px); box-shadow: inset -9px -6px 0 oklch(72% .03 88 / .45); }
   .hex-head{ grid-template-columns: 1fr; }
   .tally{ justify-items: start; text-align: left; }

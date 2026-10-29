@@ -67,7 +67,7 @@ The last milestone of the project in invoice 1, with its own keys: client `6ad2f
 | 2 | Fund, 120 tTARI into the escrow | client | `9a038fcc883122961f27e312466fc551290eef8f4c263bbcc00ba8ddf55813ae` | `Accept` |
 | 3 | Ruling for the contractor, once the deadline had passed without an approval | mediator and contractor (co-signing with the invoice's escrow key) | `@@B:rule2@@` | `Accept` |
 
-The contractor ran `hexcrow verify 2` after funding, recorded as `verify:2`, and every check passed. In transaction 3 the witness shows the ruling leaf the engine checked: `BeforeEpoch(12720)`, the mediator's key and the contractor's key. The book records the ruling's hash, `@@B:rule2hash@@`.
+The contractor ran `hexcrow verify 2` after funding, recorded as `verify:2`, and every check passed. In transaction 3 the witness shows the ruling leaf the engine checked: `BeforeEpoch(12720)`, the mediator's key and the contractor's key. The book records the ruling's hash, `@@B:rule2hash@@`. Nobody can open that hash: a second copy of our stage B script, started by mistake, began the same ruling and overwrote the salt in the local state before it was saved. Its own submission failed, since the escrow output was already spent, so only one ruling reached the chain and the money moved once. The ruling on invoice 3 below keeps its salt and text, and the demo checks that hash in the browser.
 
 ## Invoice 3: the contractor withdrew, the mediator ruled for the client
 
