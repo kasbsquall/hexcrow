@@ -292,7 +292,9 @@ where
     let priced = chain::price(&s, label, build).await?;
     let res = chain::send(&mut s, label, &priced).await?;
     let prepared = priced.prepared;
-    if res.accepted {
+    if res.fee_committed {
+        // The whole stealth transfer (outputs and change) lives in the fee intent, so it commits
+        // even when the main instructions are rejected.
         let change = coin_value - spend.outputs_total() - res.fee;
         record_change(state, persona, &coin_hex, &prepared, (change > 0).then_some(change));
     }
@@ -464,13 +466,16 @@ async fn run_escrow_spend(
         .map_err(|e| anyhow!("witness: {e}"))?;
     let commitment = commitment_from_hex(inv.escrow_commitment.as_ref().ok_or_else(|| anyhow!("invoice not funded"))?)?;
     let value = inv.escrow_value.unwrap_or_default();
-    let mut s = Session::connect(personas, persona, &["escrow"]).await?;
-    let escrow_addr = personas.provider("escrow")?.address().clone();
+    // The escrow key seals (it is the only key that can decrypt the escrow output) and the acting
+    // party co-signs; the leaf's AccessRule and the book both look for the party's signature.
+    let mut s = Session::connect(personas, "escrow", &[persona]).await?;
+    let escrow_addr = s.address.clone();
+    let party_addr = personas.provider(persona)?.address().clone();
     let spend = Spend {
         inputs: vec![(escrow_addr, StealthInput::with_witness(commitment, witness))],
         input_value: value,
         outputs: vec![],
-        change_to: Some(s.address.clone()),
+        change_to: Some(party_addr),
     };
     let max_epoch = s.max_epoch().await?;
     let session = &s;
@@ -509,7 +514,7 @@ async fn attack(personas: &Personas, state: &mut State, invoice: u64, kind: &str
     match kind {
         // A stranger who learned the approval code tries to take the money.
         "stranger-claim" => {
-            run_escrow_spend(personas, state, invoice, "stranger", &format!("attack:stranger-claim:{invoice}"), "settle", false, code).await
+            run_escrow_spend(personas, state, invoice, "stranger", &format!("attack:stranger-claim:{invoice}:{}", if inv.txs.contains_key("approve") { "after-approval" } else { "before-approval" }), "settle", false, code).await
         },
         // The contractor tries to claim without the code.
         "claim-without-code" => run_escrow_spend(

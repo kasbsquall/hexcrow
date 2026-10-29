@@ -34,32 +34,49 @@ pub type Provider = IndexerProvider<OotleWallet>;
 pub const DRY_RUN_FEE: u64 = 2_000_000;
 
 pub struct Session {
+    /// Who acts, for the evidence log (the co-signer when the escrow key seals).
     pub persona: String,
+    /// The sealing (default) key: it decrypts inputs and signs the seal.
     pub address: Address,
+    /// Keys that add an authorising signature to every transaction of this session.
+    pub cosigners: Vec<Address>,
     pub provider: Provider,
 }
 
 impl Session {
-    /// A provider whose wallet seals with `persona` and can also decrypt outputs owned by `extra`
-    /// (the escrow viewing key, when spending the escrow output).
-    pub async fn connect(personas: &Personas, persona: &str, extra: &[&str]) -> Result<Self> {
+    /// A provider whose wallet seals with `persona`; each of `cosigners` also signs.
+    pub async fn connect(personas: &Personas, persona: &str, cosigners: &[&str]) -> Result<Self> {
         let main = personas.provider(persona)?;
         let address = main.address().clone();
         let mut wallet = OotleWallet::from(main);
-        for name in extra {
-            wallet.register_key_provider(personas.provider(name)?);
+        let mut cosigner_addrs = Vec::new();
+        for name in cosigners {
+            let p = personas.provider(name)?;
+            cosigner_addrs.push(p.address().clone());
+            wallet.register_key_provider(p);
         }
         wallet.set_default_signer(&address)?;
+        let acting = cosigners.first().copied().unwrap_or(persona);
         let provider = ProviderBuilder::new()
             .wallet(wallet)
             .connect_with_transaction_timeout(default_indexer_url(NETWORK), Duration::from_secs(180))
             .await
             .context("connecting to the Esmeralda indexer")?;
         Ok(Self {
-            persona: persona.to_string(),
+            persona: acting.to_string(),
             address,
+            cosigners: cosigner_addrs,
             provider,
         })
+    }
+
+    /// Authorisation signatures from every co-signer, committing to the seal key.
+    pub async fn cosign(&self, unsigned: &UnsignedTransaction) -> Result<Vec<ootle_rs::wallet::TransactionAuthorization>> {
+        let mut out = Vec::new();
+        for addr in &self.cosigners {
+            out.push(self.provider.wallet().authorize_transaction(addr, unsigned).await?);
+        }
+        Ok(out)
     }
 
     pub fn account_key(&self) -> RistrettoPublicKeyBytes {
@@ -144,6 +161,9 @@ pub struct Submitted {
     pub tx_id: String,
     pub outcome: String,
     pub accepted: bool,
+    /// The fee intent committed: true for an accepted transaction and for one whose main
+    /// instructions were rejected after the fee was taken (OnlyFeeCommit).
+    pub fee_committed: bool,
     pub fee: u64,
     pub receipt: Option<Value>,
 }
@@ -163,8 +183,11 @@ where
     Fut: std::future::Future<Output = Result<(UnsignedTransaction, Prepared)>>,
 {
     let (dry, prepared) = build(DRY_RUN_FEE).await?;
+    let dry = dry.with_dry_run(true);
+    let auths = session.cosign(&dry).await?;
     let dry_tx = TransactionRequest::default()
-        .with_transaction(dry.with_dry_run(true))
+        .with_authorizations(auths)
+        .with_transaction(dry)
         .build(&session.provider.wallet().stealth_authorizer(prepared.signatures))
         .await?;
     let result = session.provider.send_dry_run(dry_tx).await?;
@@ -187,8 +210,16 @@ where
 
 /// Signs and submits a priced transaction, waits for the result and logs it as evidence.
 pub async fn send(session: &mut Session, label: &str, priced: &Priced) -> Result<Submitted> {
+    // The stealth transfer rides in the fee intent and commits even if the main instructions
+    // fail, so a real step is only sent when the dry run accepts all of it. Attacks are sent
+    // anyway: their on-chain rejection is the evidence.
+    if !label.starts_with("attack:") && priced.dry_run != "Accept" {
+        anyhow::bail!("[{label}] dry run did not accept the whole transaction: {}", priced.dry_run);
+    }
     let fee = priced.fee;
+    let auths = session.cosign(&priced.unsigned).await?;
     let tx = TransactionRequest::default()
+        .with_authorizations(auths)
         .with_transaction(priced.unsigned.clone())
         .build(&session.provider.wallet().stealth_authorizer(priced.prepared.signatures.clone()))
         .await?;
@@ -204,10 +235,12 @@ pub async fn send(session: &mut Session, label: &str, priced: &Priced) -> Result
         Err(e) => (format!("rejected: {e}"), false, None),
     };
     println!("[{label}] {outcome}");
+    let fee_committed = accepted || outcome.starts_with("OnlyFeeCommit");
     let submitted = Submitted {
         tx_id,
         outcome,
         accepted,
+        fee_committed,
         fee,
         receipt,
     };

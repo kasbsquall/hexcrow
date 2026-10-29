@@ -146,8 +146,18 @@ mod hexcrow_book {
     }
 
     impl Invoice {
+        /// `expected` must have signed this transaction, either as the seal signer or as an
+        /// additional authorising signer. The escrow spend is sealed by the invoice's escrow key
+        /// (the key that decrypts the escrow output) and co-signed by the acting party, so both
+        /// shapes have to be accepted.
         fn require_signer(&self, expected: RistrettoPublicKeyBytes, msg: &str) {
-            assert!(CallerContext::transaction_signer_public_key() == expected, "{}", msg);
+            if CallerContext::transaction_signer_public_key() == expected {
+                return;
+            }
+            // Aborts the transaction when `expected` is not among the signers.
+            let proof = CallerContext::get_signer_proof_for_public_key(expected);
+            assert!(proof.resource_address() == PUBLIC_IDENTITY_RESOURCE_ADDRESS, "{}", msg);
+            proof.drop();
         }
     }
 }

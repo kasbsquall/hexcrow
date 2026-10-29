@@ -1,12 +1,14 @@
 test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
-test wrong_approval_code_is_rejected ... ok
-test approved_invoice_cannot_be_refunded ... ok
 test state_holds_no_amount_and_no_account ... ok
-test refund_after_deadline ... ok
-test settle_requires_approval_and_approve_only_once ... ok
 test issue_rejects_past_deadline_and_self_dealing ... ok
-test no_funding_or_approval_after_deadline ... ok
+test settle_requires_approval_and_approve_only_once ... ok
+test wrong_approval_code_is_rejected ... ok
 test stranger_cannot_fund_approve_settle_or_refund ... ok
+test refund_after_deadline ... ok
 test contractor_cannot_approve_own_invoice ... ok
 test happy_path_issue_fund_approve_settle ... ok
-test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.67s
+test approved_invoice_cannot_be_refunded ... ok
+test escrow_key_seals_and_contractor_cosigns_settle ... ok
+test escrow_key_alone_cannot_settle ... ok
+test no_funding_or_approval_after_deadline ... ok
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.03s

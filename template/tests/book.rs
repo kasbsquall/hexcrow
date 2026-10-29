@@ -21,6 +21,9 @@ const DEADLINE: u64 = 100;
 const SETTLED: &str = "Array([Integer(3), Array([])])";
 const REFUNDED: &str = "Array([Integer(4), Array([])])";
 
+// The engine aborts when the book asks for a signer proof of a key that did not sign.
+const NOT_A_SIGNER: &str = "out of scope signer badge";
+
 struct Party {
     secret: RistrettoSecretKey,
     public: RistrettoPublicKeyBytes,
@@ -155,12 +158,12 @@ fn stranger_cannot_fund_approve_settle_or_refund() {
     let mut f = setup();
     f.issue();
     let stranger = f.stranger.secret.clone();
-    f.call_fails(&stranger, "fund", args![1u64, sha256(b"x")], "only the client can fund");
+    f.call_fails(&stranger, "fund", args![1u64, sha256(b"x")], NOT_A_SIGNER);
     f.fund();
-    f.call_fails(&stranger, "approve", args![1u64, CODE.to_vec()], "only the client can approve");
+    f.call_fails(&stranger, "approve", args![1u64, CODE.to_vec()], NOT_A_SIGNER);
     let client = f.client.secret.clone();
     f.call(&client, "approve", args![1u64, CODE.to_vec()]);
-    f.call_fails(&stranger, "settle", args![1u64], "only the contractor can settle");
+    f.call_fails(&stranger, "settle", args![1u64], NOT_A_SIGNER);
 }
 
 #[test]
@@ -169,7 +172,7 @@ fn contractor_cannot_approve_own_invoice() {
     f.issue();
     f.fund();
     let contractor = f.contractor.secret.clone();
-    f.call_fails(&contractor, "approve", args![1u64, CODE.to_vec()], "only the client can approve");
+    f.call_fails(&contractor, "approve", args![1u64, CODE.to_vec()], NOT_A_SIGNER);
 }
 
 #[test]
@@ -232,4 +235,41 @@ fn state_holds_no_amount_and_no_account() {
     // The book only knows hashes, one-time keys, the deadline and the status.
     assert!(!state.to_lowercase().contains("amount"));
     assert!(!state.contains("account"));
+}
+
+#[test]
+fn escrow_key_seals_and_contractor_cosigns_settle() {
+    // On Esmeralda the escrow spend is sealed by the invoice's escrow key (it decrypts the escrow
+    // output) and co-signed by the contractor. The book must accept the co-signer.
+    let mut f = setup();
+    f.issue();
+    f.fund();
+    let client = f.client.secret.clone();
+    f.call(&client, "approve", args![1u64, CODE.to_vec()]);
+    let escrow = party(&mut f.test, 14);
+    let tx = f
+        .test
+        .transaction()
+        .call_method(f.book, "settle", args![1u64])
+        .add_signer(&escrow.public, &f.contractor.secret)
+        .seal(&escrow.secret);
+    f.test.execute_expect_success(tx, vec![]);
+    assert!(f.state().contains(SETTLED));
+}
+
+#[test]
+fn escrow_key_alone_cannot_settle() {
+    let mut f = setup();
+    f.issue();
+    f.fund();
+    let client = f.client.secret.clone();
+    f.call(&client, "approve", args![1u64, CODE.to_vec()]);
+    let escrow = party(&mut f.test, 14);
+    let tx = f
+        .test
+        .transaction()
+        .call_method(f.book, "settle", args![1u64])
+        .build_and_seal(&escrow.secret);
+    let reject = f.test.execute_expect_failure(tx, vec![]);
+    assert_reject_reason(reject, NOT_A_SIGNER);
 }
