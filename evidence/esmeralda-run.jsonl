@@ -21,3 +21,4 @@
 {"accepted":true,"extra":{"dry_run":"Accept"},"fee_micro_tari":10633,"outcome":"Commit","recorded_at":"unix:1793256746","signer_persona":"contractor","step":"claim:1","tx_id":"dd33a6e01c886ffb1aac6d25ff15894361d35c174ddaa3cabc900f6bb91b458a"}
 {"accepted":true,"extra":{"dry_run":"Accept"},"fee_micro_tari":10678,"outcome":"Commit","recorded_at":"unix:1793256872","signer_persona":"contractor","step":"issue:2","tx_id":"bd59acdf6c8b00637103e34913462c4afd63aef1d61514c5afe6f05ef7c25ac7"}
 {"accepted":true,"extra":{"dry_run":"Accept"},"fee_micro_tari":17039,"outcome":"Commit","recorded_at":"unix:1793256885","signer_persona":"client","step":"fund:2","tx_id":"26e0116722f7acb641d48447fe917e2534fd87ef55d48876f4979b97cc0cd08f"}
+{"accepted":true,"extra":{"dry_run":"Accept"},"fee_micro_tari":10846,"outcome":"Commit","recorded_at":"unix:1793259281","signer_persona":"client","step":"refund:2","tx_id":"4532b675c4eb558ca78f09e95f5b15679579e45d4959d9082507a8f30f557741"}

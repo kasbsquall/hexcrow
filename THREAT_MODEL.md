@@ -44,6 +44,12 @@ Attacks run against the real network on 29-oct-2026, all rejected (`evidence/esm
 - **Deadline granularity.** Deadlines are Ootle epochs. On Esmeralda an epoch lasted more than half an hour during our run, so short deadlines are coarse.
 - **Spam.** The book is open: anyone can issue invoices against any client key. An invoice only matters to a client who chooses to fund it.
 
+## Trust in the indexer
+
+The CLI verifies what the indexer serves against the network's validator sets (`ootle-rs`, `IndexerTrust::Verify`). A fresh run anchors on the latest end-of-epoch checkpoint and then refuses inputs proven in an earlier epoch, which is exactly the case of an escrow refunded after its deadline. The first refund attempt failed that way on 29-oct-2026, right after the epoch moved from 12705 to 12706. The CLI now saves the trusted validator set after each transaction (`.hexcrow/trust.json`) and walks the signed handovers from it on the next run. `hexcrow anchor-trust <epoch>` anchors on an earlier checkpoint for a first run; like any first-use anchor, it takes the indexer at its word for that one checkpoint, and every later handover is checked against signatures. The refund of invoice 2 (4532b675…) went through after anchoring on the checkpoint ending epoch 12704.
+
+The web demo reads the indexer without verifying proofs. It shows what the indexer reports and labels it as such.
+
 ## Out of scope for this build
 
 Wallet compromise, indexer availability, and the cryptographic soundness of the Ootle engine itself.

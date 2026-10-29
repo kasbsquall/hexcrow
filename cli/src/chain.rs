@@ -21,7 +21,11 @@ use ootle_rs::{
     },
     wallet::OotleWallet,
 };
+use ootle_rs::provider::SavedValidatorSet;
 use serde_json::{Value, json};
+use tari_indexer_client::{rest_api_client::IndexerRestApiClient, types::ListEpochCheckpointsRequest};
+use tari_ootle_common_types::shard::Shard;
+use tari_ootle_light_client::TrustedValidatorSet;
 use tari_ootle_transaction::{Epoch, TransactionBuilder, UnsignedTransaction};
 
 use ootle_rs::{provider::{Provider as _, WalletProvider as _}, transaction::TransactionSigner as _};
@@ -62,6 +66,12 @@ impl Session {
             .connect_with_transaction_timeout(default_indexer_url(NETWORK), Duration::from_secs(180))
             .await
             .context("connecting to the Esmeralda indexer")?;
+        // Walk on from the validator set an earlier run trusted. A fresh provider anchors on the latest
+        // checkpoint and then refuses inputs proven in an earlier epoch, which is exactly what an escrow
+        // spent after its deadline is.
+        if let Some(saved) = load_trust()? {
+            provider.restore_validator_set(saved).await?;
+        }
         Ok(Self {
             persona: acting.to_string(),
             address,
@@ -245,7 +255,58 @@ pub async fn send(session: &mut Session, label: &str, priced: &Priced) -> Result
         receipt,
     };
     log_evidence(label, &session.persona, &submitted, json!({ "dry_run": priced.dry_run }))?;
+    save_trust(&session.provider).await?;
     Ok(submitted)
+}
+
+fn trust_path() -> PathBuf {
+    PathBuf::from(".hexcrow/trust.json")
+}
+
+fn load_trust() -> Result<Option<SavedValidatorSet>> {
+    let p = trust_path();
+    if !p.exists() {
+        return Ok(None);
+    }
+    Ok(Some(serde_json::from_str(&std::fs::read_to_string(p)?).context("parsing saved validator-set trust")?))
+}
+
+/// Saves the validator set this provider trusts now, so the next run walks on from it.
+pub async fn save_trust(provider: &Provider) -> Result<()> {
+    if let Some(saved) = provider.saved_validator_set().await {
+        std::fs::create_dir_all(".hexcrow")?;
+        std::fs::write(trust_path(), serde_json::to_string_pretty(&saved)?)?;
+    }
+    Ok(())
+}
+
+/// Trusts the validator set that the checkpoint ending `epoch` hands over to, as a first-use anchor does with
+/// the latest checkpoint. Later runs walk the signed handovers from there, so inputs proven in that next epoch
+/// verify again.
+pub async fn anchor_trust(epoch: u64) -> Result<()> {
+    let client = IndexerRestApiClient::connect(default_indexer_url(NETWORK))?;
+    let entry = client
+        .list_epoch_checkpoints(ListEpochCheckpointsRequest {
+            from_epoch: Some(Epoch(epoch)),
+            limit: Some(1),
+            shard: Some(Shard::first()),
+            include_committees: true,
+        })
+        .await?
+        .checkpoints
+        .into_iter()
+        .find(|c| c.epoch == Epoch(epoch))
+        .ok_or_else(|| anyhow!("the indexer serves no checkpoint ending epoch {epoch}"))?;
+    let validator_set = TrustedValidatorSet::anchor_on_first_use(NETWORK, Shard::first(), &entry)?;
+    let saved = SavedValidatorSet {
+        validator_set,
+        synced_at: std::time::SystemTime::now(),
+        walk_failing_since: None,
+    };
+    std::fs::create_dir_all(".hexcrow")?;
+    std::fs::write(trust_path(), serde_json::to_string_pretty(&saved)?)?;
+    println!("anchored validator-set trust on the checkpoint ending epoch {epoch}");
+    Ok(())
 }
 
 pub fn evidence_path() -> PathBuf {

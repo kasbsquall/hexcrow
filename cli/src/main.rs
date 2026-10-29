@@ -76,6 +76,8 @@ enum Cmd {
     Attack { invoice: u64, kind: String },
     /// Print what each party can read about an invoice, as JSON for the web demo.
     Inspect { invoice: u64 },
+    /// Trust the validator set handed over by the checkpoint ending EPOCH, for a first run after that epoch.
+    AnchorTrust { epoch: u64 },
 }
 
 #[derive(Default, Serialize, Deserialize)]
@@ -187,6 +189,7 @@ async fn main() -> Result<()> {
         Cmd::Refund { invoice } => spend_escrow(&personas, &mut state, invoice, true).await?,
         Cmd::Attack { invoice, kind } => attack(&personas, &mut state, invoice, &kind).await?,
         Cmd::Inspect { invoice } => inspect(&personas, &state, invoice).await?,
+        Cmd::AnchorTrust { epoch } => chain::anchor_trust(epoch).await?,
     }
     save_state(&state)?;
     Ok(())

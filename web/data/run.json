@@ -135,6 +135,14 @@
           "tx": "26e0116722f7acb641d48447fe917e2534fd87ef55d48876f4979b97cc0cd08f",
           "accepted": true,
           "fee_micro_tari": 17039
+        },
+        {
+          "kind": "refund",
+          "label": "Refunded to the client after the deadline",
+          "actor": "client",
+          "tx": "4532b675c4eb558ca78f09e95f5b15679579e45d4959d9082507a8f30f557741",
+          "accepted": true,
+          "fee_micro_tari": 10846
         }
       ]
     }
