@@ -1,3 +1,5 @@
 target/
 .hexcrow/
 *.min.wasm
+.ui-direcciones/
+.playwright-mcp/
