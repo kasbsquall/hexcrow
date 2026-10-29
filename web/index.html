@@ -56,7 +56,7 @@
 
   <div class="work">
     <section class="rise" style="--d:2" aria-label="Invoice">
-      <p class="pick" id="pick"><i class="ph-light ph-files" aria-hidden="true"></i><span>Same invoice, four copies. Pick whose copy you hold: a box that did not transfer to that copy is data its holder cannot see.</span></p>
+      <p class="pick" id="pick"><i class="ph-light ph-files" aria-hidden="true"></i><span>One invoice, four copies. Pick whose copy you hold: what did not transfer to a copy is what its holder cannot see.</span></p>
       <div class="tabs" role="tablist" aria-label="Whose copy of the invoice">
         <button class="tab" role="tab" data-v="public" id="tab-public" aria-controls="sheet" aria-selected="true" tabindex="0"><i class="ph-light ph-globe-simple" aria-hidden="true"></i><span class="t">Public</span><span class="n">Anyone with the chain</span></button>
         <button class="tab" role="tab" data-v="client" id="tab-client" aria-controls="sheet" aria-selected="false" tabindex="-1"><i class="ph-light ph-buildings" aria-hidden="true"></i><span class="t">Client</span><span class="n">Locks and approves</span></button>
@@ -71,14 +71,6 @@
         <span class="under u1" aria-hidden="true"></span><span class="under u2" aria-hidden="true"></span><span class="under u3" aria-hidden="true"></span>
         <article class="sheet" id="sheet" role="tabpanel" aria-labelledby="tab-public" tabindex="0"></article>
       </div>
-      <section class="versus" aria-labelledby="vs-h">
-        <h2 id="vs-h"><i class="ph-light ph-eye" aria-hidden="true"></i>The same invoice on a transparent chain</h2>
-        <p class="lead">An escrow contract on a transparent ledger keeps its balance and its callers in public view. Here is what each side would show for this invoice.</p>
-        <table>
-          <thead><tr><th scope="col">Fact</th><th scope="col">Transparent escrow contract</th><th scope="col">Hexcrow on Tari Ootle</th></tr></thead>
-          <tbody id="vs-body"></tbody>
-        </table>
-      </section>
     </section>
 
     <aside class="rise" style="--d:3">
@@ -92,12 +84,19 @@
         <ol class="stubs" id="stubs"></ol>
       </section>
     </aside>
+    <section class="versus rise" style="--d:4" aria-labelledby="vs-h">
+      <h2 id="vs-h"><i class="ph-light ph-eye" aria-hidden="true"></i>The same invoice on a transparent chain</h2>
+      <p class="lead">An escrow contract on a transparent ledger keeps its balance and its callers in public view. Here is what each side would show for this invoice.</p>
+      <table>
+        <thead><tr><th scope="col">Fact</th><th scope="col">Transparent escrow contract</th><th scope="col">Hexcrow on Tari Ootle</th></tr></thead>
+        <tbody id="vs-body"></tbody>
+      </table>
+    </section>
   </div>
 
   <footer class="rise" style="--d:4">
     <span><i class="ph-light ph-test-tube" aria-hidden="true"></i><span id="f-tests">Engine tests of the compiled template</span></span>
     <span><i class="ph-light ph-scales" aria-hidden="true"></i>MIT</span>
-    <span><i class="ph-light ph-calendar-blank" aria-hidden="true"></i>Code written during October 2026</span>
     <span><i class="ph-light ph-database" aria-hidden="true"></i>Indexer: <a href="https://ootle-indexer-a.tari.com/info">ootle-indexer-a.tari.com</a></span>
     <span><i class="ph-light ph-music-notes" aria-hidden="true"></i>Sounds: Kenney, CC0</span>
   </footer>

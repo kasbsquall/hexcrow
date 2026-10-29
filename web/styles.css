@@ -85,7 +85,8 @@ h1{ font-size: 40px; line-height: 1.05; font-weight: 650; letter-spacing: -.025e
 .intro .how{ font-size: 13px; line-height: 1.45; color: var(--ink-soft); display: grid; grid-template-columns: auto 1fr; gap: 6px 10px; align-items: start; }
 .intro .how .ph-light{ font-size: 20px; }
 
-.work{ display: grid; grid-template-columns: minmax(0, 900px) 360px; gap: 40px; align-items: start; }
+.work{ display: grid; grid-template-columns: minmax(0, 900px) 360px; grid-template-areas: "form aside" "versus aside"; grid-template-rows: auto 1fr; gap: 0 40px; align-items: start; }
+.work > section:first-child{ grid-area: form; } .work > aside{ grid-area: aside; } .work > .versus{ grid-area: versus; }
 
 /* Copy tabs: torn stubs of a pad */
 .tabs{ display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; align-items: end; }
@@ -237,6 +238,7 @@ aside .count{ font-size: 13px; color: var(--ink-soft); margin-top: 2px; }
 .stub .why{ font-size: 12px; color: var(--sello-ink); margin-top: 3px; font-weight: 500; }
 .stub .ver{ display: inline-flex; gap: 4px; align-items: center; }
 .stub .ver[data-state="ok"]{ color: var(--verde); font-weight: 600; }
+.stub .ver[data-state="neutral"]{ color: var(--ink-soft); font-weight: 600; }
 .stub .ver[data-state="bad"]{ color: var(--sello-ink); font-weight: 600; }
 .stub .mini{ position: absolute; right: 8px; top: 10px; width: 84px; transform: rotate(-6deg); }
 .stub.rej .mini{ color: var(--sello); transform: rotate(5deg); }
@@ -257,6 +259,8 @@ footer span{ display: inline-flex; gap: 6px; align-items: center; }
 /* Responsive */
 @media (max-width: 1180px){
   .intro, .work{ grid-template-columns: minmax(0, 1fr); }
+  .work{ grid-template-areas: "form" "aside" "versus"; grid-template-rows: none; }
+  .work > aside{ margin-top: 48px; }
   .intro .how{ max-width: 60ch; }
   aside{ max-width: 640px; }
   .reg{ display: none; }
@@ -313,12 +317,13 @@ html[data-view="contractor"] .under.u2{ background: var(--original); }
 html[data-view="accountant"] .under.u3{ background: var(--original); }
 .reg.tr, .reg.br{ right: -36px; } .reg.bl, .reg.br{ bottom: -20px; }
 
-.ghostnum{ font-size: 76px; font-weight: 650; letter-spacing: -.035em; line-height: .9; color: transparent;
-  text-shadow: 0 0 14px color-mix(in oklab, var(--carbon) 30%, transparent); user-select: none; }
+/* A fixed-width blot: its size never depends on the hidden value */
+.ghostnum{ display: block; width: 150px; height: 58px; border-radius: 30px; filter: blur(9px);
+  background: color-mix(in oklab, var(--carbon) 22%, transparent); }
 .b-amount.hidden{ display: flex; flex-direction: column; }
 .b-amount.hidden .notcopy{ margin-top: 10px; align-self: flex-start; }
 
-.versus{ margin-top: 48px; background: color-mix(in oklab, var(--original) 70%, transparent); padding: 18px 20px 8px; border-radius: var(--r); }
+.versus{ margin-top: 56px; background: color-mix(in oklab, var(--original) 70%, transparent); padding: 18px 20px 8px; border-radius: var(--r); }
 .versus h2{ font-size: 18px; font-weight: 650; letter-spacing: -.015em; display: flex; gap: 8px; align-items: center; }
 .versus h2 .ph-light{ font-size: 20px; }
 .versus .lead{ font-size: 13px; color: var(--ink-soft); margin-top: 4px; max-width: 70ch; }

@@ -108,9 +108,9 @@
     const committed = fin.final_decision === 'Commit' && kind === 'Accept';
     const when = fin.finalized_time ? `, ${fin.finalized_time.slice(0, 16)} UTC` : '';
     if (committed !== row.accepted) return { state: 'bad', text: 'Indexer disagrees with the recording' };
-    if (committed) return { state: 'ok', text: `On chain: committed${when}` };
-    if (kind === 'AcceptFeeRejectRest') return { state: 'ok', text: `On chain: rejected, fee charged${when}` };
-    return { state: 'ok', text: 'On chain: rejected, nothing committed' };
+    if (committed) return { state: 'ok', text: `Confirmed on the indexer${when}` };
+    if (kind === 'AcceptFeeRejectRest') return { state: 'neutral', text: `Rejection confirmed on the indexer, fee kept${when}` };
+    return { state: 'neutral', text: 'Rejection confirmed on the indexer, nothing committed' };
   }
 
   async function refreshNetwork() {
@@ -141,7 +141,7 @@
     }));
     renderStubs();
     const all = [...state.verdicts.values()];
-    if (byUser && all.every((v) => v.state === 'ok')) sound.play('verified');
+    if (byUser && all.every((v) => v.state === 'ok' || v.state === 'neutral')) sound.play('verified');
   }
 
   // ---- derived facts -----------------------------------------------------------------------
@@ -196,8 +196,13 @@
   }
 
   function deadlineBox(i) {
+    const { status } = liveStatus(i);
     let now;
-    if (epochKnown()) {
+    if (status === 'Settled' || status === 'Approved') {
+      now = 'Approved before the deadline';
+    } else if (status === 'Refunded') {
+      now = 'Refunded after the deadline';
+    } else if (epochKnown()) {
       const left = i.deadline_epoch - state.epoch;
       now = `Current epoch ${ep(state.epoch)}, ${left > 0 ? `${left} ${left === 1 ? 'epoch' : 'epochs'} left` : 'deadline passed'}`;
     } else {
@@ -210,7 +215,7 @@
     const p = i.parties_only;
     if (!SEES_PRIVATE[view]) {
       return `<div class="box s4 b-text hidden"><p class="lab">${icon('file-text')}Invoice text</p>${notOnCopy('the invoice text')}</div>
-        <div class="box s2 b-amount hidden"><p class="lab">${icon('coins')}Amount</p>${smudge()}<p class="ghostfig" aria-hidden="true"><span class="ghostnum">000</span><span class="unit">tTARI</span></p><span class="notcopy">${icon('lock-simple')}Not on this copy<span class="sr-only">: the amount is hidden from this holder</span></span></div>`;
+        <div class="box s2 b-amount hidden"><p class="lab">${icon('coins')}Amount</p>${smudge()}<p class="ghostfig" aria-hidden="true"><span class="ghostnum"></span><span class="unit">tTARI</span></p><span class="notcopy">${icon('lock-simple')}Not on this copy<span class="sr-only">: the amount is hidden from this holder</span></span></div>`;
     }
     const given = view === 'accountant' ? ', given to the accountant' : '';
     return `<div class="box s4 b-text"><p class="lab">${icon('file-text')}Invoice text${given}</p><p class="val">${esc(p.text)}</p></div>
@@ -370,7 +375,7 @@
     state.paintedInvoice = i.no;
     $('stubs').innerHTML = rows.map((r, n) => {
       const v = state.verdicts.get(r.tx) || { state: 'wait', text: 'Checking on chain' };
-      const verdictIcon = { ok: 'seal-check', bad: 'warning', off: 'cloud-slash', wait: 'circle-notch' }[v.state];
+      const verdictIcon = { ok: 'seal-check', neutral: 'seal-check', bad: 'warning', off: 'cloud-slash', wait: 'circle-notch' }[v.state];
       const fee = r.fee_micro_tari ? `<span>Fee ${num(r.fee_micro_tari)} µT</span>` : '<span>No fee</span>';
       return `<li class="stub ${r.accepted ? 'ok' : 'rej'}" style="--i:${Math.min(n, 7)}">
         <span class="i">${n + 1}</span>
