@@ -22,7 +22,7 @@ colors:
   candle: "oklch(83% .12 80)"
   sello-night: "oklch(68% .16 27)"
   verde-night: "oklch(76% .1 155)"
-  moon: "oklch(94% .035 92 / .26)"
+  moon: "oklch(90% .03 92)"
 typography:
   display:
     fontFamily: "Figtree, sans-serif"
@@ -97,7 +97,6 @@ typography:
 rounded:
   paper: "2px"
   dot: "50%"
-  blot: "30px"
 spacing:
   hair: "4px"
   xs: "6px"
@@ -201,7 +200,7 @@ The form is one ruled object. It is never split into floating tiles with their o
 - Paper colour encodes the viewer; the sheet re-points `--copy` when the viewer changes.
 - Two inks: carbon on paper, bone on night. Each status colour has a paper version and a night version.
 - Ruled boxes with shared hairlines, one 2px corner everywhere, no card chrome.
-- Hidden values are smudges and blots of fixed size, never shapes of the data.
+- Hidden values are a security-envelope tint of fixed pattern, never shapes of the data.
 - Every public fact is read live from the indexer, with labelled skeletons while it loads and an explicit recorded fallback.
 - Candle yellow is the only light on the desk.
 
@@ -210,7 +209,7 @@ The form is one ruled object. It is never split into floating tiles with their o
 Five paper stocks, one carbon ink and a stamp red on the paper; a cool night desk, bone ink and one candle on the ground.
 
 ### Primary
-- **Candle** (candle): the only warm light on the night. The focus ring on the desk, the live network pulse and its glow, the ring around the current invoice in the book, the border and icons of the "Replay the attacks" link, the icons beside "What Hexcrow adds", the crow's eye, the text selection tint (34% mix), and a THROUGH verdict if an attack were ever accepted.
+- **Candle** (candle): the only warm light on the night. The focus ring on the desk, the live network pulse, the ring around the current invoice in the book, the border and icons of the "Replay the attacks" link, the icons beside "What Hexcrow adds", the crow's eye, the text selection tint (34% mix), and a THROUGH verdict if an attack were ever accepted.
 
 ### Secondary
 - **Stamp Red** (sello): the SETTLED and REFUNDED stamps on the sheet, the REFUSED mini stamp on stubs, the wax of the escrow seal, and the dot beside a recorded (not live) status.
@@ -250,8 +249,8 @@ Five paper stocks, one carbon ink and a stamp red on the paper; a cool night des
 **Character:** One quiet humanist sans does everything, as on a printed form; hierarchy comes from extreme scale contrast and weight 650, never from a second family. The one exception is a terminal transcript, set in mono because that is what it is. The body sets `tabular-nums lining-nums slashed-zero` for the whole page.
 
 ### Hierarchy
-- **Display** (650, 76px, 0.9, -0.035em; 64px under 720px): the amount on a copy that may see it, and the attack count in the intro proof (line-height 0.86, -0.04em). Sits next to a 12 or 13px label in the same block, a jump of about 6x.
-- **Tally** (650, 56px, 0.9, -0.04em): the count of attacks the chain refused in the run, at the head of "Try to steal it"; a 13px line under it reports what the visitor's replays found.
+- **Display** (650, 76px, 0.9, -0.035em; 64px under 720px): the amount on a copy that may see it. The attack count that opens the right column runs larger, 104px (64px under 720px), line-height 0.86, -0.04em. Sits next to a 12 or 13px label in the same block, a jump of about 6x.
+- **Tally** (650, 20px, beside a 15px "of N refused on Esmeralda"): the count of attacks the chain refused in the run, at the head of "Try to steal it", kept small so the display figure appears once on the page; a 13px line under it reports what the visitor's replays found.
 - **Headline** (650, clamp 34 to 45px, 1.04, -0.03em, balanced, one line at 1440px; 32px under 720px): the page h1 only.
 - **Number** (600, 28px, 1.05, -0.02em): the invoice number on the form. Proof figures in the intro row run at 650, 24px.
 - **Title** (650, 22px, -0.02em): the form title "Hexcrow invoice" and the section headings on the desk (-0.018em, with a 24px icon). The copy picker heading steps to 17px.
@@ -282,20 +281,19 @@ Spacing groups tight and separates wide: 4px between tabs and invoice rows, 6 to
 
 ## Elevation & Depth
 
-Depth is physical paper on a dark desk. The active sheet lies on top of the other copies, offset 6, 12 and 18px down and right in their own paper colours at 92% brightness, each edged with a 1px night line and the nearest painted on top, so three stocks read apart (Canario, Rosa, Azul; the active viewer's own stock is swapped for Original). Unselected tabs sit 6px lower at 86% brightness. Tabs and stubs carry perforations made of night-coloured dots. The desk itself has two radial glows (a cool blue pool behind the form and a faint warm one at the top right) and a fixed SVG noise layer at 0.55 opacity in soft-light. Shadows are few and tinted with the night hue, never pure black.
+Depth is physical paper on a dark desk. The active sheet lies on top of the other copies, fanned 10/8, 18/14 and 26/20px down and right and turned 0.9, -0.7 and 1.5 degrees, in their own paper colours at 92% brightness, each edged with a 1px night line and the nearest painted on top, so three stocks read apart (Canario, Rosa, Azul; the active viewer's own stock is swapped for Original). Unselected tabs sit 6px lower at 86% brightness. Tabs and stubs carry perforations made of night-coloured dots. The desk itself has two radial glows (a cool blue pool behind the form and a faint warm one at the top right) and a fixed SVG noise layer at 0.55 opacity in soft-light. Shadows are few and tinted with the night hue, never pure black.
 
 ### Shadow Vocabulary
 - **Sheet** (`box-shadow: 0 30px 60px -30px oklch(5% .02 265 / .9), 0 0 0 1px oklch(5% .02 265 / .3)`): the active form only; it lifts the paper off the desk.
 - **Box rules** (`box-shadow: 1px 0 0 var(--rule), 0 1px 0 var(--rule)`): the shared hairlines between ruled boxes, drawn as shadows so neighbours share one line.
 - **Current invoice ring** (`box-shadow: 0 0 0 2px var(--candle), 0 10px 24px -14px oklch(5% .02 265 / .9)`): the invoice being shown in the book.
-- **Live pulse glow** (`box-shadow: 0 0 10px var(--candle)`): the network dot while the indexer answers; removed when offline or waiting.
 
 ### Named Rules
 **The Stacked Pad Rule.** Depth means another sheet of paper. Offsets between copies are the world's own device and stay in the paper colours; do not replace them with a generic drop shadow, and do not add shadows to boxes inside the sheet.
 
 ## Shapes
 
-Every surface takes the same 2px corner: tabs (top corners only), the sheet and under-copies (bottom corners only), chips, invoice rows, buttons, skeletons, tags and the focus ring. Circles are reserved for status dots, the stub index ring (26px) and the attacker avatar ring (34px). The only soft shapes are the 30px-radius blurred blot that stands in for a hidden figure and the scalloped wax seal. Boxes have no borders of their own; they are ruled by 1px hairlines shared with their neighbours under a strong top rule, and the accountant's check is separated by a dashed rule. Stamps are double-ruled frames with 3px and 1.5px corners, roughened by an ink displacement filter and always rotated (-8 degrees on the sheet, -6 and 5 on stubs, -7 in the attack list).
+Every surface takes the same 2px corner: tabs (top corners only), the sheet and under-copies (bottom corners only), chips, invoice rows, buttons, skeletons, tags and the focus ring. Circles are reserved for status dots, the stub index ring (26px) and the attacker avatar ring (34px). The only soft shape is the scalloped wax seal. Boxes have no borders of their own; they are ruled by 1px hairlines shared with their neighbours under a strong top rule, and the accountant's check is separated by a dashed rule. Stamps are double-ruled frames with 3px and 1.5px corners, roughened by an ink displacement filter and always rotated (-8 degrees on the sheet, -6 and 5 on stubs, -7 in the attack list).
 
 ## Components
 
@@ -306,13 +304,13 @@ A dark strip (night mixed 70% with black), 52px tall (48px on mobile), with cell
 Torn stubs of the pad. A five-column row, 4px apart, each tab in its own viewer's paper with a 22px icon, the viewer name (650, 15px) and a one-line role ("Checks the books"). Unselected tabs sit 6px lower and dimmed with a perforated bottom edge; hover lifts to 2px and clears the dim, press goes to 4px with scale 0.99, the selected tab sits flush and joins the sheet. Transitions 160ms. Arrow keys, Home and End move between them. The focus ring on a tab is carbon, inset 4px.
 
 ### The crow
-An inline SVG crow (136 by 102px, 64 by 48px on mobile) perched on the top edge of the tab row at the right, feet on the last stub, ignoring the pointer, in front of a moon: a 220px disc (120px on mobile) drawn as a radial gradient of warm bone from 26% to 4% alpha, lit from the upper left, behind the tabs. The crow rises 6px with the accountant's tab when that copy is on top, and hops 9px (280ms, added to its other motion) whenever the copy changes. Its body is near-black night ink with a bone rim and a candle eye. Every 11s (starting after 2s) it pecks: a short rotation to -7, 2 and -3 degrees over the last 14% of the loop on the move easing. The same crow, in bone with a night eye, sits inside the brand mark.
+A printed crow (192px wide, 92px on phones; `web/crow.webp`, 600 by 479px): a steel-engraving illustration in carbon blue-black hatching on cream paper with a cut paper edge, generated for this page and cropped to the bird, perched on the top edge of the tab row at the right, feet on the last stub, ignoring the pointer, in front of a moon: a 150px disc (76px on phones) of warm paper lit from the upper left with an inset phase shadow, behind the tabs. The crow rises 6px with the accountant's tab when that copy is on top, and hops 9px (280ms, added to its other motion) whenever the copy changes. Every 11s (starting after 2s) it pecks: a short rotation to -7, 2 and -3 degrees over the last 14% of the loop on the move easing. The same crow, in bone with a night eye, sits inside the brand mark.
 
 ### Ruled box (form field)
 Padding 12px 16px 14px (10px 14px 12px on mobile). A 12px semibold label with an icon, then the value. The status box adds a line saying where the fact came from: a green dot and "Read live from the book", or a red dot and "Recorded status, indexer unreachable". The first box under the title is a caption, lightly tinted with carbon, that says in 17px what this copy is.
 
 ### Hidden box (not on this copy)
-A box whose data did not transfer keeps its label, fills with an SVG carbon smudge stretched to the box that drifts slowly (9s, opacity 0.55 to 0.38 and 6px sideways), and shows a "Not on this copy" chip with a lock icon plus screen-reader text naming what is hidden. A hidden amount draws a fixed 150 by 58px blot (30px radius, 9px blur, carbon at 22%) next to the unit.
+A box whose data did not transfer keeps its label, fills with a fixed security-envelope tint (two crossed repeating lines of carbon at 17% and 9%), and shows a "Not on this copy" chip with a lock icon plus screen-reader text naming what is hidden. A hidden amount draws a fixed 150 by 58px block of denser diagonal lines (carbon at 26%) next to the unit, so the stamp stays the strongest mark on the sheet.
 
 ### Stamp
 Inline SVG over the form's top edge, rotated -8 degrees, up to 200px wide and shrinking with the sheet so it never covers the invoice number. Red for SETTLED and REFUNDED, carbon at 0.8 for ISSUED, FUNDED and APPROVED. When the copy or invoice changes it lands from scale 1.04 through 0.95 to 1 (220ms, 140ms delay). Mini stamps (84px) mark each stub COMMITTED (carbon) or REFUSED (red).
@@ -354,7 +352,7 @@ Three Kenney CC0 clips at volume 0.28, played only from a user gesture and silen
 ### Do:
 - **Do** give every viewer its own paper (Public Original, Client Canario, Contractor Rosa, Mediator Salvia, Accountant Azul) and derive the sheet from `--copy`.
 - **Do** keep paper light and the desk dark: carbon ink on paper, bone ink on night, and the night form of a status colour (sello-night, verde-night, candle) whenever it sits on the desk.
-- **Do** draw hidden values as value-independent smudges: a smudge stretched to the box and a fixed 150 by 58px blot, plus the "Not on this copy" chip with its lock and screen-reader text.
+- **Do** draw hidden values as value-independent tint: the envelope pattern stretched to the box and a fixed 150 by 58px block, plus the "Not on this copy" chip with its lock and screen-reader text.
 - **Do** read status, epoch and verdicts live from the indexer, show a labelled skeleton while reading, and on failure fall back to the recorded run with an explicit "recorded" or "indexer unreachable" note and the red dot.
 - **Do** put a Phosphor Light icon on box labels, stub verdicts, actions, attack rows, section headings and table rows, at one stroke weight.
 - **Do** keep movement on transform and opacity under 300ms, with the reduced-motion override covering every animation and transition.
@@ -362,7 +360,7 @@ Three Kenney CC0 clips at volume 0.28, played only from a user gesture and silen
 
 ### Don't:
 - **Don't** stamp anything that is not a verdict, and don't use stamp red for decoration, fills or headings.
-- **Don't** size, shape or blur a hidden value from its real length or magnitude; the smudge must look the same for 1 tTARI and 1,000,000.
+- **Don't** size, shape or blur a hidden value from its real length or magnitude; the tint must look the same for 1 tTARI and 1,000,000.
 - **Don't** paint a default value (0, "Issued", an empty hash) while the indexer is answering.
 - **Don't** split the form into floating cards with their own shadows and radii; it stays one ruled sheet on a stacked pad.
 - **Don't** use pure black or pure white; the desk is night and the lightest paper is Original.
