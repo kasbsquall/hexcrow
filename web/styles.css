@@ -76,9 +76,8 @@ button{ font: inherit; }
 }
 .bar > *{ display: flex; align-items: center; padding: 0 20px; }
 .bar > * + *{ border-left: 1px solid var(--night-rule); }
-.brand{ gap: 10px; font-weight: 700; font-size: 17px; letter-spacing: -.01em; }
+.brand{ gap: 5px; font-weight: 700; font-size: 17px; letter-spacing: -.01em; }
 .brand .mark{ width: 28px; height: 28px; color: var(--bone); }
-.brand .mark use{ color: var(--bone); }
 .bar .guided{ font-size: 13px; color: var(--bone-2); gap: 8px; }
 .bar .net{ gap: 10px; font-size: 13px; }
 .bar .net b{ font-weight: 600; }
@@ -104,6 +103,8 @@ h2{ text-wrap: balance; }
 /* Intro: the claim on one line where it fits; the sub stays clear of the crow on the right */
 .intro{ margin-bottom: 26px; }
 h1{ font-size: clamp(34px, 3.15vw, 45px); line-height: 1.04; font-weight: 650; letter-spacing: -.03em; text-wrap: balance; }
+.watch{ display: flex; gap: 8px; align-items: center; margin-top: 14px; font-size: 15px; color: var(--bone); }
+.watch i{ font-size: 18px; color: var(--bone-2); }
 .sub{ font-size: 16px; line-height: 1.5; max-width: min(64ch, calc(100% - 210px)); margin-top: 12px; color: var(--bone-2); text-wrap: pretty; }
 
 /* What ran: the first block of the right column */
@@ -172,7 +173,6 @@ h1{ font-size: clamp(34px, 3.15vw, 45px); line-height: 1.04; font-weight: 650; l
 .moon{ position: absolute; z-index: -1; right: 0; bottom: calc(100% - 22px); width: 150px; height: 150px; border-radius: 50%; pointer-events: none;
   background: radial-gradient(circle at 38% 36%, oklch(90% .03 92), oklch(84% .03 90) 70%, oklch(80% .03 88));
   box-shadow: inset -22px -14px 0 oklch(72% .03 88 / .45), 0 0 60px 6px oklch(86% .04 90 / .12); }
-.brand .mark{ --crow-body: var(--bone); --crow-wing: oklch(70% .02 262); --crow-eye: var(--night); }
 @keyframes peck{ 0%, 86%, 100%{ transform: none; } 89%{ transform: rotate(-7deg) translateY(-1px); } 92%{ transform: rotate(2deg); } 95%{ transform: rotate(-3deg); } }
 
 /* The form */
