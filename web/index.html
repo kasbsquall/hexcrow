@@ -54,7 +54,7 @@
     <svg class="mark" viewBox="0 0 100 100" aria-hidden="true"><path d="M50 4 89.8 27v46L50 96 10.2 73V27Z" fill="currentColor" stroke="currentColor" stroke-width="4.5" stroke-linejoin="round"/><use href="#crow" x="16.5" y="25" width="67.2" height="53.65" style="color:var(--night)"/></svg>
     Hexcrow
   </div>
-  <div class="guided"><i class="ph-light ph-film-strip" aria-hidden="true"></i><span>Replay of a real run, checked live on the public indexer.</span></div>
+  <div class="guided"><i class="ph-light ph-film-strip" aria-hidden="true"></i><span id="guided">Replay of a real run, checked live on the public indexer.</span></div>
   <div class="net" aria-live="polite"><span class="pulse" id="pulse" data-state="wait" aria-hidden="true"></span><span id="net-text"><span class="hide-sm">Esmeralda testnet, epoch</span><span class="show-sm">Epoch</span> <span class="sk" aria-label="Reading the current epoch"></span></span></div>
   <button class="mute" id="mute" type="button" aria-pressed="true"><i class="ph-light ph-speaker-simple-high" aria-hidden="true"></i><span class="lbl">Sound</span></button>
 </header>
@@ -64,7 +64,8 @@
     <div class="intro rise" style="--d:0">
       <h1>Milestone escrow nobody else can read.</h1>
       <p class="sub">A contractor invoices, the client locks the money, approval releases it, and a mediator both sides chose settles a dispute. On Tari Ootle the amount, the work and the parties stay hidden; the rules, the fees and the status are public.</p>
-      <p class="watch"><i class="ph-light ph-play-circle" aria-hidden="true"></i><a href="https://youtu.be/mIA5McSGTiA">Watch this run in a two-minute video</a></p>
+      <p class="watch"><i class="ph-light ph-play-circle" aria-hidden="true"></i><a href="https://youtu.be/mIA5McSGTiA">Watch the October 29 run in a two-minute video</a></p>
+      <p class="watch" id="runs"></p>
       <noscript><p class="sub">This page reads the public indexer with JavaScript. The run it replays: four invoices on Esmeralda testnet on 29 October 2026. One was approved and claimed, one paid to the contractor by the mediator’s ruling, one returned to the client by a ruling, and one refunded after its claim window. Ten attacks were sent to Esmeralda and the chain refused all ten. Every transaction, and how to check it yourself: <a href="https://github.com/kasbsquall/hexcrow/blob/main/PROOF.md">PROOF.md</a>.</p></noscript>
     </div>
 

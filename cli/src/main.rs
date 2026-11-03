@@ -13,6 +13,9 @@ use chain::{Prepared, Session, Spend, utxo_input, with_stealth_fee};
 use clap::{Parser, Subcommand};
 use escrow::{EscrowTerms, Leaf, sha256};
 use ootle_rs::{
+    TransactionRequest,
+    builtin_templates::{UnsignedTransactionBuilder as _, faucet::IFaucet},
+    claim_burn::{ClaimBurn, MinotariBurnClaimProof},
     crypto::stealth::script_path_witness_with_data,
     stealth::Output,
     template_types::{
@@ -21,6 +24,7 @@ use ootle_rs::{
         TemplateAddress,
         bytes::Bytes,
         constants::TARI_TOKEN,
+        EncryptedData,
         crypto::PedersenCommitmentBytes,
         stealth::StealthInput,
     },
@@ -28,15 +32,15 @@ use ootle_rs::{
 use ootle_rs::{provider::{Provider as _, WalletProvider as _}, transaction::TransactionSigner as _};
 use personas::Personas;
 use serde::{Deserialize, Serialize};
-use tari_ootle_transaction::{TransactionBuilder, args};
+use tari_ootle_transaction::{Instruction, TransactionBuilder, args};
 use tari_utilities::hex::Hex;
 
 const TARI: u64 = 1_000_000;
 /// The longest claim window past the deadline a client agrees to fund, in epochs.
 const MAX_GRACE_EPOCHS: u64 = 48;
-const CARAVEL_FAUCET: &str = "component_568f84a0cc7ccfe49116ee86d072f02b99e246a4750e680a8cbfcd2b7862f37b";
-const CARAVEL_VAULT: &str = "vault_56c3c95ef08e843656e755100345d8fa0bf0a58853b40cd9d2894ab48a112ec6";
-const CARAVEL_RECEIPTS: &str = "resource_5694c70e0eaa25809e593c2f4ee85862b3fa71ea45d9ad01bf18f8accf35d621";
+/// Revealed from the claimed funds to pay a burn claim's fee, in µT. It is spent in full, so the
+/// claimed coin holds the burned amount less this.
+const CLAIM_MAX_FEE: u64 = 50_000;
 
 #[derive(Parser)]
 #[command(about = "Private milestone escrows on the Tari Ootle")]
@@ -49,8 +53,18 @@ struct Cli {
 enum Cmd {
     /// Show persona addresses and the current epoch.
     Status,
-    /// Claim 1,000 tTARI from the public Caravel faucet into a persona (created if new), as a private coin.
+    /// Claim 1,000 tTARI from the network faucet into a persona (created if new), as a private coin.
     Faucet { who: String },
+    /// Claim a burn made on the L1 into a persona (created if new), as one private coin. Without
+    /// `--proof`, print the claim key the L1 burn must be addressed to.
+    ClaimBurn {
+        who: String,
+        /// The burn proof file the L1 wallet writes once the burn is confirmed.
+        #[arg(long)]
+        proof: Option<PathBuf>,
+    },
+    /// Pay `amount_tari` from one persona's coins to another persona (created if new), as a private coin.
+    Give { from: String, to: String, amount_tari: u64 },
     /// Publish the hexcrow_book template (paid by the publisher persona).
     Publish { wasm: PathBuf },
     /// Create the invoice book component.
@@ -220,6 +234,15 @@ async fn main() -> Result<()> {
             personas.ensure(&who)?;
             faucet(&personas, &mut state, &who).await?
         },
+        Cmd::ClaimBurn { who, proof } => {
+            personas.ensure(&who)?;
+            claim_burn(&personas, &mut state, &who, proof).await?
+        },
+        Cmd::Give { from, to, amount_tari } => {
+            fee_coin(&state, &from)?;
+            personas.ensure(&to)?;
+            give(&personas, &mut state, &from, &to, amount_tari).await?
+        },
         Cmd::Publish { wasm } => publish(&personas, &mut state, wasm).await?,
         Cmd::NewBook => new_book(&personas, &mut state).await?,
         Cmd::Issue { doc, deadline_in, grace } => issue(&mut personas, &mut state, doc, deadline_in, grace).await?,
@@ -257,8 +280,9 @@ async fn faucet(personas: &Personas, state: &mut State, who: &str) -> Result<()>
     let me = s.address.clone();
     let my_key = s.account_key();
     let max_epoch = s.max_epoch().await?;
-    let faucet: ComponentAddress = CARAVEL_FAUCET.parse().map_err(|e| anyhow!("{e:?}"))?;
     let session = &s;
+    // The network's own faucet pays 1,000 tTARI into the persona's account; the same transaction
+    // withdraws all of it into one private coin and pays the fee from a revealed slice.
     let build = |fee: u64| {
         let me = me.clone();
         async move {
@@ -271,20 +295,12 @@ async fn faucet(personas: &Personas, state: &mut State, who: &str) -> Result<()>
                 statement: statement.clone(),
                 signatures,
             };
-            let tx = TransactionBuilder::new(session.provider.network(), max_epoch)
-                .with_auto_fill_inputs()
-                .add_input(faucet)
-                .add_input(CARAVEL_VAULT.parse::<ootle_rs::template_types::VaultId>().map_err(|e| anyhow!("{e:?}"))?)
-                .add_input(CARAVEL_RECEIPTS.parse::<ootle_rs::template_types::ResourceAddress>().map_err(|e| anyhow!("{e:?}"))?)
-                .add_input(TARI_TOKEN)
-                .with_fee_instructions_builder(|b| {
-                    b.call_method(faucet, "claim", args![my_key])
-                        .put_last_instruction_output_on_workspace("payout")
-                        .stealth_transfer_with_input_bucket(TARI_TOKEN, statement, "payout")
-                        .put_last_instruction_output_on_workspace("fee")
-                        .pay_fee_from_bucket("fee")
-                })
-                .build_unsigned();
+            let tx = IFaucet::new(&session.provider, max_epoch)
+                .take_faucet_funds()
+                .into_stealth_transfer(statement)
+                .and_pay_fee_from_revealed_output()
+                .prepare()
+                .await?;
             Ok((tx, prepared))
         }
     };
@@ -294,6 +310,92 @@ async fn faucet(personas: &Personas, state: &mut State, who: &str) -> Result<()>
     if res.0.accepted {
         let commitment = res.1.statement.stealth_outputs()[0].commitment().to_hex();
         state.coins.entry(who.to_string()).or_default().insert(commitment, claim - res.0.fee);
+    }
+    Ok(())
+}
+
+/// The burn proof file `minotari_console_wallet` writes (the wallet daemon's `ClaimBurnProofContents`).
+#[derive(Deserialize)]
+struct BurnProofFile {
+    claim_proof: MinotariBurnClaimProof,
+    encrypted_data: EncryptedData,
+}
+
+async fn claim_burn(personas: &Personas, state: &mut State, who: &str, proof: Option<PathBuf>) -> Result<()> {
+    let mut s = Session::connect(personas, who, &[]).await?;
+    let Some(proof) = proof else {
+        println!("claim public key for {who}: {}", s.account_key().to_hex());
+        return Ok(());
+    };
+    let text = fs::read_to_string(&proof).with_context(|| format!("reading {}", proof.display()))?;
+    let file: BurnProofFile = serde_json::from_str(&text).context("parsing the burn proof")?;
+    let value = file
+        .claim_proof
+        .value
+        .checked_sub(CLAIM_MAX_FEE)
+        .filter(|v| *v > 0)
+        .ok_or_else(|| anyhow!("the burn does not cover the claim fee of {CLAIM_MAX_FEE} µT"))?;
+    let max_epoch = s.max_epoch().await?;
+    // The L1 burn is addressed to a stealth key derived from the persona's account key, so the claim
+    // is sealed by that derived key; the claimed funds become one stealth output to the persona.
+    let (unsigned, sealer) = ClaimBurn::new(&s.provider, file.claim_proof, file.encrypted_data, max_epoch)
+        .with_max_fee(CLAIM_MAX_FEE)
+        .prepare()
+        .await?;
+    let commitment = unsigned
+        .fee_instructions()
+        .iter()
+        .chain(unsigned.instructions())
+        .find_map(|i| match i {
+            Instruction::StealthTransfer { statement, .. } => statement.stealth_outputs().first().map(|o| o.commitment().to_hex()),
+            _ => None,
+        })
+        .ok_or_else(|| anyhow!("the claim transaction has no stealth output"))?;
+    let label = format!("claim-burn:{who}");
+    let dry = s.provider.sign_and_send_dry_run_with(&sealer, unsigned.clone()).await?;
+    let verdict = format!("{:?}", dry.finalize.result);
+    let verdict = verdict.find("SubstateDiff").map_or(verdict.as_str(), |i| verdict[..i].trim_end_matches('(')).to_string();
+    println!("[{label}] dry run: {verdict}");
+    if verdict != "Accept" {
+        bail!("[{label}] dry run did not accept the claim: {verdict}");
+    }
+    let tx = TransactionRequest::default().with_transaction(unsigned).build(&sealer).await?;
+    let pending = s.provider.send_transaction(tx).await?;
+    let tx_id = pending.tx_id().to_string();
+    println!("[{label}] submitted {tx_id}");
+    let (outcome, accepted) = match pending.watch().await {
+        Ok(o) => (format!("{o:?}"), o.is_commit()),
+        Err(e) => (format!("rejected: {e}"), false),
+    };
+    println!("[{label}] {outcome}");
+    // The proof cannot be claimed twice: record the coin before anything else can fail.
+    if accepted {
+        println!("[{label}] coin {commitment}: {value} µT");
+        state.coins.entry(who.to_string()).or_default().insert(commitment, value);
+        save_state(state)?;
+    }
+    let submitted = chain::Submitted {
+        tx_id,
+        outcome,
+        accepted,
+        fee_committed: accepted,
+        fee: CLAIM_MAX_FEE,
+        receipt: None,
+    };
+    chain::log_evidence(&label, who, &submitted, serde_json::json!({ "dry_run": verdict }))?;
+    chain::save_trust(&s.provider).await?;
+    Ok(())
+}
+
+async fn give(personas: &Personas, state: &mut State, from: &str, to: &str, amount_tari: u64) -> Result<()> {
+    let amount = amount_tari.checked_mul(TARI).and_then(NonZeroU64::new).ok_or_else(|| anyhow!("amount must be positive"))?;
+    let to_address = personas.provider(to)?.address().clone();
+    let output = Output::new(to_address, TARI_TOKEN, amount);
+    let (res, prepared) = paid_call(personas, state, from, &format!("give:{from}:{to}"), vec![output], |tx| tx).await?;
+    if res.accepted {
+        // The given coin is the first stealth output; the payer's change comes last.
+        let commitment = prepared.statement.stealth_outputs()[0].commitment().to_hex();
+        state.coins.entry(to.to_string()).or_default().insert(commitment, amount.get());
     }
     Ok(())
 }

@@ -16,6 +16,12 @@
   const REFRESH_MS = 60000;
   const REPLAY_STEP_MS = 320;
   const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+  // Runs recorded before an Esmeralda reset. Their substates are gone from the chain, so such a run is
+  // read only from its archive: data/<id>/ and the results saved in evidence/indexer-results/.
+  const ARCHIVED = { '2026-10-29': { date: 'October 29', reset: 'November 2' } };
+  const RUN_ID = new URLSearchParams(location.search).get('run');
+  const archived = Object.hasOwn(ARCHIVED, RUN_ID) ? ARCHIVED[RUN_ID] : null;
+  const DATA = archived ? `data/${RUN_ID}/` : 'data/';
 
   // The attacks of the run, as a visitor would try them. `guard` names what refused it.
   const TRIES = {
@@ -92,6 +98,7 @@
 
   // ---- indexer -----------------------------------------------------------------------------
   async function getJSON(path) {
+    if (archived) throw Object.assign(new Error('archived run'), { status: 'archived' });
     const ctl = new AbortController();
     const t = setTimeout(() => ctl.abort(), FETCH_TIMEOUT_MS);
     try {
@@ -172,7 +179,7 @@
       return readVerdict(await getJSON(`transactions/${row.tx}/result`), row);
     } catch (e) {
       // Dropped by the indexer, or the indexer is down: the archived result still answers, and says so.
-      if (e.status === 404 || (state.snapshot && state.snapshot.verdicts[row.tx])) return fromSnapshot(row);
+      if (e.status === 404 || e.status === 'archived' || (state.snapshot && state.snapshot.verdicts[row.tx])) return fromSnapshot(row);
       return { state: 'off', text: 'Indexer unreachable' };
     }
   }
@@ -242,6 +249,9 @@
       // One beat per successful read of the indexer, so the dot means "just refreshed".
       if (!reduce.matches) pulse.animate([{ transform: 'scale(1.8)', opacity: .4 }, { transform: 'scale(1)', opacity: 1 }], { duration: 280, easing: 'cubic-bezier(.23,1,.32,1)' });
       $('net-text').innerHTML = `<span class="hide-sm">Esmeralda testnet, epoch</span><span class="show-sm">Epoch</span> <b>${ep(state.epoch)}</b>`;
+    } else if (archived) {
+      pulse.dataset.state = 'archived';
+      $('net-text').textContent = `Archived run of ${archived.date}`;
     } else if (state.epoch === 'off') {
       pulse.dataset.state = 'off';
       $('net-text').textContent = 'Indexer unreachable: showing the recorded run';
@@ -293,7 +303,7 @@
       ? `<p class="by">${icon('scales')}By the mediator’s ruling</p>` : '';
     const note = source === 'live'
       ? '<p class="live" data-state="live"><span class="dot"></span>Read live from the book</p>'
-      : source === 'recorded' ? '<p class="live" data-state="recorded"><span class="dot"></span>Recorded status, indexer unreachable</p>' : '';
+      : source === 'recorded' ? `<p class="live" data-state="recorded"><span class="dot"></span>Recorded status, ${archived ? 'from the archive' : 'indexer unreachable'}</p>` : '';
     return `<div class="box s2 b-status"><p class="lab">${icon('flag')}Status</p><p class="val">${val}</p>${by}${note}</div>`;
   }
 
@@ -389,7 +399,8 @@
       const left = i.deadline_epoch - state.epoch;
       now = `Current epoch ${ep(state.epoch)}, ${left > 0 ? `${left} ${left === 1 ? 'epoch' : 'epochs'} left to approve` : 'approval deadline passed'}`;
     } else {
-      now = state.epoch === 'off' ? 'Current epoch unknown' : sk('Reading the current epoch');
+      now = archived ? `Epochs of Esmeralda before its reset on ${archived.reset}`
+        : state.epoch === 'off' ? 'Current epoch unknown' : sk('Reading the current epoch');
     }
     return `<div class="box s3 b-deadline"><p class="lab">${icon('hourglass-medium')}Deadlines, in epochs of about 70 min</p><p class="val">Approve before epoch ${ep(i.deadline_epoch)}<br>Claim or rule before epoch ${ep(i.claim_until)}</p><p class="small">${now}</p></div>`;
   }
@@ -416,7 +427,7 @@
       line = `${exit ? `Through ${exit.words}. ` : ''}Checked live: the output is gone from the chain.`;
     } else {
       val = exit ? 'Opened, as recorded' : 'Sealed, as recorded';
-      line = `${icon('cloud-slash')}Indexer unreachable`;
+      line = archived ? `${icon('archive')}Recorded before the reset of ${archived.reset}` : `${icon('cloud-slash')}Indexer unreachable`;
     }
     return `<div class="box s3 b-escrow"><p class="lab">${icon('vault')}Escrow</p>${sealSVG(open)}<div><p class="val">${val}</p>${line ? `<p class="small">${line}</p>` : ''}</div></div>`;
   }
@@ -672,9 +683,12 @@
     const rejected = rows.filter((r) => !r.accepted).length;
     const keep = document.activeElement && document.activeElement.id === 'recheck';
     $('tl-h').textContent = `Invoice ${pad4(i.no)} on chain`;
-    $('tl-count').innerHTML = `${rows.length} transactions: ${rows.length - rejected} committed, ${rejected} refused. <button class="recheck" id="recheck" type="button">${icon('arrows-clockwise')}Check again on the indexer</button>`;
-    $('tl-foot').textContent = 'Fees in µT, 1 tTARI = 1,000,000 µT. The indexer drops results after a few hours; each one was archived as served.';
-    if (keep) $('recheck').focus({ preventScroll: true });
+    const recheck = archived ? '' : ` <button class="recheck" id="recheck" type="button">${icon('arrows-clockwise')}Check again on the indexer</button>`;
+    $('tl-count').innerHTML = `${rows.length} transactions: ${rows.length - rejected} committed, ${rejected} refused.${recheck}`;
+    $('tl-foot').textContent = archived
+      ? `Fees in µT, 1 tTARI = 1,000,000 µT. Each result is the copy archived from the indexer right after the run, before the reset of ${archived.reset}.`
+      : 'Fees in µT, 1 tTARI = 1,000,000 µT. The indexer drops results after a few hours; each one was archived as served.';
+    if (keep && !archived) $('recheck').focus({ preventScroll: true });
     // The entrance plays once per invoice; live refreshes repaint without replaying it.
     $('stubs').classList.toggle('settled', state.paintedInvoice === i.no);
     state.paintedInvoice = i.no;
@@ -690,7 +704,7 @@
         <span class="mini">${stampSVG(r.accepted ? 'COMMITTED' : 'REFUSED', r.accepted ? 196 : 164)}</span>
       </li>`;
     }).join('');
-    $('recheck').addEventListener('click', () => verifyAll(true));
+    if (!archived) $('recheck').addEventListener('click', () => verifyAll(true));
   }
 
   // ---- Try to steal it ----------------------------------------------------------------------
@@ -725,7 +739,7 @@
     const off = tried.filter((v) => v.state === 'off').length;
     const line = $('tally-through');
     if (!tried.length) {
-      line.textContent = 'Replay them to ask the indexer again';
+      line.textContent = archived ? 'Replay them against the archived results' : 'Replay them to ask the indexer again';
       line.dataset.state = '';
     } else {
       const parts = [refused === tried.length ? `${tried.length === 1 ? 'refused' : 'all refused'} again` : `${refused} refused again`];
@@ -747,7 +761,7 @@
     li.dataset.state = 'wait';
     btn.setAttribute('aria-disabled', 'true');
     const out = li.querySelector('.out');
-    out.innerHTML = `<span class="ver">${icon('circle-notch')}Asking the indexer for the verdict</span>`;
+    out.innerHTML = `<span class="ver">${icon('circle-notch')}${archived ? 'Reading the archived verdict' : 'Asking the indexer for the verdict'}</span>`;
     const v = await verdictOf(row);
     state.verdicts.set(row.tx, v);
     state.tried.set(row.tx, v);
@@ -828,7 +842,7 @@
   }
 
   function writeURL() {
-    const q = new URLSearchParams({ invoice: String(state.invoice), view: state.view });
+    const q = new URLSearchParams({ ...(archived ? { run: RUN_ID } : {}), invoice: String(state.invoice), view: state.view });
     history.replaceState(null, '', `?${q}`);
   }
 
@@ -915,6 +929,16 @@
     });
   }
 
+  // Which run this page shows, and the way to the other one.
+  function paintRuns() {
+    const [id, a] = Object.entries(ARCHIVED)[0];
+    $('runs').innerHTML = archived
+      ? `${icon('archive')}<span>Recorded on ${archived.date}, before Esmeralda was reset on ${archived.reset}. <a href="./">See the current run</a></span>`
+      : `${icon('clock-counter-clockwise')}<a href="?run=${id}">Earlier run of ${a.date}, before the Esmeralda reset</a>`;
+    if (state.run.recorded) $('proof-h').innerHTML = `${icon('seal-check')}What ran on Esmeralda, ${esc(state.run.recorded)}`;
+    if (archived) $('guided').textContent = `Archived run of ${archived.date}, read from the copies saved right after it.`;
+  }
+
   function readURL() {
     const q = new URLSearchParams(location.search);
     const v = q.get('view');
@@ -926,7 +950,7 @@
 
   async function start() {
     try {
-      const r = await fetch('data/run.json', { cache: 'no-store' });
+      const r = await fetch(`${DATA}run.json`, { cache: 'no-store' });
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       state.run = await r.json();
     } catch (err) {
@@ -934,11 +958,12 @@
       return;
     }
     try {
-      const s = await fetch('data/verdicts.json', { cache: 'no-store' });
+      const s = await fetch(`${DATA}verdicts.json`, { cache: 'no-store' });
       if (s.ok) state.snapshot = await s.json();
     } catch (_) {
       // Without a snapshot, pruned verdicts show as such; live reads are unaffected.
     }
+    paintRuns();
     $('f-tests').textContent = `${state.run.engine_tests_passed} engine tests pass (local run of the compiled template)`;
     readURL();
     bind();

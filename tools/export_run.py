@@ -9,6 +9,7 @@ Usage, from the repository root:  python tools/export_run.py
 import json
 import subprocess
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -102,6 +103,13 @@ def timeline_for(n: int, entries: list[dict]) -> list[dict]:
     return rows
 
 
+def recorded_on(entries: list) -> str:
+    """The UTC day of the run's last transaction, as the page names it ("29 October 2026")."""
+    last = max(int(e["recorded_at"].removeprefix("unix:")) for e in entries if "recorded_at" in e)
+    d = datetime.fromtimestamp(last, timezone.utc)
+    return f"{d.day} {d:%B %Y}"
+
+
 def main() -> None:
     state = json.loads(STATE.read_text(encoding="utf-8"))
     entries = run_entries()
@@ -147,6 +155,7 @@ def main() -> None:
         "book": view["book"],
         "book_txs": book_steps,
         "engine_tests_passed": engine_tests_passed(),
+        "recorded": recorded_on(entries),
         "invoices": invoices,
     }
     OUT.parent.mkdir(parents=True, exist_ok=True)

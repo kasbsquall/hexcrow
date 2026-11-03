@@ -203,14 +203,14 @@ mod hexcrow_book {
         /// additional authorising signer. The escrow spend is sealed by the invoice's escrow key
         /// (the key that decrypts the escrow output) and co-signed by the acting parties, so both
         /// shapes have to be accepted.
-        fn require_signer(&self, expected: RistrettoPublicKeyBytes, msg: &str) {
+        /// `_why` names the rule for readers of the code; the engine reports the failure itself.
+        fn require_signer(&self, expected: RistrettoPublicKeyBytes, _why: &str) {
             if CallerContext::transaction_signer_public_key() == expected {
                 return;
             }
-            // Aborts the transaction when `expected` is not among the signers.
-            let proof = CallerContext::get_signer_proof_for_public_key(expected);
-            assert!(proof.resource_address() == PUBLIC_IDENTITY_RESOURCE_ADDRESS, "{}", msg);
-            proof.drop();
+            // Aborts the transaction when `expected` is not among the signers: every signer's
+            // public-key badge is in scope for a direct call to this component.
+            CallerContext::assert_badge_in_scope(&NonFungibleAddress::from_public_key(expected));
         }
 
         /// A ruling settles a dispute about a funded invoice nobody approved, while the escrow's

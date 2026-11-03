@@ -23,8 +23,8 @@ const CLAIM_UNTIL: u64 = DEADLINE + GRACE;
 const SETTLED: &str = "Array([Integer(3), Array([])])";
 const REFUNDED: &str = "Array([Integer(4), Array([])])";
 
-// The engine aborts when the book asks for a signer proof of a key that did not sign.
-const NOT_A_SIGNER: &str = "out of scope signer badge";
+// The engine aborts when the book asks for the badge of a key that did not sign.
+const NOT_A_SIGNER: &str = "does not carry the badge";
 
 struct Party {
     secret: RistrettoSecretKey,

@@ -13,13 +13,12 @@ category = "finance"
 homepage = "https://github.com/"
 
 [dependencies]
-tari_template_lib = { version = "0.35" }
+tari_template_lib = { version = "0.37" }
 
 [dev-dependencies]
-tari_template_test_tooling = "0.47"
+tari_template_test_tooling = "0.49"
 sha2 = "0.10"
-# tari_crypto 0.24.1 (21-oct) breaks type inference inside tari_template_test_tooling 0.47.0.
-tari_crypto = "=0.24.0"
+tari_crypto = "0.24"
 
 [lib]
 crate-type = ["cdylib"]
