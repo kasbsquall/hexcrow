@@ -42,6 +42,8 @@ def from_cbor(b64):
 
     def take(n):
         nonlocal pos
+        if pos + n > len(b):
+            raise ValueError("truncated CBOR")
         pos += n
         return b[pos - n:pos]
 
@@ -72,7 +74,10 @@ def from_cbor(b64):
             return [[item(), item()] for _ in range(n)]
         return item()  # 6: a tag; its content stands for it
 
-    return item()
+    value = item()
+    if pos != len(b):
+        raise ValueError("trailing bytes after CBOR")
+    return value
 
 
 def result_name(execution_result):

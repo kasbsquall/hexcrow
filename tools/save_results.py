@@ -52,7 +52,14 @@ def main():
             if e.code != 404:
                 raise
             try:
-                record.write_bytes(get(f"{INDEXER}transactions/{tx}"))
+                raw = get(f"{INDEXER}transactions/{tx}")
+                t = json.loads(raw)["transaction"]
+                if not (t.get("summary") or t.get("rejected_reason")):
+                    # Still pending, or no verdict yet: saving it would freeze an empty record.
+                    print(f"{tx}: no verdict in its record yet")
+                    missing += 1
+                    continue
+                record.write_bytes(raw)
                 records += 1
             except urllib.error.HTTPError as e2:
                 print(f"{tx}: HTTP {e2.code}")

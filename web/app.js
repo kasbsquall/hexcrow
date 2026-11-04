@@ -123,24 +123,31 @@
     for (let i = 0; i < bin.length; i++) b[i] = bin.charCodeAt(i);
     const view = new DataView(b.buffer);
     let p = 0;
-    const take = (n) => { const s = b.subarray(p, p + n); p += n; return s; };
+    // A short or cut response must fail, never read as zeros.
+    const take = (n) => {
+      if (p + n > b.length) throw new Error('truncated CBOR');
+      const s = b.subarray(p, p + n);
+      p += n;
+      return s;
+    };
     const hex = (u) => Array.from(u, (x) => x.toString(16).padStart(2, '0')).join('');
     const arg = (info) => {
       if (info < 24) return info;
       if (info > 27) throw new Error('unsupported CBOR length');
       let v = 0;
       for (const x of take(1 << (info - 24))) v = v * 256 + x;
+      if (v > Number.MAX_SAFE_INTEGER) throw new Error('CBOR integer too large');
       return v;
     };
     const item = () => {
-      const ib = b[p++];
+      const ib = take(1)[0];
       const major = ib >> 5;
       const info = ib & 31;
       if (major === 7) {
         if (info === 20 || info === 21) return info === 21;
         if (info === 22 || info === 23) return null;
-        if (info === 26) { p += 4; return view.getFloat32(p - 4); }
-        if (info === 27) { p += 8; return view.getFloat64(p - 8); }
+        if (info === 26) { take(4); return view.getFloat32(p - 4); }
+        if (info === 27) { take(8); return view.getFloat64(p - 8); }
         throw new Error('unsupported CBOR simple value');
       }
       const n = arg(info);
@@ -154,7 +161,9 @@
         default: return item(); // 6: a tag; its content stands for it
       }
     };
-    return item();
+    const value = item();
+    if (p !== b.length) throw new Error('trailing bytes after CBOR');
+    return value;
   }
 
   // The book is the substate [0 (Component), [[header, [[entries, next no]]]]]. Its entries map
@@ -201,12 +210,13 @@
     if (!fin) return { state: 'bad', text: 'Not finalized on the indexer' };
     // The execution result is base64 CBOR, [finalize, ...]; finalize[3] is the transaction result,
     // [0 Accept | 1 AcceptFeeRejectRest | 2 Reject, ...].
-    let res = '';
+    let res;
     try {
-      res = RESULTS[fromCbor(fin.execution_result)[0][3][0]] || '';
+      res = RESULTS[fromCbor(fin.execution_result)[0][3][0]];
     } catch (e) {
       return { state: 'bad', text: 'Unreadable result on the indexer' };
     }
+    if (!res) return { state: 'bad', text: 'Unknown result on the indexer' };
     return judge({ final_decision: fin.final_decision, result: res, finalized_time: fin.finalized_time }, row, false);
   }
 
