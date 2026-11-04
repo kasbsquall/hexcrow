@@ -2,6 +2,8 @@
 
 Everything below ran on Tari Ootle **Esmeralda testnet** on 29 October 2026 and can be checked against the public indexer `https://ootle-indexer-a.tari.com/`. The raw log of every submission, including the dry-run verdict and the fee, is [evidence/esmeralda-run.jsonl](evidence/esmeralda-run.jsonl). This run, on template v4, starts at the `faucet:contractor-1` entry recorded at 19:16:34 UTC, one line above the note that introduces v4; the note was written a few seconds after that first faucet claim.
 
+**Update, 4 November 2026:** Esmeralda was reset on 2 November. The ids below no longer exist on the chain, so the commands in this file now return 404. The result of every transaction, as the indexer served it right after the run, is in [evidence/indexer-results/](evidence/indexer-results/).
+
 ## Check it in one minute
 
 The current state of the invoice book (status per invoice):

@@ -930,13 +930,20 @@
   }
 
   // Which run this page shows, and the way to the other one.
-  function paintRuns() {
+  async function paintRuns() {
     const [id, a] = Object.entries(ARCHIVED)[0];
     $('runs').innerHTML = archived
-      ? `${icon('archive')}<span>Recorded on ${archived.date}, before Esmeralda was reset on ${archived.reset}. <a href="./">See the current run</a></span>`
+      ? `${icon('archive')}<span>Recorded on ${archived.date}, before Esmeralda was reset on ${archived.reset}. The transactions are gone from the chain; each result shown is the copy saved right after the run.<span id="to-current"></span></span>`
       : `${icon('clock-counter-clockwise')}<a href="?run=${id}">Earlier run of ${a.date}, before the Esmeralda reset</a>`;
     if (state.run.recorded) $('proof-h').innerHTML = `${icon('seal-check')}What ran on Esmeralda, ${esc(state.run.recorded)}`;
     if (archived) $('guided').textContent = `Archived run of ${archived.date}, read from the copies saved right after it.`;
+    // The way back exists only once a run on the current network has been recorded.
+    if (archived) {
+      try {
+        const r = await fetch('data/run.json', { method: 'HEAD', cache: 'no-store' });
+        if (r.ok) $('to-current').innerHTML = ' <a href="./">See the current run</a>';
+      } catch (_) { /* offline: no link */ }
+    }
   }
 
   function readURL() {
@@ -951,6 +958,13 @@
   async function start() {
     try {
       const r = await fetch(`${DATA}run.json`, { cache: 'no-store' });
+      // No run recorded on the current network yet: open the latest archived one instead.
+      if (r.status === 404 && !archived) {
+        const q = new URLSearchParams(location.search);
+        q.set('run', Object.keys(ARCHIVED).pop());
+        location.replace(`?${q}`);
+        return;
+      }
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       state.run = await r.json();
     } catch (err) {

@@ -4,6 +4,8 @@
 
 Built for the Tari Council October 2026 build contest, "Spooky Secrets".
 
+**Update, 4 November 2026.** Esmeralda was reset on 2 November, which erased the template, the book and every transaction of the run described here. The code is updated for the reset network (ootle-rs 0.31, tari_template_lib 0.37) and the 19 engine tests pass again on its engine ([evidence/local-engine-tests.txt](evidence/local-engine-tests.txt)). A new run is waiting on test funds, because the network faucet is empty. Until then the demo shows the 29 October run as an archive, read from the results saved right after it.
+
 - **Video (2 min):** https://youtu.be/mIA5McSGTiA, a walkthrough of the same run on Esmeralda testnet.
 - **Hosted demo:** https://kasbsquall.github.io/hexcrow/ No wallet, no install. It replays a real run on Esmeralda testnet: four invoices, five copies of each, and ten attacks you can replay yourself. Each replay asks the public indexer again and, once the indexer has dropped the result, shows the one archived right after the run.
 - **Proof:** every transaction of the run, with how to check it yourself, in [PROOF.md](PROOF.md).
