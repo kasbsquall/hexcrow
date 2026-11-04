@@ -2,6 +2,7 @@
 //
 // hexcrow: drives private milestone escrows on the Tari Ootle (Esmeralda testnet).
 
+mod burn_proof;
 mod chain;
 mod escrow;
 mod personas;
@@ -314,13 +315,6 @@ async fn faucet(personas: &Personas, state: &mut State, who: &str) -> Result<()>
     Ok(())
 }
 
-/// The burn proof file `minotari_console_wallet` writes (the wallet daemon's `ClaimBurnProofContents`).
-#[derive(Deserialize)]
-struct BurnProofFile {
-    claim_proof: MinotariBurnClaimProof,
-    encrypted_data: EncryptedData,
-}
-
 async fn claim_burn(personas: &Personas, state: &mut State, who: &str, proof: Option<PathBuf>) -> Result<()> {
     let mut s = Session::connect(personas, who, &[]).await?;
     let Some(proof) = proof else {
@@ -328,9 +322,17 @@ async fn claim_burn(personas: &Personas, state: &mut State, who: &str, proof: Op
         return Ok(());
     };
     let text = fs::read_to_string(&proof).with_context(|| format!("reading {}", proof.display()))?;
-    let file: BurnProofFile = serde_json::from_str(&text).context("parsing the burn proof")?;
-    let value = file
-        .claim_proof
+    // The file `minotari_console_wallet` writes; `mined_in_epoch` is the epoch Ootle must pass before it can accept
+    // the claim (a claim sent earlier is rejected for good).
+    let file: tari_sidechain::CompleteClaimBurnProof = serde_json::from_str(&text).context("parsing the burn proof")?;
+    let encrypted_data = EncryptedData::try_from(file.encrypted_data.clone())
+        .map_err(|e| anyhow!("the burn proof's encrypted data: {e:?}"))?;
+    let epoch = s.provider.get_epoch().await?.as_u64();
+    if epoch <= file.mined_in_epoch {
+        bail!("Ootle is at epoch {epoch}; wait until it passes epoch {} before claiming", file.mined_in_epoch);
+    }
+    let claim_proof: MinotariBurnClaimProof = burn_proof::claim_proof_from_l1(&file.claim_proof)?;
+    let value = claim_proof
         .value
         .checked_sub(CLAIM_MAX_FEE)
         .filter(|v| *v > 0)
@@ -338,7 +340,7 @@ async fn claim_burn(personas: &Personas, state: &mut State, who: &str, proof: Op
     let max_epoch = s.max_epoch().await?;
     // The L1 burn is addressed to a stealth key derived from the persona's account key, so the claim
     // is sealed by that derived key; the claimed funds become one stealth output to the persona.
-    let (unsigned, sealer) = ClaimBurn::new(&s.provider, file.claim_proof, file.encrypted_data, max_epoch)
+    let (unsigned, sealer) = ClaimBurn::new(&s.provider, claim_proof, encrypted_data, max_epoch)
         .with_max_fee(CLAIM_MAX_FEE)
         .prepare()
         .await?;
@@ -833,9 +835,33 @@ fn cbor_hex(v: &serde_json::Value) -> Option<String> {
     v.get("hex").and_then(|h| h.as_str()).map(str::to_string)
 }
 
-/// Reads one invoice from the book as plain JSON from the public indexer, the read the web demo
-/// makes. Unlike the escrow output in `verify`, this read is not checked against a proof.
+/// Turns a CBOR value into the JSON shape the indexer served before 0.50: bytes as `{"hex": ..}`,
+/// maps as `[key, value]` pairs, tags dropped.
+fn cbor_to_json(v: ciborium::Value) -> serde_json::Value {
+    use ciborium::Value as C;
+    use serde_json::Value as J;
+    match v {
+        C::Integer(i) => {
+            let i = i128::from(i);
+            u64::try_from(i).map(J::from).or_else(|_| i64::try_from(i).map(J::from)).unwrap_or(J::Null)
+        },
+        C::Bytes(b) => serde_json::json!({ "hex": hex::encode(b) }),
+        C::Float(f) => J::from(f),
+        C::Text(s) => J::String(s),
+        C::Bool(b) => J::Bool(b),
+        C::Null => J::Null,
+        C::Tag(_, inner) => cbor_to_json(*inner),
+        C::Array(a) => J::Array(a.into_iter().map(cbor_to_json).collect()),
+        C::Map(m) => J::Array(m.into_iter().map(|(k, v)| J::Array(vec![cbor_to_json(k), cbor_to_json(v)])).collect()),
+        _ => J::Null,
+    }
+}
+
+/// Reads one invoice from the book from the public indexer, the read the web demo makes. Since
+/// indexer 0.50 the substate comes as base64 CBOR: `[0 (Component), [[header, [[entries, next]]]]]`.
+/// Unlike the escrow output in `verify`, this read is not checked against a proof.
 async fn read_book_entry(state: &State, invoice: u64) -> Result<BookEntry> {
+    use base64::Engine as _;
     let book = state.book.as_ref().ok_or_else(|| anyhow!("no book yet"))?;
     let indexer = ootle_rs::default_indexer_url(personas::NETWORK).to_string();
     let url = format!("{}/substates/{book}", indexer.trim_end_matches('/'));
@@ -847,8 +873,15 @@ async fn read_book_entry(state: &State, invoice: u64) -> Result<BookEntry> {
         .error_for_status()?
         .json()
         .await?;
-    let entries = json
-        .pointer("/state/up/substate/Component/body/state/0/entries")
+    let encoded = json
+        .pointer("/state/up/substate")
+        .and_then(|s| s.as_str())
+        .ok_or_else(|| anyhow!("the indexer did not return the book as an up substate"))?;
+    let raw = base64::engine::general_purpose::STANDARD.decode(encoded).context("decoding the book's base64")?;
+    let value: ciborium::Value = ciborium::from_reader(raw.as_slice()).context("decoding the book's CBOR")?;
+    let substate = cbor_to_json(value);
+    let entries = substate
+        .pointer("/1/0/1/0/0")
         .and_then(|e| e.as_array())
         .ok_or_else(|| anyhow!("unexpected book state shape"))?;
     let f = entries

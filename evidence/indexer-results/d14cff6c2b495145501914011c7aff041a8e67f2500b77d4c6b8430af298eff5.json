@@ -1,0 +1,1 @@
+{"result":{"Rejected":{"details":"Execution failure (InvalidProof): At instruction #1: Spend condition not met: builtin predicate not satisfied: HashLock { hash: Hash32([126, 145, 109, 175, 73, 159, 145, 211, 156, 85, 180, 163, 14, 210, 162, 253, 39, 208, 237, 118, 67, 207, 215, 207, 54, 96, 138, 97, 67, 233, 151, 251]), alg: Sha256 }","rejected_time":"2026-11-04 16:20:09.0"}}}

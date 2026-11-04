@@ -1,5 +1,8 @@
 """Save the indexer's raw result for every transaction from template v3 on in the run log.
 
+When the indexer has already dropped a result (404), its transaction record is saved instead as
+<tx>.tx.json: the indexer keeps that record, with a summary of the verdict, after it drops the result.
+
 The public indexers drop transaction results within hours, well before the 50 epochs their /info
 advertises (seen on 29-oct-2026). Each result is saved once, as served, under
 evidence/indexer-results/<tx>.json, so the verdicts stay checkable after the indexer forgets them.
@@ -28,22 +31,33 @@ def tx_ids_since_v3():
             yield tx
 
 
+def get(url):
+    req = urllib.request.Request(url, headers={"User-Agent": "hexcrow-save/1"})
+    with urllib.request.urlopen(req, timeout=20) as r:
+        return r.read()
+
+
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
-    saved = missing = 0
+    saved = records = missing = 0
     for tx in tx_ids_since_v3():
         dest = OUT / f"{tx}.json"
-        if dest.exists():
+        record = OUT / f"{tx}.tx.json"
+        if dest.exists() or record.exists():
             continue
-        req = urllib.request.Request(f"{INDEXER}transactions/{tx}/result", headers={"User-Agent": "hexcrow-save/1"})
         try:
-            with urllib.request.urlopen(req, timeout=20) as r:
-                dest.write_bytes(r.read())
+            dest.write_bytes(get(f"{INDEXER}transactions/{tx}/result"))
             saved += 1
         except urllib.error.HTTPError as e:
-            print(f"{tx}: HTTP {e.code}")
-            missing += 1
-    print(f"saved {saved}, missing {missing}, in {OUT.relative_to(ROOT)}")
+            if e.code != 404:
+                raise
+            try:
+                record.write_bytes(get(f"{INDEXER}transactions/{tx}"))
+                records += 1
+            except urllib.error.HTTPError as e2:
+                print(f"{tx}: HTTP {e2.code}")
+                missing += 1
+    print(f"saved {saved} results and {records} records, missing {missing}, in {OUT.relative_to(ROOT)}")
 
 
 if __name__ == "__main__":

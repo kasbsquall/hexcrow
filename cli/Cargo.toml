@@ -32,3 +32,11 @@ reqwest = { version = "0.13", features = ["json"] }
 # Same versions ootle-rs 0.31 uses, to anchor validator-set trust on an earlier checkpoint.
 tari_indexer_client = { version = "0.50", default-features = false, features = ["client"] }
 tari_ootle_light_client = "0.3"
+# Reads the burn proof file a Minotari L1 wallet writes, for `claim-burn` (src/burn_proof.rs).
+tari_sidechain = "9.0"
+ootle_byte_type = "0.18"
+borsh = { version = "1.6", features = ["std"] }
+bounded-vec = "0.9"
+# The indexer serves substates as base64 CBOR since 0.50 (`read_book_entry`).
+base64 = "0.22"
+ciborium = "0.2"

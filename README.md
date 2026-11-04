@@ -4,9 +4,9 @@
 
 Built for the Tari Council October 2026 build contest, "Spooky Secrets".
 
-**Update, 4 November 2026.** Esmeralda was reset on 2 November, which erased the template, the book and every transaction of the run described here. The code is updated for the reset network (ootle-rs 0.31, tari_template_lib 0.37) and the 19 engine tests pass again on its engine ([evidence/local-engine-tests.txt](evidence/local-engine-tests.txt)). A new run is waiting on test funds, because the network faucet is empty. Until then the demo shows the 29 October run as an archive, read from the results saved right after it.
+**Update, 4 November 2026.** Esmeralda was reset on 2 November, which erased the template, the book and every transaction of the 29 October run. Hexcrow is republished on the reset network with the same rules, and the four invoices and ten attacks ran again on 4 November. The code changed only where the reset required it (ootle-rs 0.31, tari_template_lib 0.37, the indexer's new encoding), and the 19 engine tests pass on the new engine ([evidence/local-engine-tests.txt](evidence/local-engine-tests.txt)). The 29 October run stays in the demo as an archived page and in [PROOF-2026-10-29.md](PROOF-2026-10-29.md).
 
-- **Video (2 min):** https://youtu.be/mIA5McSGTiA, a walkthrough of the same run on Esmeralda testnet.
+- **Video (2 min):** https://youtu.be/mIA5McSGTiA, a walkthrough of the 29 October run on Esmeralda testnet; the 4 November run repeats it step by step.
 - **Hosted demo:** https://kasbsquall.github.io/hexcrow/ No wallet, no install. It replays a real run on Esmeralda testnet: four invoices, five copies of each, and ten attacks you can replay yourself. Each replay asks the public indexer again and, once the indexer has dropped the result, shows the one archived right after the run.
 - **Proof:** every transaction of the run, with how to check it yourself, in [PROOF.md](PROOF.md).
 - **What stays hidden and what leaks:** [THREAT_MODEL.md](THREAT_MODEL.md).
@@ -48,7 +48,7 @@ Each invoice has two epochs: the client approves before the **deadline**, and th
 
 **A mediator for disputes.** The contractor names a mediator's one-time key when it issues the invoice, and the client accepts that mediator by funding. If the client goes silent after the work is delivered, or the contractor walks away, the mediator rules. It cannot pay anyone alone: each ruling leaf also needs the key of the side it pays, and both close with the claim window. The ruling text stays off chain and the book keeps its salted hash, so either side can later show the ruling and anyone can check it.
 
-**The client holds the approval code.** The contractor issues the invoice without one. The client picks the code when it funds and records only its hash, in the book and in the escrow's claim leaf, so the contractor cannot claim with a code it chose itself. When the client approves, it publishes the code in the book so the approval can be audited; that is the `hexcrow-approve-…` string readable in invoice 1's entry. The code alone cannot move the money: the claim leaf also needs the contractor's key, and a stranger holding the public code was refused (invoice 1, transaction 12 in [PROOF.md](PROOF.md), `1f3b07c8…`).
+**The client holds the approval code.** The contractor issues the invoice without one. The client picks the code when it funds and records only its hash, in the book and in the escrow's claim leaf, so the contractor cannot claim with a code it chose itself. When the client approves, it publishes the code in the book so the approval can be audited; that is the `hexcrow-approve-…` string readable in invoice 1's entry. The code alone cannot move the money: the claim leaf also needs the contractor's key, and a stranger holding the public code was refused (invoice 1, transaction 12 in [PROOF.md](PROOF.md), `0d7362a2…`).
 
 **Every invoice has its own keys.** The client, the contractor, the mediator and the escrow viewing key are created for one invoice and used for nothing else, so two invoices of the same people share no key on chain.
 
@@ -69,7 +69,7 @@ Ootle's spend conditions already give a stealth output a hash lock and a timeout
 
 ## What ran on Esmeralda
 
-Template v4 `template_8eba2e85…6b5fd3`, book `component_f427dbf5…6372ba`, on 29 October 2026. Full ids and how to verify each one are in [PROOF.md](PROOF.md). The four stories are scripted with throwaway testnet keys; every transaction is real.
+Template v4 `template_666ec8ba…9dcd50`, book `component_e668bbfe…886e9c`, on 4 November 2026, after the network reset. Full ids and how to verify each one are in [PROOF.md](PROOF.md). The four stories are scripted with throwaway testnet keys; every transaction is real.
 
 Four invoices, each leaving the escrow through a different leaf:
 
@@ -87,13 +87,13 @@ Every attack was sent to the network, signed by the party named:
 | The contractor funds its own invoice with a code it chose | the book: the signer is not the client |
 | A stranger tries to claim | the engine: access denied on the escrow spend |
 | The contractor claims without the approval code | the engine: hash lock not satisfied |
-| The client takes the money back before the claim window closes | the engine: `AfterEpoch(12722)` not satisfied |
+| The client takes the money back before the claim window closes | the engine: `AfterEpoch(12864)` not satisfied |
 | The contractor approves its own invoice | the book: the signer is not the client |
 | The mediator tries to pay itself through a ruling leaf | the engine: access denied on the escrow spend |
 | The contractor uses a ruling leaf without the mediator | the engine: access denied on the escrow spend |
-| The client approves, then tries to take the money back | the engine: `AfterEpoch(12722)` not satisfied |
+| The client approves, then tries to take the money back | the engine: `AfterEpoch(12864)` not satisfied |
 | A stranger claims with the approval code, after it became public | the engine: access denied on the escrow spend |
-| The mediator and the contractor rule after the claim window closed | the engine: `BeforeEpoch(12719)` not satisfied |
+| The mediator and the contractor rule after the claim window closed | the engine: `BeforeEpoch(12861)` not satisfied |
 
 The four invoices share no key: each has its own client, contractor, mediator and escrow keys, so the chain cannot tell that 0001 and 0002 are two milestones of the same project.
 
@@ -115,7 +115,7 @@ cd web
 python -m http.server 8765
 ```
 
-CLI against Esmeralda (`cli/`, Rust, `ootle-rs` 0.29). It keeps testnet keys in `cli/.hexcrow/`, which is git-ignored.
+CLI against Esmeralda (`cli/`, Rust, `ootle-rs` 0.31). It keeps testnet keys in `cli/.hexcrow/`, which is git-ignored. When the network faucet is empty, `claim-burn` claims tTARI burned on the Esmeralda L1 and `give` passes them to a one-time key, as in the 4 November run.
 
 ```bash
 cd cli
@@ -136,7 +136,7 @@ In a dispute the mediator rules instead: `cargo run -- rule 5 --for contractor -
 ## Limits, stated plainly
 
 - Testnet only. Amounts are tTARI.
-- Timing, status and fees are public, as on any Ootle transaction. In this run the one-time keys were funded from the public testnet faucet within 21 seconds of each other, so timing can hint that they belong together.
+- Timing, status and fees are public, as on any Ootle transaction. In this run the one-time keys were funded by transfers from one testnet key within 23 seconds, so timing and the common source can tell that they belong together ([THREAT_MODEL.md](THREAT_MODEL.md), item 4).
 - The book records what the client says it funded, and the escrow leaves do not call the book. The contractor's `verify` is what ties the record to a real escrow output; after that, a party who spends a leaf without updating the book leaves the book one step behind the escrow, which the demo shows by reading the escrow output live.
 - The mediator is trusted to judge the work. A mediator colluding with one side can rule for that side, as with any arbiter; it still needs that side's key, and only one invoice and one claim window are at stake. A mediator that never answers changes nothing: the invoice goes back to the client after the claim window.
 - The public indexers dropped our transaction results within hours, well before the 50 epochs they advertise. The raw results are saved in [evidence/indexer-results/](evidence/indexer-results/), and the demo links each archived result when the indexer no longer serves it.

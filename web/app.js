@@ -5,6 +5,8 @@
   'use strict';
 
   const STATUS = ['Issued', 'Funded', 'Approved', 'Settled', 'Refunded'];
+  // `TransactionResult` variants in the order the engine encodes them (tari_engine_types commit_result.rs).
+  const RESULTS = ['Accept', 'AcceptFeeRejectRest', 'Reject'];
   const STAMP = { Issued: 'ISSUED', Funded: 'FUNDED', Approved: 'APPROVED', Settled: 'SETTLED', Refunded: 'REFUNDED' };
   const STATUS_ICON = { Issued: 'file-plus', Funded: 'lock-key', Approved: 'check-circle', Settled: 'flag-checkered', Refunded: 'arrow-u-up-left' };
   const COPY = { public: 'original', client: 'canario', contractor: 'rosa', mediator: 'salvia', accountant: 'azul' };
@@ -112,17 +114,61 @@
 
   const hexOf = (v) => (v && v['@cbor'] === 'bytes' ? v.hex : null);
 
-  // The book's state is a CBOR map: invoice no ->
-  // [hash, contractor, client, deadline, claim_until, lock, root, code, [status, []], mediator, ruling].
+  // Since indexer 0.50, substates and execution results come as base64 CBOR (RFC 8949). This reads
+  // them into the shape the indexer used to serve as JSON: byte strings as {'@cbor': 'bytes', hex},
+  // maps as [key, value] pairs, tags dropped, enums as [variant, fields].
+  function fromCbor(b64) {
+    const bin = atob(b64);
+    const b = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) b[i] = bin.charCodeAt(i);
+    const view = new DataView(b.buffer);
+    let p = 0;
+    const take = (n) => { const s = b.subarray(p, p + n); p += n; return s; };
+    const hex = (u) => Array.from(u, (x) => x.toString(16).padStart(2, '0')).join('');
+    const arg = (info) => {
+      if (info < 24) return info;
+      if (info > 27) throw new Error('unsupported CBOR length');
+      let v = 0;
+      for (const x of take(1 << (info - 24))) v = v * 256 + x;
+      return v;
+    };
+    const item = () => {
+      const ib = b[p++];
+      const major = ib >> 5;
+      const info = ib & 31;
+      if (major === 7) {
+        if (info === 20 || info === 21) return info === 21;
+        if (info === 22 || info === 23) return null;
+        if (info === 26) { p += 4; return view.getFloat32(p - 4); }
+        if (info === 27) { p += 8; return view.getFloat64(p - 8); }
+        throw new Error('unsupported CBOR simple value');
+      }
+      const n = arg(info);
+      switch (major) {
+        case 0: return n;
+        case 1: return -1 - n;
+        case 2: return { '@cbor': 'bytes', hex: hex(take(n)) };
+        case 3: return new TextDecoder().decode(take(n));
+        case 4: return Array.from({ length: n }, () => item());
+        case 5: return Array.from({ length: n }, () => { const k = item(); return [k, item()]; });
+        default: return item(); // 6: a tag; its content stands for it
+      }
+    };
+    return item();
+  }
+
+  // The book is the substate [0 (Component), [[header, [[entries, next no]]]]]. Its entries map
+  // invoice no -> [hash, contractor, client, deadline, claim_until, lock, root, code, [status, []],
+  // mediator, ruling]; the indexer leaves out a trailing None, so `ruling` may be missing.
   function decodeBook(json) {
-    const entries = json.state.up.substate.Component.body.state[0].entries;
+    const entries = fromCbor(json.state.up.substate)[1][0][1][0][0];
     const out = new Map();
     for (const [no, f] of entries) {
       out.set(no, {
         hash: hexOf(f[0]),
         deadline: f[3],
         claimUntil: f[4],
-        root: hexOf(f[6]) || (typeof f[6] === 'string' ? f[6] : null),
+        root: hexOf(f[6]),
         code: Array.isArray(f[7]) ? String.fromCharCode(...f[7]) : null,
         status: STATUS[f[8][0]],
         ruling: hexOf(f[10]),
@@ -137,9 +183,10 @@
   const UTXO_PREFIX = 'utxo_' + '01'.repeat(32) + '_';
   async function readEscrow(i) {
     try {
+      // [8 (Utxo), [[[output, auth, ...], ...]]]; auth is [0 (Key), [key]] or [1 (Script), [root]].
       const json = await getJSON('substates/' + UTXO_PREFIX + i.escrow_commitment);
-      const auth = json.state.up.substate.Utxo.output.auth;
-      return { state: 'unspent', root: auth && auth.Script };
+      const auth = fromCbor(json.state.up.substate)[1][0][0][1];
+      return { state: 'unspent', root: auth && auth[0] === 1 ? hexOf(auth[1][0]) : null };
     } catch (e) {
       return { state: e.status === 404 ? 'spent' : 'off' };
     }
@@ -152,8 +199,15 @@
     if (rejected) return judge({ final_decision: 'Reject', result: 'Reject', finalized_time: rejected.rejected_time }, row, false);
     const fin = json.result && json.result.Finalized;
     if (!fin) return { state: 'bad', text: 'Not finalized on the indexer' };
-    const res = fin.execution_result && fin.execution_result.finalize && fin.execution_result.finalize.result;
-    return judge({ final_decision: fin.final_decision, result: res ? Object.keys(res)[0] : '', finalized_time: fin.finalized_time }, row, false);
+    // The execution result is base64 CBOR, [finalize, ...]; finalize[3] is the transaction result,
+    // [0 Accept | 1 AcceptFeeRejectRest | 2 Reject, ...].
+    let res = '';
+    try {
+      res = RESULTS[fromCbor(fin.execution_result)[0][3][0]] || '';
+    } catch (e) {
+      return { state: 'bad', text: 'Unreadable result on the indexer' };
+    }
+    return judge({ final_decision: fin.final_decision, result: res, finalized_time: fin.finalized_time }, row, false);
   }
 
   function judge(v, row, archived) {
@@ -174,9 +228,26 @@
     return judge(snap, row, true);
   }
 
+  // After dropping a result the indexer still keeps the transaction record, with a summary of the
+  // verdict for what it committed and the reason for what it rejected.
+  const SUMMARY = { Commit: 'Accept', FeeIntentCommit: 'AcceptFeeRejectRest' };
+  function readRecord(json, row) {
+    const t = json.transaction || {};
+    if (t.summary && SUMMARY[t.summary.outcome]) {
+      return judge({ final_decision: 'Commit', result: SUMMARY[t.summary.outcome], finalized_time: t.summary.finalized_at }, row, false);
+    }
+    if (t.rejected_reason) return judge({ final_decision: 'Reject', result: 'Reject' }, row, false);
+    throw Object.assign(new Error('no verdict in the record'), { status: 'archived' });
+  }
+
   async function verdictOf(row) {
     try {
-      return readVerdict(await getJSON(`transactions/${row.tx}/result`), row);
+      try {
+        return readVerdict(await getJSON(`transactions/${row.tx}/result`), row);
+      } catch (e) {
+        if (e.status !== 404) throw e;
+        return readRecord(await getJSON(`transactions/${row.tx}`), row);
+      }
     } catch (e) {
       // Dropped by the indexer, or the indexer is down: the archived result still answers, and says so.
       if (e.status === 404 || e.status === 'archived' || (state.snapshot && state.snapshot.verdicts[row.tx])) return fromSnapshot(row);

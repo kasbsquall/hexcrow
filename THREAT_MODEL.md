@@ -36,20 +36,20 @@ What it does not protect against: a mediator that colludes with one side can rul
 
 ## Attacks sent to the real network
 
-Run on 29-oct-2026 with template v4, all refused (`evidence/esmeralda-run.jsonl`, raw results in `evidence/indexer-results/`):
+Run on 4-nov-2026 with template v4 on the reset Esmeralda, all refused (`evidence/esmeralda-run.jsonl`, raw results in `evidence/indexer-results/`). The same ten were refused on 29-oct-2026, before the reset ([PROOF-2026-10-29.md](PROOF-2026-10-29.md)):
 
 | Attempt | Refused by | Transaction |
 |---|---|---|
-| The contractor funds its own invoice with an approval code it chose | Book: the signer is not the client | a5523193… |
-| A stranger claims | Engine: access denied on the stealth spend | 6e609c05… |
-| The contractor claims without the approval code | Engine: hash lock not satisfied | c1951cdb… |
-| The client refunds before the claim window closes | Engine: `AfterEpoch(12722)` not satisfied | a2de96f2… |
-| The contractor approves its own invoice | Book: the signer is not the client | ea2d059b… |
-| The mediator tries to pay itself through a ruling leaf | Engine: access denied, the contractor did not sign | c81bdfeb… |
-| The contractor uses a ruling leaf without the mediator | Engine: access denied, the mediator did not sign | cb635914… |
-| The client approves, then tries to refund while the claim window is open | Engine: `AfterEpoch(12722)` not satisfied | acfc88f8… |
-| A stranger claims with the approval code already public | Engine: access denied on the stealth spend | 1f3b07c8… |
-| The mediator and the contractor rule after the claim window closed | Engine: `BeforeEpoch(12719)` not satisfied | 993341d9… |
+| The contractor funds its own invoice with an approval code it chose | Book: the signer is not the client | c2f3d685… |
+| A stranger claims | Engine: access denied on the stealth spend | 77562689… |
+| The contractor claims without the approval code | Engine: hash lock not satisfied | d14cff6c… |
+| The client refunds before the claim window closes | Engine: `AfterEpoch(12864)` not satisfied | d311afb0… |
+| The contractor approves its own invoice | Book: the signer is not the client | 2ad70c43… |
+| The mediator tries to pay itself through a ruling leaf | Engine: access denied, the contractor did not sign | 201e585b… |
+| The contractor uses a ruling leaf without the mediator | Engine: access denied, the mediator did not sign | f6c4cd46… |
+| The client approves, then tries to refund while the claim window is open | Engine: `AfterEpoch(12864)` not satisfied | 01b09f7b… |
+| A stranger claims with the approval code already public | Engine: access denied on the stealth spend | 0d7362a2… |
+| The mediator and the contractor rule after the claim window closed | Engine: `BeforeEpoch(12861)` not satisfied | 22705306… |
 
 ## Fixed after review
 
@@ -67,8 +67,8 @@ Run on 29-oct-2026 with template v4, all refused (`evidence/esmeralda-run.jsonl`
 
 1. **Timing and status.** Issue, fund, approve, claim, ruling and refund are public events with their epochs. Anyone can see that an invoice was funded and later settled or refunded, and whether a ruling closed it.
 2. **Fees.** Each transaction pays its fee through a revealed output to its sealing key (`cli/src/chain.rs`, `Spend::prepare`). Fee amounts are public, as on any Ootle transaction. Since every sealing key belongs to one invoice, the fee outputs do not link invoices.
-3. **The approval code becomes public on approval.** The book stores it so that the approval is auditable. This is safe because the claim leaf also needs the contractor's signature; 1f3b07c8… shows a stranger holding the public code still cannot claim.
-4. **Funding the one-time keys.** In this run each one-time key was funded from the public testnet faucet, and the eight faucet claims of the four invoices happened within 21 seconds (19:16:34 to 19:16:55 UTC). Timing can tell that they belong together. A real client would fund its one-time key with a private transfer from its own wallet, at a time of its choosing.
+3. **The approval code becomes public on approval.** The book stores it so that the approval is auditable. This is safe because the claim leaf also needs the contractor's signature; 0d7362a2… shows a stranger holding the public code still cannot claim.
+4. **Funding the one-time keys.** After the reset the testnet faucet was empty, so in the 4 November run one key, the run's publisher, sent nine transfers to the one-time keys of the four invoices and the stranger, 2 to 3 seconds apart (16:12:09 to 16:12:32 UTC, the `give:` entries of the run log). Their timing and their common source can tell that those keys belong together; on 29 October, eight faucet claims within 21 seconds told the same. A real client would fund its one-time key with a private transfer from its own wallet, at a time of its choosing.
 5. **The escrow view key is shared within one invoice.** Both parties, and any accountant or mediator they hand it to, hold that invoice's escrow view key. Anyone who obtains it sees that invoice's amount, and only that one. It cannot spend: the output has no key path.
 6. **The book records what the client says.** The book cannot see stealth outputs, so `fund` records the client's claim of a condition root, and the escrow leaves do not call the book. The contractor closes that gap before starting work with `hexcrow verify` (`cli/src/main.rs`, `verify`). It checks that the book names its key and the agreed mediator, rebuilds the condition root from the book's terms, and checks that the client can still approve. It reads the escrow output through the provider, which checks the indexer's proof against the validator set, and confirms the output is unspent and locked by exactly that root with no key path. It also decrypts the amount with the invoice's escrow view key and compares it with the amount the contractor agreed to: told to expect 2,500 tTARI for invoice 1 the check fails, at 250 it passes (`verify:1` in the run log). The book itself is read as plain JSON, without a proof; a lying indexer could misreport it, but not the verified escrow output it must match. After funding, a party can spend a leaf without updating the book, which would leave the book one step behind; the web demo reads the escrow output live, so a spent escrow shows as spent whatever the book says.
 7. **Fee intent is not atomic with the book call.** The stealth transfer that creates or spends the escrow rides in the fee intent, so it commits even if the book call in the same transaction fails. The indexer reports that case as `AcceptFeeRejectRest`, as for ea2d059b…, where the fee was taken and the book call refused. The CLI refuses to submit a real step unless the dry run accepts the whole transaction (`cli/src/chain.rs`, `send`).
@@ -78,7 +78,7 @@ Run on 29-oct-2026 with template v4, all refused (`evidence/esmeralda-run.jsonl`
 ## What Hexcrow does not solve
 
 - **Judging the work.** A dispute needs a mediator both sides trust. Without one, or if it never answers, an invoice the client does not approve goes back to the client after the claim window.
-- **Deadline granularity.** Deadlines are Ootle epochs. On Esmeralda an epoch lasted about 70 minutes during our runs, so short deadlines are coarse.
+- **Deadline granularity.** Deadlines are Ootle epochs. On Esmeralda an epoch lasted between about 57 and 71 minutes during our runs, so short deadlines are coarse.
 - **Spam.** The book is open: anyone can issue invoices against any client key. An invoice only matters to a client who chooses to fund it.
 
 ## Trust in the indexer

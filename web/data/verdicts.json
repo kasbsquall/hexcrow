@@ -1,0 +1,137 @@
+{
+  "taken_utc": "2026-11-04 19:02",
+  "taken_epoch": 12861,
+  "indexer": "https://ootle-indexer-a.tari.com/",
+  "verdicts": {
+    "d036ff413a33e756f4c439f827b790503b67bcf4659aba6a4d48207e202bbf3a": {
+      "final_decision": "Commit",
+      "result": "Accept",
+      "finalized_time": "2026-11-04 16:13:03.0",
+      "from": "transaction record"
+    },
+    "c2f3d685b63541605f346bedeebf85132dde7d93168457d4345b063a59b7b989": {
+      "final_decision": "Commit",
+      "result": "AcceptFeeRejectRest",
+      "finalized_time": "2026-11-04 16:13:08.0",
+      "from": "transaction record"
+    },
+    "9cbee861ce013380bc5a329223f783506f24974a05738f739d3913764a184f13": {
+      "final_decision": "Commit",
+      "result": "Accept",
+      "finalized_time": "2026-11-04 16:19:49.0",
+      "from": "transaction record"
+    },
+    "775626899a8b5892ec10b7f5c9bfe08f005cdddf3eb3f2f7ec9f1970b517e4a6": {
+      "final_decision": "Reject",
+      "result": "Reject",
+      "finalized_time": "2026-11-04 16:20:06.0"
+    },
+    "d14cff6c2b495145501914011c7aff041a8e67f2500b77d4c6b8430af298eff5": {
+      "final_decision": "Reject",
+      "result": "Reject",
+      "finalized_time": "2026-11-04 16:20:09.0"
+    },
+    "d311afb0f40f142f903ebf1f2bc4b10eb687807847ca6f63f31f0b0868a7b062": {
+      "final_decision": "Reject",
+      "result": "Reject",
+      "finalized_time": "2026-11-04 16:20:11.0"
+    },
+    "2ad70c433714a65c19bc7e627c19a004dbaa2fce7dd78150d22646389290c9f6": {
+      "final_decision": "Commit",
+      "result": "AcceptFeeRejectRest",
+      "finalized_time": "2026-11-04 16:20:16.0",
+      "from": "transaction record"
+    },
+    "201e585b409176e5d993babb7f71525ae7574298bf9ee95bfdff12ae63b2359f": {
+      "final_decision": "Reject",
+      "result": "Reject",
+      "finalized_time": "2026-11-04 16:20:17.0"
+    },
+    "f6c4cd4640b46431d3c112140bc3ab102a1e20d78ab1549fd13cfa7bd07018a5": {
+      "final_decision": "Reject",
+      "result": "Reject",
+      "finalized_time": "2026-11-04 16:20:20.0"
+    },
+    "9d6bf830248401e98960953402ae04670481f8b12b2fd3e8d9bc152179fc6b48": {
+      "final_decision": "Commit",
+      "result": "Accept",
+      "finalized_time": "2026-11-04 16:20:25.0",
+      "from": "transaction record"
+    },
+    "01b09f7b0ad6b9c3eb5bea233c62d1888cf53e6f2d4a096b057d41e45f764b35": {
+      "final_decision": "Reject",
+      "result": "Reject",
+      "finalized_time": "2026-11-04 16:20:25.0"
+    },
+    "0d7362a21270cc574570b8f0fc88bd17fd4401e737a2565b0ba6881a07e76916": {
+      "final_decision": "Reject",
+      "result": "Reject",
+      "finalized_time": "2026-11-04 16:20:28.0"
+    },
+    "95d1fded20a1a44a69282fd0823a51807a36ce44188ddcd2d2d02174a3600df2": {
+      "final_decision": "Commit",
+      "result": "Accept",
+      "finalized_time": "2026-11-04 16:20:33.0",
+      "from": "transaction record"
+    },
+    "29d2eb1f6d4a96b9ba3970dc99d8dbaf075d1ff54a1ffdea0e68f661e2fa7f7c": {
+      "final_decision": "Commit",
+      "result": "Accept",
+      "finalized_time": "2026-11-04 16:13:10.0",
+      "from": "transaction record"
+    },
+    "9a80740061cdac7317a6d712dab8571cc15ffbc29b85c184bc6a4613a1a40fc6": {
+      "final_decision": "Commit",
+      "result": "Accept",
+      "finalized_time": "2026-11-04 16:19:52.0",
+      "from": "transaction record"
+    },
+    "95efb87b984225a73492402327d290e059587a9c9045f4782e3a2da68bfe3872": {
+      "final_decision": "Commit",
+      "result": "Accept",
+      "finalized_time": "2026-11-04 18:03:12.0"
+    },
+    "9b3fff10f7996a4e3848478fc7c21f03fa5978fa0d899d812143586fb30ece50": {
+      "final_decision": "Commit",
+      "result": "Accept",
+      "finalized_time": "2026-11-04 16:13:14.0",
+      "from": "transaction record"
+    },
+    "f3c9c3090e67f15d157cb7029a5403f35e50a426ebc90da21c1d4debbbda8ff6": {
+      "final_decision": "Commit",
+      "result": "Accept",
+      "finalized_time": "2026-11-04 16:19:56.0",
+      "from": "transaction record"
+    },
+    "fa4a4f17f7560026c960eda7e3578356e9cd91c39194a1c1e32940d48905ba43": {
+      "final_decision": "Commit",
+      "result": "Accept",
+      "finalized_time": "2026-11-04 16:20:42.0",
+      "from": "transaction record"
+    },
+    "2fa088da9a4f4e35d4a2649d1452f84c9b90da90e3e0d905e89c8c4a26db0254": {
+      "final_decision": "Commit",
+      "result": "Accept",
+      "finalized_time": "2026-11-04 16:13:23.0",
+      "from": "transaction record"
+    },
+    "fd5aeebdd0e4ad0b3d93ef0abc8dae84aab07efa47378e4e3bfcd940d17281ec": {
+      "final_decision": "Commit",
+      "result": "Accept",
+      "finalized_time": "2026-11-04 16:20:05.0",
+      "from": "transaction record"
+    },
+    "22705306fbad9012348af20d03368b4e8333671268bae4d1c333da8ead992cf1": {
+      "final_decision": {
+        "Abort": "ExecutionFailure"
+      },
+      "result": "Reject",
+      "finalized_time": "2026-11-04 19:00:37.0"
+    },
+    "a61d38d92e53efb6004d8a55c2f6494a4e748b497c30a80706608149729056b3": {
+      "final_decision": "Commit",
+      "result": "Accept",
+      "finalized_time": "2026-11-04 19:00:40.0"
+    }
+  }
+}

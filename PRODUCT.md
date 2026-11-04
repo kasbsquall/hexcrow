@@ -37,7 +37,7 @@ The run has four invoices that left the escrow four different ways (claim, a rul
 
 ## Capabilities and Constraints
 
-- Real: template v4 `template_8eba2e85761d26e82117bc075236f9cae78e72919e7421bda33cae867d6b5fd3`, book `component_f427dbf5e39837919640366002669ccef31bc569897efd16ae6daadeb96372ba`, four invoices on Esmeralda on 29 October 2026. Every transaction is in `PROOF.md`.
+- Real: template v4 `template_666ec8baf770061d128c3c0caa9af00a9a0ec70370cb7a820c994c161d9dcd50`, book `component_e668bbfecc2f967a9f00980d93dc792662ec42085b9da2c84b078d391f886e9c`, four invoices on Esmeralda on 4 November 2026, after the reset (the 29 October run is in `PROOF-2026-10-29.md`). Every transaction is in `PROOF.md`.
 - Amounts are testnet tTARI (µT internally, 1 tTARI = 1,000,000 µT). Epochs last about 70 minutes on Esmeralda, so deadlines are counted in epochs, not hours.
 - The public indexers drop transaction results within hours; the page falls back to the raw results archived right after the run, and says so.
 - Terminology: invoice, milestone, escrow, approval code, deadline epoch, claim window, claim, ruling, refund, settle. Avoid protocol jargon in headlines (no "MAST", "UTXO", "HTLC", "leaf" above the fold).

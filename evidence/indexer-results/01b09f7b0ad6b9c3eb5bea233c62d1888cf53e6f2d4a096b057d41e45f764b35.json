@@ -1,0 +1,1 @@
+{"result":{"Rejected":{"details":"Execution failure (InvalidProof): At instruction #1: Spend condition not met: builtin predicate not satisfied: AfterEpoch(12864)","rejected_time":"2026-11-04 16:20:25.0"}}}
